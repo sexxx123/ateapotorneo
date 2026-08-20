@@ -1383,6 +1383,21 @@ export default function FutbolitoApp() {
 
   const logoutSession = () => supabase.auth.signOut();
 
+  useEffect(() => {
+    if (!data) return;
+    document.title = data.meta.name || 'Torneo de Futbolito';
+    if (data.meta.logoUrl) {
+      let link = document.getElementById('app-favicon');
+      if (!link) {
+        link = document.createElement('link');
+        link.id = 'app-favicon';
+        link.rel = 'icon';
+        document.head.appendChild(link);
+      }
+      link.href = data.meta.logoUrl;
+    }
+  }, [data && data.meta.name, data && data.meta.logoUrl]);
+
   if (loading || !data) {
     return (
       <div className="futbolito-app" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>

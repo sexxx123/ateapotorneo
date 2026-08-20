@@ -168,9 +168,10 @@ function generateRoundRobin(teamIds) {
 }
 
 function computeStandings(data) {
-  const table = data.teams.map(t => ({ teamId: t.id, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 }));
+  const table = data.teams.map(t => ({ teamId: t.id, name: t.name, pj: 0, pg: 0, pe: 0, pp: 0, gf: 0, gc: 0, pts: 0 }));
   const map = Object.fromEntries(table.map(t => [t.teamId, t]));
-  data.matches.filter(m => m.played).forEach(m => {
+  const played = data.matches.filter(m => m.played);
+  played.forEach(m => {
     const a = map[m.teamAId], b = map[m.teamBId];
     if (!a || !b) return;
     a.pj++; b.pj++;
@@ -181,8 +182,45 @@ function computeStandings(data) {
     else { a.pe++; b.pe++; a.pts += data.meta.pointsDraw; b.pts += data.meta.pointsDraw; }
   });
   table.forEach(t => t.dg = t.gf - t.gc);
-  table.sort((x, y) => y.pts - x.pts || y.dg - x.dg || y.gf - x.gf);
-  return table;
+
+  // Orden base por puntos, y dentro de cada grupo empatado en puntos, desempate
+  // por lo que pasó ENTRE ELLOS (enfrentamientos directos): puntos, diferencia y goles
+  // a favor solo de esos partidos. Si sigue empatado, cae a diferencia/goles generales
+  // y por último orden alfabético (para que el orden no cambie sin motivo).
+  const sorted = [...table].sort((a, b) => b.pts - a.pts);
+  const groups = [];
+  let i = 0;
+  while (i < sorted.length) {
+    let j = i + 1;
+    while (j < sorted.length && sorted[j].pts === sorted[i].pts) j++;
+    groups.push(sorted.slice(i, j));
+    i = j;
+  }
+
+  const resolveGroup = (group) => {
+    if (group.length <= 1) return group;
+    const ids = new Set(group.map(t => t.teamId));
+    const h2h = Object.fromEntries(group.map(t => [t.teamId, { pts: 0, gf: 0, gc: 0 }]));
+    played.filter(m => ids.has(m.teamAId) && ids.has(m.teamBId)).forEach(m => {
+      h2h[m.teamAId].gf += m.scoreA; h2h[m.teamAId].gc += m.scoreB;
+      h2h[m.teamBId].gf += m.scoreB; h2h[m.teamBId].gc += m.scoreA;
+      if (m.scoreA > m.scoreB) { h2h[m.teamAId].pts += data.meta.pointsWin; h2h[m.teamBId].pts += data.meta.pointsLoss; }
+      else if (m.scoreA < m.scoreB) { h2h[m.teamBId].pts += data.meta.pointsWin; h2h[m.teamAId].pts += data.meta.pointsLoss; }
+      else { h2h[m.teamAId].pts += data.meta.pointsDraw; h2h[m.teamBId].pts += data.meta.pointsDraw; }
+    });
+    return [...group].sort((a, b) => {
+      const ha = h2h[a.teamId], hb = h2h[b.teamId];
+      if (hb.pts !== ha.pts) return hb.pts - ha.pts;
+      const hDgA = ha.gf - ha.gc, hDgB = hb.gf - hb.gc;
+      if (hDgB !== hDgA) return hDgB - hDgA;
+      if (hb.gf !== ha.gf) return hb.gf - ha.gf;
+      if (b.dg !== a.dg) return b.dg - a.dg;
+      if (b.gf !== a.gf) return b.gf - a.gf;
+      return a.name.localeCompare(b.name);
+    });
+  };
+
+  return groups.flatMap(resolveGroup);
 }
 
 function getPlayerStats(playerId, data) {
@@ -401,6 +439,52 @@ function ConfirmInline({ text, onConfirm, onCancel }) {
 
 /* ---------- Formularios modales ---------- */
 
+function LogoUploadField({ value, onChange, label, folder }) {
+  const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const inputId = 'logo-upload-' + folder + '-' + Math.random().toString(36).slice(2, 8);
+
+  const handleFile = async (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (!file.type.startsWith('image/')) { setError('Elige un archivo de imagen (jpg, png, etc.).'); return; }
+    if (file.size > 5 * 1024 * 1024) { setError('La imagen pesa más de 5MB, elige una más liviana.'); return; }
+    setError('');
+    setUploading(true);
+    try {
+      const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+      const path = folder + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
+      const { error: upErr } = await supabase.storage.from('torneo-logos').upload(path, file, { upsert: true, cacheControl: '3600' });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from('torneo-logos').getPublicUrl(path);
+      onChange(pub.publicUrl);
+    } catch (err) {
+      setError('No se pudo subir la imagen. Revisa que exista el bucket "torneo-logos" en Supabase (ver instrucciones), o pega un link manualmente abajo.');
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  return (
+    <div>
+      <label className="field-label">{label}</label>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+        {value && (
+          <img src={value} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', border: '1px solid #E3E5E9', flexShrink: 0 }}
+            onError={e => { e.currentTarget.style.visibility = 'hidden'; }} />
+        )}
+        <label htmlFor={inputId} className="btn btn-outline btn-sm" style={{ cursor: uploading ? 'default' : 'pointer', opacity: uploading ? .6 : 1 }}>
+          {uploading ? <Loader2 size={13} className="spin" /> : <Send size={13} />} {uploading ? 'Subiendo…' : 'Subir imagen'}
+        </label>
+        <input id={inputId} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} disabled={uploading} />
+      </div>
+      <input className="input" value={value} onChange={e => onChange(e.target.value)} placeholder="o pega un link https://..." />
+      {error && <div style={{ fontSize: 11, color: '#C4302B', marginTop: 5 }}>{error}</div>}
+    </div>
+  );
+}
+
 function TeamFormModal({ initial, onClose, onSave }) {
   const [name, setName] = useState(initial ? initial.name : '');
   const [color, setColor] = useState(initial ? initial.color : PALETTE[0]);
@@ -421,8 +505,7 @@ function TeamFormModal({ initial, onClose, onSave }) {
         </div>
       </div>
       <div style={{ marginBottom: 18 }}>
-        <label className="field-label">URL del logo (opcional)</label>
-        <input className="input" value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://..." />
+        <LogoUploadField value={logoUrl} onChange={setLogoUrl} label="Logo del equipo (opcional)" folder="equipos" />
         <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Si no pones nada, se usa un escudo con las iniciales del equipo.</div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
@@ -539,8 +622,7 @@ function NewsFormModal({ onClose, onSave }) {
         <textarea className="textarea" rows={4} value={body} onChange={e => setBody(e.target.value)} placeholder="Detalles de la noticia…" />
       </div>
       <div style={{ marginBottom: 18 }}>
-        <label className="field-label">URL de imagen (opcional)</label>
-        <input className="input" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." />
+        <LogoUploadField value={imageUrl} onChange={setImageUrl} label="Imagen (opcional)" folder="noticias" />
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
@@ -902,9 +984,8 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
         <input className="input" value={form.name} onChange={e => setField('name', e.target.value)} />
       </div>
       <div style={{ marginBottom: 16 }}>
-        <label className="field-label">URL del logo (opcional)</label>
-        <input className="input" value={form.logoUrl} onChange={e => setField('logoUrl', e.target.value)} placeholder="https://..." />
-        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Pega el enlace de una imagen (subida a Imgur, Google Drive con acceso público, etc.). Se muestra en la barra lateral y en Inicio.</div>
+        <LogoUploadField value={form.logoUrl} onChange={v => setField('logoUrl', v)} label="Logo del torneo (opcional)" folder="torneo" />
+        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Se muestra en la barra lateral y en Inicio.</div>
       </div>
       <div className="grid-2" style={{ marginBottom: 16 }}>
         <div>
@@ -1837,6 +1918,9 @@ function TablaTab({ data, standings, onViewTeam }) {
             <span style={{ width: 10, height: 10, background: '#E5484D', borderRadius: 3 }} /> Zona de alerta
           </div>
         )}
+      </div>
+      <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 8 }}>
+        Desempate: puntos → resultado entre ellos → diferencia de gol → goles a favor.
       </div>
     </div>
   );

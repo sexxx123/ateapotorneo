@@ -1016,8 +1016,8 @@ function MatchWidgetCard({ data }) {
         <span style={{ display: 'flex', gap: 6 }}>
           {hasLiga && hasPlayoffs && (
             <select className="widget-select" value={phase} onChange={e => changePhase(e.target.value)}>
-              <option value="liga">Liga</option>
-              <option value="playoff">Playoffs</option>
+              <option value="liga">Fase 1 · Liga</option>
+              <option value="playoff">Fase 2 · Playoffs</option>
             </select>
           )}
           <select className="widget-select" value={safeGroupKey} onChange={e => setGroupKey(phase === 'liga' ? Number(e.target.value) : e.target.value)}>
@@ -1471,7 +1471,7 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam }) {
         {!data.meta.logoUrl && <Trophy size={130} color="rgba(255,255,255,.08)" style={{ position: 'absolute', right: 18, bottom: -16 }} />}
         <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', alignItems: 'center', gap: 18, padding: '0 34px' }}>
           {data.meta.logoUrl && (
-            <img src={data.meta.logoUrl} alt="" style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover', background: 'rgba(255,255,255,.15)', flexShrink: 0 }}
+            <img src={data.meta.logoUrl} alt="" style={{ width: 128, height: 128, borderRadius: 14, objectFit: 'cover', background: 'rgba(255,255,255,.15)', flexShrink: 0, boxShadow: '0 4px 14px rgba(0,0,0,.18)' }}
               onError={e => { e.currentTarget.style.display = 'none'; }} />
           )}
           <div>

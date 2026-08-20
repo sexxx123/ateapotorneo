@@ -693,7 +693,7 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
   );
 }
 
-function MatchResultModal({ match, teams, players, onClose, onSave, onDelete }) {
+function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, onDelete, onSwap }) {
   const teamA = teams.find(t => t.id === match.teamAId);
   const teamB = teams.find(t => t.id === match.teamBId);
   const playersA = players.filter(p => p.teamId === match.teamAId);
@@ -711,6 +711,12 @@ function MatchResultModal({ match, teams, players, onClose, onSave, onDelete }) 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [date, setDate] = useState(match.date || '');
   const [time, setTime] = useState(match.time || '');
+
+  const conflict = (date && time && allMatches)
+    ? allMatches.find(m => m.id !== match.id && m.date === date && m.time === time)
+    : null;
+  const conflictTeamA = conflict ? teams.find(t => t.id === conflict.teamAId) : null;
+  const conflictTeamB = conflict ? teams.find(t => t.id === conflict.teamBId) : null;
 
   const setPlayerField = (pid, field, value) => setStats(prev => ({ ...prev, [pid]: { ...prev[pid], [field]: value } }));
   const sumGoals = (list) => list.reduce((acc, p) => acc + (Number(stats[p.id]?.goals) || 0), 0);
@@ -751,7 +757,7 @@ function MatchResultModal({ match, teams, players, onClose, onSave, onDelete }) 
         </div>
       </div>
 
-      <div className="grid-2" style={{ marginBottom: 18 }}>
+      <div className="grid-2" style={{ marginBottom: conflict ? 8 : 18 }}>
         <div>
           <label className="field-label">Fecha</label>
           <input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} />
@@ -761,6 +767,21 @@ function MatchResultModal({ match, teams, players, onClose, onSave, onDelete }) 
           <input className="input" type="time" value={time} onChange={e => setTime(e.target.value)} />
         </div>
       </div>
+      {conflict && (
+        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: '#FDEEEE', border: '1px solid #F1C9C7', borderRadius: 8, padding: '10px 12px', marginBottom: 18, fontSize: 12.5, color: '#8a2a24', flexWrap: 'wrap' }}>
+          <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
+          <span style={{ flex: 1, minWidth: 200 }}>
+            Ya hay otro partido a esta misma fecha y hora: <strong>{conflictTeamA ? conflictTeamA.name : '—'} vs {conflictTeamB ? conflictTeamB.name : '—'}</strong> (antes tenía {formatDateTime(match.date, match.time)}).
+          </span>
+          <button type="button" className="btn btn-outline btn-sm" style={{ borderColor: '#E5A9A4', color: '#8a2a24', flexShrink: 0 }}
+            onClick={() => {
+              onSwap(conflict.phase, conflict.id, { date: match.date, time: match.time });
+              onSave({ date, time });
+            }}>
+            Intercambiar horarios
+          </button>
+        </div>
+      )}
 
       <div className="grid-2" style={{ gap: 18 }}>
         <div>
@@ -1563,9 +1584,11 @@ export default function FutbolitoApp() {
           {tab === 'jugadores' && <JugadoresTab data={data} isAdmin={isAdmin} onAdd={addPlayer} onEdit={editPlayer} onDelete={deletePlayer} onBulkAdd={bulkAddPlayers} />}
           {tab === 'partidos' && <PartidosTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('liga', p)} onGenerateFixture={generateFixture}
             onAutoSchedule={autoScheduleMatches}
-            onSaveResult={(id, payload) => saveMatchResult('liga', id, payload)} onDeleteMatch={(id) => deleteMatch('liga', id)} />}
+            onSaveResult={(id, payload) => saveMatchResult('liga', id, payload)} onDeleteMatch={(id) => deleteMatch('liga', id)}
+            onSaveAnyMatch={saveMatchResult} />}
           {tab === 'playoffs' && <PlayoffsTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('playoff', p)} onAutoSchedule={autoSchedulePlayoffs}
-            onSaveResult={(id, payload) => saveMatchResult('playoff', id, payload)} onDeleteMatch={(id) => deleteMatch('playoff', id)} />}
+            onSaveResult={(id, payload) => saveMatchResult('playoff', id, payload)} onDeleteMatch={(id) => deleteMatch('playoff', id)}
+            onSaveAnyMatch={saveMatchResult} />}
           {tab === 'sanciones' && <SancionesTab data={data} isAdmin={isAdmin} onMarkServed={markSuspensionServed} />}
 
           {tab === 'stats' && (
@@ -1996,7 +2019,7 @@ function MatchRow({ m, teams, onOpen, last, clickable }) {
   );
 }
 
-function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSchedule, onSaveResult, onDeleteMatch }) {
+function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch }) {
   const [modal, setModal] = useState(null);
   const [confirmGenerate, setConfirmGenerate] = useState(false);
   const [confirmSchedule, setConfirmSchedule] = useState(false);
@@ -2049,7 +2072,7 @@ function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSched
       )}
       {openMatch && (
         isAdmin
-          ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players}
+          ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players} allMatches={[...data.matches, ...data.playoffMatches]} onSwap={onSaveAnyMatch}
               onClose={() => setModal(null)}
               onSave={(payload) => { onSaveResult(openMatch.id, payload); setModal(null); }}
               onDelete={(id) => { onDeleteMatch(id); setModal(null); }} />
@@ -2156,7 +2179,7 @@ function PlayoffBracket({ data, onOpenMatch }) {
   );
 }
 
-function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, onDeleteMatch }) {
+function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch }) {
   const [modal, setModal] = useState(null);
   const [confirmSchedule, setConfirmSchedule] = useState(false);
   const openMatch = data.playoffMatches.find(m => m.id === modal);
@@ -2220,7 +2243,7 @@ function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, 
       )}
       {openMatch && (
         isAdmin
-          ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players}
+          ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players} allMatches={[...data.matches, ...data.playoffMatches]} onSwap={onSaveAnyMatch}
               onClose={() => setModal(null)}
               onSave={(payload) => { onSaveResult(openMatch.id, payload); setModal(null); }}
               onDelete={(id) => { onDeleteMatch(id); setModal(null); }} />

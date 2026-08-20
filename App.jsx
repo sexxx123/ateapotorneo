@@ -2,7 +2,8 @@ import { useState, useEffect, useCallback, Fragment } from 'react';
 import {
   Trophy, Users, User, Calendar, ShieldAlert, BarChart3, Settings,
   Plus, Trash2, X, AlertTriangle, Check, Pencil, Table2, Award, Loader2,
-  LogIn, LogOut, Mail, Home, FileText, UserCircle2, Send, Clock, MapPin
+  LogIn, LogOut, Mail, Home, FileText, UserCircle2, Send, Clock, MapPin,
+  ChevronLeft, ChevronRight
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
@@ -300,18 +301,31 @@ function GlobalStyles() {
 function Crest({ team, size }) {
   const s = size === 'sm' ? 24 : size === 'lg' ? 46 : 30;
   const fs = Math.round(s * 0.36);
+  const [imgError, setImgError] = useState(false);
   if (!team) return <div className="crest" style={{ width: s, height: s, background: '#B9BEC6', fontSize: fs }}>?</div>;
+  if (team.logoUrl && !imgError) {
+    return <img src={team.logoUrl} alt="" onError={() => setImgError(true)}
+      style={{ width: s, height: s, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />;
+  }
   return <div className="crest" style={{ width: s, height: s, background: team.color, fontSize: fs }}>{initials(team.name)}</div>;
 }
 
-function TeamChip({ team, size }) {
+function TeamChip({ team, size, onClick }) {
   if (!team) return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#9AA1AC' }}><Crest size={size} /> Equipo eliminado</span>;
-  return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+  const content = (
+    <>
       <Crest team={team} size={size} />
       <span className="team-name-cell">{team.name}</span>
-    </span>
+    </>
   );
+  if (onClick) {
+    return (
+      <span onClick={(e) => { e.stopPropagation(); onClick(); }} style={{ display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer' }}>
+        {content}
+      </span>
+    );
+  }
+  return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>{content}</span>;
 }
 
 function Avatar({ size }) {
@@ -372,13 +386,14 @@ function ConfirmInline({ text, onConfirm, onCancel }) {
 function TeamFormModal({ initial, onClose, onSave }) {
   const [name, setName] = useState(initial ? initial.name : '');
   const [color, setColor] = useState(initial ? initial.color : PALETTE[0]);
+  const [logoUrl, setLogoUrl] = useState(initial ? (initial.logoUrl || '') : '');
   return (
     <Modal title={initial ? 'Editar equipo' : 'Nuevo equipo'} onClose={onClose}>
       <div style={{ marginBottom: 14 }}>
         <label className="field-label">Nombre del equipo</label>
         <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ej: Los Halcones" autoFocus />
       </div>
-      <div style={{ marginBottom: 18 }}>
+      <div style={{ marginBottom: 14 }}>
         <label className="field-label">Color / identidad</label>
         <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
           {PALETTE.map(c => (
@@ -387,9 +402,14 @@ function TeamFormModal({ initial, onClose, onSave }) {
           <input type="color" value={color} onChange={e => setColor(e.target.value)} />
         </div>
       </div>
+      <div style={{ marginBottom: 18 }}>
+        <label className="field-label">URL del logo (opcional)</label>
+        <input className="input" value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://..." />
+        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Si no pones nada, se usa un escudo con las iniciales del equipo.</div>
+      </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
-        <button className="btn btn-primary" disabled={!name.trim()} onClick={() => name.trim() && onSave({ name: name.trim(), color })}>
+        <button className="btn btn-primary" disabled={!name.trim()} onClick={() => name.trim() && onSave({ name: name.trim(), color, logoUrl: logoUrl.trim() })}>
           {initial ? 'Guardar cambios' : 'Agregar equipo'}
         </button>
       </div>
@@ -436,6 +456,89 @@ function PlayerFormModal({ initial, teams, defaultTeamId, onClose, onSave }) {
           {initial ? 'Guardar cambios' : 'Agregar jugador'}
         </button>
       </div>
+    </Modal>
+  );
+}
+
+function TeamDetailModal({ team, data, onClose }) {
+  const players = data.players.filter(p => p.teamId === team.id);
+  const allMatches = [
+    ...data.matches.map(m => ({ ...m, _label: 'Jornada ' + m.jornada })),
+    ...data.playoffMatches.map(m => ({ ...m, _label: m.round })),
+  ].filter(m => m.teamAId === team.id || m.teamBId === team.id);
+  const upcoming = [...allMatches].filter(m => !m.played).sort((a, b) => (a.date || '9999-99-99').localeCompare(b.date || '9999-99-99'));
+  const past = [...allMatches].filter(m => m.played).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+  const standings = computeStandings(data);
+  const row = standings.find(s => s.teamId === team.id);
+
+  const opponentOf = (m) => data.teams.find(t => t.id === (m.teamAId === team.id ? m.teamBId : m.teamAId));
+
+  return (
+    <Modal title={team.name} onClose={onClose}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+        <Crest team={team} size="lg" />
+        <div>
+          <div className="font-display" style={{ fontWeight: 800, fontSize: 18, color: '#1B2A4D' }}>{team.name}</div>
+          {row && <div style={{ fontSize: 12.5, color: '#6B7280', marginTop: 2 }}>{row.pj} PJ · {row.pts} PTS · DIF {row.dg > 0 ? '+' + row.dg : row.dg}</div>}
+        </div>
+      </div>
+
+      <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#1B2A4D', marginBottom: 8 }}>Jugadores ({players.length})</div>
+      {players.length === 0
+        ? <div style={{ fontSize: 12.5, color: '#9AA1AC', marginBottom: 20 }}>Sin jugadores registrados.</div>
+        : (
+          <div className="card" style={{ marginBottom: 20 }}>
+            {players.map((p, idx) => (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderBottom: idx === players.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
+                <Avatar size={26} />
+                <div style={{ flex: 1, fontSize: 13 }}>
+                  {p.number !== '' && p.number !== undefined ? <span style={{ color: '#9AA1AC', fontWeight: 700, marginRight: 6 }}>#{p.number}</span> : null}
+                  {p.name}
+                </div>
+                <div style={{ fontSize: 11, color: '#9AA1AC' }}>{p.position}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+      <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#1B2A4D', marginBottom: 8 }}>Próximos partidos</div>
+      {upcoming.length === 0
+        ? <div style={{ fontSize: 12.5, color: '#9AA1AC', marginBottom: 20 }}>No hay partidos programados.</div>
+        : (
+          <div className="card" style={{ marginBottom: 20 }}>
+            {upcoming.map((m, idx) => {
+              const opp = opponentOf(m);
+              return (
+                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: idx === upcoming.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
+                  <Crest team={opp} size="sm" />
+                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#1B2A4D' }}>vs {opp ? opp.name : 'Por definir'}</div>
+                  <div style={{ fontSize: 11, color: '#9AA1AC', textAlign: 'right' }}>{m._label}{m.date ? ' · ' + formatDateTime(m.date, m.time) : ''}</div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+      {past.length > 0 && (
+        <>
+          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#1B2A4D', marginBottom: 8 }}>Resultados recientes</div>
+          <div className="card">
+            {past.slice(0, 8).map((m, idx, arr) => {
+              const opp = opponentOf(m);
+              const myScore = m.teamAId === team.id ? m.scoreA : m.scoreB;
+              const oppScore = m.teamAId === team.id ? m.scoreB : m.scoreA;
+              const color = myScore > oppScore ? '#2E9E4A' : myScore < oppScore ? '#C4302B' : '#6B7280';
+              return (
+                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
+                  <Crest team={opp} size="sm" />
+                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#1B2A4D' }}>vs {opp ? opp.name : 'Por definir'}</div>
+                  <div className="font-display" style={{ fontSize: 13, fontWeight: 800, color }}>{myScore} - {oppScore}</div>
+                </div>
+              );
+            })}
+          </div>
+        </>
+      )}
     </Modal>
   );
 }
@@ -717,9 +820,12 @@ function SettingsModal({ meta, onClose, onSave, onReset }) {
           <input className="input" type="time" value={form.dailyEndTime} onChange={e => setField('dailyEndTime', e.target.value)} />
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 6 }}>
         {numField('matchDurationMinutes', 'Duración partido (min)')}
         {numField('breakBetweenMatchesMinutes', 'Descanso entre partidos (min)')}
+      </div>
+      <div style={{ fontSize: 11, color: '#9AA1AC', marginBottom: 20 }}>
+        Cada partido empieza <strong>{(Number(form.matchDurationMinutes) || 0) + (Number(form.breakBetweenMatchesMinutes) || 0)} minutos</strong> después del anterior. Para que sea cada hora en punto (9:00, 10:00, 11:00…), que estos dos números sumen 60.
       </div>
       <div style={{ marginBottom: 20 }}>
         <label className="field-label">Días en que se juega</label>
@@ -830,27 +936,48 @@ function LoginModal({ onClose }) {
 
 /* ---------- Panel derecho (partido destacado + estadísticas) ---------- */
 
-function findFeaturedMatch(data) {
+function buildTimeline(data) {
   const all = [
     ...data.matches.map(m => ({ ...m, _label: 'Jornada ' + m.jornada })),
     ...data.playoffMatches.map(m => ({ ...m, _label: m.round })),
-  ];
-  const upcoming = all.filter(m => !m.played);
-  if (upcoming.length > 0) return { match: upcoming[0], status: 'pending' };
-  const played = all.filter(m => m.played);
-  if (played.length > 0) return { match: played[played.length - 1], status: 'done' };
-  return null;
+  ].filter(m => m.date);
+  all.sort((a, b) => (a.date + ' ' + (a.time || '00:00')).localeCompare(b.date + ' ' + (b.time || '00:00')));
+  return all;
 }
 
 function MatchWidgetCard({ data }) {
-  const featured = findFeaturedMatch(data);
-  const teamA = featured ? data.teams.find(t => t.id === featured.match.teamAId) : null;
-  const teamB = featured ? data.teams.find(t => t.id === featured.match.teamBId) : null;
+  const timeline = buildTimeline(data);
+  const defaultIndex = (() => {
+    const idx = timeline.findIndex(m => !m.played);
+    if (idx !== -1) return idx;
+    return timeline.length > 0 ? timeline.length - 1 : 0;
+  })();
+  const [index, setIndex] = useState(defaultIndex);
+  const safeIndex = Math.min(index, Math.max(0, timeline.length - 1));
+  const match = timeline[safeIndex] || null;
+
+  const teamA = match ? data.teams.find(t => t.id === match.teamAId) : null;
+  const teamB = match ? data.teams.find(t => t.id === match.teamBId) : null;
+
   return (
     <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
-      <div className="card-header-green">{featured && featured.status === 'pending' ? 'Próximo partido' : 'Último resultado'}</div>
+      <div className="card-header-green" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <span>{match ? (match.played ? 'Resultado' : 'Próximo partido') : 'Partidos'}</span>
+        {timeline.length > 1 && (
+          <span style={{ display: 'flex', gap: 4 }}>
+            <button onClick={() => setIndex(i => Math.max(0, Math.min(i, timeline.length - 1) - 1))} disabled={safeIndex === 0}
+              style={{ background: 'rgba(255,255,255,.18)', border: 'none', borderRadius: 5, width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: safeIndex === 0 ? 'default' : 'pointer', opacity: safeIndex === 0 ? .4 : 1, color: '#fff' }}>
+              <ChevronLeft size={13} />
+            </button>
+            <button onClick={() => setIndex(i => Math.min(timeline.length - 1, Math.min(i, timeline.length - 1) + 1))} disabled={safeIndex === timeline.length - 1}
+              style={{ background: 'rgba(255,255,255,.18)', border: 'none', borderRadius: 5, width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: safeIndex === timeline.length - 1 ? 'default' : 'pointer', opacity: safeIndex === timeline.length - 1 ? .4 : 1, color: '#fff' }}>
+              <ChevronRight size={13} />
+            </button>
+          </span>
+        )}
+      </div>
       <div style={{ padding: 18 }}>
-        {!featured ? (
+        {!match ? (
           <div style={{ fontSize: 12.5, color: '#9AA1AC', textAlign: 'center', padding: '10px 0' }}>Aún no hay partidos programados.</div>
         ) : (
           <>
@@ -860,11 +987,11 @@ function MatchWidgetCard({ data }) {
                 <div style={{ fontSize: 11.5, fontWeight: 600, color: '#1B2A4D', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamA ? teamA.name : '—'}</div>
               </div>
               <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                {featured.status === 'done'
-                  ? <div className="font-display" style={{ fontSize: 20, fontWeight: 800, color: '#1B2A4D', border: '1px solid #E3E5E9', borderRadius: 8, padding: '4px 10px' }}>{featured.match.scoreA} : {featured.match.scoreB}</div>
+                {match.played
+                  ? <div className="font-display" style={{ fontSize: 20, fontWeight: 800, color: '#1B2A4D', border: '1px solid #E3E5E9', borderRadius: 8, padding: '4px 10px' }}>{match.scoreA} : {match.scoreB}</div>
                   : <div style={{ fontSize: 13, fontWeight: 700, color: '#9AA1AC', border: '1px solid #E3E5E9', borderRadius: 8, padding: '8px 12px' }}>VS</div>}
                 <div style={{ marginTop: 6 }}>
-                  <span className={'status-pill ' + (featured.status === 'done' ? 'done' : 'pending')}>{featured.status === 'done' ? 'Finalizado' : 'Programado'}</span>
+                  <span className={'status-pill ' + (match.played ? 'done' : 'pending')}>{match.played ? 'Finalizado' : 'Programado'}</span>
                 </div>
               </div>
               <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
@@ -873,7 +1000,7 @@ function MatchWidgetCard({ data }) {
               </div>
             </div>
             <div style={{ textAlign: 'center', fontSize: 11.5, color: '#9AA1AC', marginTop: 14, borderTop: '1px solid #EEF0F2', paddingTop: 10 }}>
-              {featured.match._label}{featured.match.date ? ' · ' + formatDateTime(featured.match.date, featured.match.time) : ''}
+              {match._label}{match.date ? ' · ' + formatDateTime(match.date, match.time) : ''}
             </div>
           </>
         )}
@@ -996,6 +1123,7 @@ export default function FutbolitoApp() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [session, setSession] = useState(null);
   const [loginOpen, setLoginOpen] = useState(false);
+  const [viewTeamId, setViewTeamId] = useState(null);
 
   // Carga inicial de datos + sesión, y suscripción a cambios en vivo.
   useEffect(() => {
@@ -1162,16 +1290,16 @@ export default function FutbolitoApp() {
             </div>
           )}
 
-          {tab === 'inicio' && <InicioTab data={data} isAdmin={isAdmin} onNavigate={setTab} />}
+          {tab === 'inicio' && <InicioTab data={data} isAdmin={isAdmin} onNavigate={setTab} onViewTeam={setViewTeamId} />}
 
           {tab === 'tabla' && (
             <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
-              <TablaTab data={data} standings={standings} />
+              <TablaTab data={data} standings={standings} onViewTeam={setViewTeamId} />
               <RightColumn data={data} />
             </div>
           )}
 
-          {tab === 'equipos' && <EquiposTab data={data} isAdmin={isAdmin} onAdd={addTeam} onEdit={editTeam} onDelete={deleteTeam} standings={standings} />}
+          {tab === 'equipos' && <EquiposTab data={data} isAdmin={isAdmin} onAdd={addTeam} onEdit={editTeam} onDelete={deleteTeam} standings={standings} onViewTeam={setViewTeamId} />}
           {tab === 'jugadores' && <JugadoresTab data={data} isAdmin={isAdmin} onAdd={addPlayer} onEdit={editPlayer} onDelete={deletePlayer} />}
           {tab === 'partidos' && <PartidosTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('liga', p)} onGenerateFixture={generateFixture}
             onAutoSchedule={autoScheduleMatches}
@@ -1191,6 +1319,9 @@ export default function FutbolitoApp() {
 
       {settingsOpen && isAdmin && <SettingsModal meta={data.meta} onClose={() => setSettingsOpen(false)} onSave={saveSettings} onReset={resetAll} />}
       {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
+      {viewTeamId && data.teams.find(t => t.id === viewTeamId) && (
+        <TeamDetailModal team={data.teams.find(t => t.id === viewTeamId)} data={data} onClose={() => setViewTeamId(null)} />
+      )}
     </div>
   );
 }
@@ -1243,7 +1374,7 @@ function PremiosSection({ data }) {
   );
 }
 
-function InicioTab({ data, isAdmin, onNavigate }) {
+function InicioTab({ data, isAdmin, onNavigate, onViewTeam }) {
   const [rulesOpen, setRulesOpen] = useState(false);
   return (
     <div>
@@ -1300,7 +1431,7 @@ function InicioTab({ data, isAdmin, onNavigate }) {
           <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#1B2A4D', marginBottom: 14 }}>Equipos</div>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
             {data.teams.map(t => (
-              <button key={t.id} onClick={() => onNavigate('equipos')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, width: 84, background: 'transparent', border: 'none', cursor: 'pointer' }}>
+              <button key={t.id} onClick={() => onViewTeam(t.id)} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, width: 84, background: 'transparent', border: 'none', cursor: 'pointer' }}>
                 <Crest team={t} size="lg" />
                 <div style={{ fontSize: 11.5, fontWeight: 600, color: '#1B2A4D', textAlign: 'center', lineHeight: 1.25 }}>{t.name}</div>
               </button>
@@ -1339,7 +1470,7 @@ function InicioTab({ data, isAdmin, onNavigate }) {
   );
 }
 
-function TablaTab({ data, standings }) {
+function TablaTab({ data, standings, onViewTeam }) {
   if (data.teams.length === 0) {
     return <EmptyState Icon={Table2} title="Todavía no hay tabla" text="Agrega equipos en la pestaña Equipos para que la tabla de posiciones empiece a calcularse automáticamente." />;
   }
@@ -1364,7 +1495,7 @@ function TablaTab({ data, standings }) {
                   className={(i % 2 === 1 ? 'row-alt ' : '') + (qualifies ? 'zone-top' : relegated ? 'zone-bottom' : '')}
                   style={{ borderBottom: '1px solid #EEF0F2' }}>
                   <td>{i + 1}</td>
-                  <td className="team-name-cell"><TeamChip team={team} size="sm" /></td>
+                  <td className="team-name-cell"><TeamChip team={team} size="sm" onClick={team ? () => onViewTeam(team.id) : undefined} /></td>
                   <td style={{ color: '#2E9E4A', fontWeight: 800 }}>{row.pts}</td>
                   <td>{row.pj}</td><td>{row.pg}</td><td>{row.pe}</td><td>{row.pp}</td>
                   <td>{row.gf}</td><td>{row.gc}</td><td>{row.dg > 0 ? '+' + row.dg : row.dg}</td>
@@ -1390,7 +1521,7 @@ function TablaTab({ data, standings }) {
   );
 }
 
-function EquiposTab({ data, isAdmin, onAdd, onEdit, onDelete, standings }) {
+function EquiposTab({ data, isAdmin, onAdd, onEdit, onDelete, standings, onViewTeam }) {
   const [modal, setModal] = useState(null);
   const [confirmId, setConfirmId] = useState(null);
 
@@ -1412,7 +1543,7 @@ function EquiposTab({ data, isAdmin, onAdd, onEdit, onDelete, standings }) {
               return (
                 <div key={team.id} className="card" style={{ padding: 16 }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0 }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, cursor: 'pointer' }} onClick={() => onViewTeam(team.id)}>
                       <Crest team={team} />
                       <div className="font-display" style={{ fontWeight: 700, fontSize: 15, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team.name}</div>
                     </div>

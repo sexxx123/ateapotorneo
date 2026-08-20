@@ -709,6 +709,8 @@ function MatchResultModal({ match, teams, players, onClose, onSave, onDelete }) 
   const [scoreB, setScoreB] = useState(match.scoreB || 0);
   const [stats, setStats] = useState(initStats);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [date, setDate] = useState(match.date || '');
+  const [time, setTime] = useState(match.time || '');
 
   const setPlayerField = (pid, field, value) => setStats(prev => ({ ...prev, [pid]: { ...prev[pid], [field]: value } }));
   const sumGoals = (list) => list.reduce((acc, p) => acc + (Number(stats[p.id]?.goals) || 0), 0);
@@ -749,6 +751,17 @@ function MatchResultModal({ match, teams, players, onClose, onSave, onDelete }) 
         </div>
       </div>
 
+      <div className="grid-2" style={{ marginBottom: 18 }}>
+        <div>
+          <label className="field-label">Fecha</label>
+          <input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Hora</label>
+          <input className="input" type="time" value={time} onChange={e => setTime(e.target.value)} />
+        </div>
+      </div>
+
       <div className="grid-2" style={{ gap: 18 }}>
         <div>
           <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#1B2A4D', marginBottom: 4 }}><TeamChip team={teamA} size="sm" /></div>
@@ -766,7 +779,8 @@ function MatchResultModal({ match, teams, players, onClose, onSave, onDelete }) 
           : <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(true)}><Trash2 size={13} /> Eliminar partido</button>}
         <div style={{ display: 'flex', gap: 8 }}>
           <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
-          <button className="btn btn-primary" onClick={() => onSave({ scoreA: Number(scoreA), scoreB: Number(scoreB), played: true, playerStats: stats })}>
+          <button className="btn btn-outline" onClick={() => onSave({ date, time })}>Guardar solo horario</button>
+          <button className="btn btn-primary" onClick={() => onSave({ date, time, scoreA: Number(scoreA), scoreB: Number(scoreB), played: true, playerStats: stats })}>
             <Check size={14} /> Guardar resultado
           </button>
         </div>

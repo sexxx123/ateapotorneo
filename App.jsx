@@ -1,8 +1,8 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, Fragment } from 'react';
 import {
   Trophy, Users, User, Calendar, ShieldAlert, BarChart3, Settings,
   Plus, Trash2, X, AlertTriangle, Check, Pencil, Table2, Award, Loader2,
-  LogIn, LogOut, Mail, Home, FileText, UserCircle2, Send
+  LogIn, LogOut, Mail, Home, FileText, UserCircle2, Send, Clock, MapPin
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
@@ -29,9 +29,90 @@ function formatDate(d) {
   } catch (e) { return d; }
 }
 
+function formatDateTime(date, time) {
+  const d = formatDate(date);
+  if (!d) return null;
+  return time ? d + ' · ' + time : d;
+}
+
+function formatPlayDays(playDays) {
+  const names = { 0: 'domingos', 1: 'lunes', 2: 'martes', 3: 'miércoles', 4: 'jueves', 5: 'viernes', 6: 'sábados' };
+  const days = (Array.isArray(playDays) && playDays.length > 0) ? playDays : [0, 1, 2, 3, 4, 5, 6];
+  if (days.length === 7) return 'todos los días';
+  const order = [1, 2, 3, 4, 5, 6, 0];
+  return order.filter(d => days.includes(d)).map(d => names[d]).join(', ');
+}
+
 function isValidEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
 }
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Asigna fecha y hora a una lista de partidos (en el orden dado), uno detrás de otro,
+// sin cruces, respetando una sola cancha: cada partido empieza cuando termina el
+// descanso del anterior, y si no cabe antes de la hora de cierre, pasa al día siguiente.
+// Motor de horarios: recibe una lista de "grupos" de partidos (cada grupo se juega
+// completo el mismo día, en el orden dado) y los va colocando en los próximos días
+// habilitados en meta.playDays, uno detrás de otro dentro del día según duración/descanso.
+function scheduleGroupsSequentially(dayGroups, meta, startFromDate) {
+  const duration = Math.max(5, Number(meta.matchDurationMinutes) || 20);
+  const rest = Math.max(0, Number(meta.breakBetweenMatchesMinutes) || 0);
+  const slot = duration + rest;
+  const toMinutes = (hhmm) => {
+    const [h, m] = (hhmm || '09:00').split(':').map(Number);
+    return (h || 0) * 60 + (m || 0);
+  };
+  const toHHMM = (mins) => {
+    const h = Math.floor(mins / 60) % 24;
+    const m = mins % 60;
+    return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
+  };
+  const dayStartMin = toMinutes(meta.dailyStartTime || '09:00');
+  // 0=domingo, 1=lunes, ... 6=sábado (getDay() de JS). Si no hay ninguno elegido, se juega todos los días.
+  const playDays = (Array.isArray(meta.playDays) && meta.playDays.length > 0) ? meta.playDays : [0, 1, 2, 3, 4, 5, 6];
+
+  const advanceToPlayDay = (d) => {
+    let date = new Date(d.getTime());
+    let guard = 0;
+    while (!playDays.includes(date.getDay()) && guard < 60) {
+      date = new Date(date.getTime() + 86400000);
+      guard++;
+    }
+    return date;
+  };
+
+  let base = startFromDate ? new Date(startFromDate.getTime()) : new Date();
+  if (isNaN(base.getTime())) base = new Date();
+  let currentDate = advanceToPlayDay(base);
+
+  const result = [];
+  let lastDate = null;
+
+  dayGroups.forEach((group, idx) => {
+    if (idx > 0) currentDate = advanceToPlayDay(new Date(currentDate.getTime() + 86400000));
+    let currentMin = dayStartMin;
+    group.forEach(m => {
+      const y = currentDate.getFullYear();
+      const mo = String(currentDate.getMonth() + 1).padStart(2, '0');
+      const da = String(currentDate.getDate()).padStart(2, '0');
+      result.push({ ...m, date: `${y}-${mo}-${da}`, time: toHHMM(currentMin) });
+      currentMin += slot;
+    });
+    lastDate = new Date(currentDate.getTime());
+  });
+
+  return { matches: result, lastDate };
+}
+
+const PLAYOFF_DAY_GROUPS_ORDER = [['Cuartos de Final'], ['Semifinal'], ['Tercer Puesto', 'Final']];
 
 function defaultData() {
   return {
@@ -43,8 +124,13 @@ function defaultData() {
       endDate: '',
       description: 'Campeonato de futbolito jugado entre los equipos participantes.',
       rules: '',
+      venueAddress: '',
+      logoUrl: '',
+      championText: '', runnerUpText: '',
       pointsWin: 3, pointsDraw: 1, pointsLoss: 0,
       yellowLimit: 3, redSuspensionMatches: 1, playoffSpots: 4, relegationSpots: 0,
+      courtName: '', dailyStartTime: '09:00', dailyEndTime: '18:00',
+      matchDurationMinutes: 20, breakBetweenMatchesMinutes: 10, playDays: [0, 1, 2, 3, 4, 5, 6],
       adminEmail: '',
     },
     teams: [],
@@ -360,6 +446,7 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
   const [jornada, setJornada] = useState(suggestedJornada || 1);
   const [round, setRound] = useState('Semifinal');
   const [date, setDate] = useState('');
+  const [time, setTime] = useState('');
   const invalid = !teamAId || !teamBId || teamAId === teamBId;
   return (
     <Modal title={phase === 'liga' ? 'Agregar partido de liga' : 'Agregar partido de playoffs'} onClose={onClose}>
@@ -382,7 +469,7 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
           <AlertTriangle size={13} /> Selecciona dos equipos distintos.
         </div>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 18 }}>
         <div>
           <label className="field-label">{phase === 'liga' ? 'Jornada' : 'Ronda'}</label>
           {phase === 'liga'
@@ -393,11 +480,15 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
           <label className="field-label">Fecha (opcional)</label>
           <input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} />
         </div>
+        <div>
+          <label className="field-label">Hora (opcional)</label>
+          <input className="input" type="time" value={time} onChange={e => setTime(e.target.value)} />
+        </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={invalid} onClick={() => onSave({
-          teamAId, teamBId, date,
+          teamAId, teamBId, date, time,
           jornada: phase === 'liga' ? jornada : undefined,
           round: phase === 'playoff' ? (round.trim() || 'Ronda') : undefined,
         })}>Agregar partido</button>
@@ -488,6 +579,57 @@ function MatchResultModal({ match, teams, players, onClose, onSave, onDelete }) 
   );
 }
 
+function MatchDetailModal({ match, teams, players, onClose }) {
+  const teamA = teams.find(t => t.id === match.teamAId);
+  const teamB = teams.find(t => t.id === match.teamBId);
+  const playersA = players.filter(p => p.teamId === match.teamAId);
+  const playersB = players.filter(p => p.teamId === match.teamBId);
+  const statFor = (pid) => (match.playerStats && match.playerStats[pid]) || { goals: 0, yellow: false, red: false };
+
+  const renderList = (list) => list.length === 0
+    ? <div style={{ fontSize: 12, color: '#9AA1AC', padding: '10px 0' }}>Sin jugadores registrados en este equipo.</div>
+    : list.map(p => {
+      const s = statFor(p.id);
+      return (
+        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '1px solid #EEF0F2' }}>
+          <Avatar size={26} />
+          <div style={{ flex: 1, fontSize: 13, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {p.number !== '' && p.number !== undefined ? <span style={{ color: '#9AA1AC', fontWeight: 700, marginRight: 6 }}>#{p.number}</span> : null}
+            {p.name}
+          </div>
+          {s.goals > 0 && <span style={{ fontSize: 12, color: '#2E9E4A', fontWeight: 800, flexShrink: 0 }}>⚽ {s.goals}</span>}
+          <CardBadge yellow={s.yellow ? 1 : 0} red={s.red ? 1 : 0} />
+        </div>
+      );
+    });
+
+  return (
+    <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Alineación'} onClose={onClose}>
+      <div style={{ background: '#F6F9F7', border: '1px solid #E3E5E9', borderRadius: 10, padding: 16, marginBottom: 18 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+          <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
+          {match.played
+            ? <div className="font-display" style={{ fontSize: 20, fontWeight: 800, color: '#1B2A4D', border: '1px solid #E3E5E9', borderRadius: 8, padding: '4px 12px' }}>{match.scoreA} : {match.scoreB}</div>
+            : <span className="status-pill pending">Programado</span>}
+          <div style={{ flex: 1 }}><TeamChip team={teamB} /></div>
+        </div>
+        {match.date && <div style={{ textAlign: 'center', fontSize: 11.5, color: '#9AA1AC', marginTop: 8 }}>{formatDateTime(match.date, match.time)}</div>}
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+        <div>
+          <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#1B2A4D', marginBottom: 4 }}><TeamChip team={teamA} size="sm" /></div>
+          {renderList(playersA)}
+        </div>
+        <div>
+          <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#1B2A4D', marginBottom: 4 }}><TeamChip team={teamB} size="sm" /></div>
+          {renderList(playersB)}
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
 function SettingsModal({ meta, onClose, onSave, onReset }) {
   const [form, setForm] = useState({ ...meta });
   const [confirmReset, setConfirmReset] = useState(false);
@@ -503,6 +645,11 @@ function SettingsModal({ meta, onClose, onSave, onReset }) {
       <div style={{ marginBottom: 16 }}>
         <label className="field-label">Nombre del torneo</label>
         <input className="input" value={form.name} onChange={e => setField('name', e.target.value)} />
+      </div>
+      <div style={{ marginBottom: 16 }}>
+        <label className="field-label">URL del logo (opcional)</label>
+        <input className="input" value={form.logoUrl} onChange={e => setField('logoUrl', e.target.value)} placeholder="https://..." />
+        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Pega el enlace de una imagen (subida a Imgur, Google Drive con acceso público, etc.). Se muestra en la barra lateral y en Inicio.</div>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
         <div>
@@ -532,6 +679,11 @@ function SettingsModal({ meta, onClose, onSave, onReset }) {
         <label className="field-label">Reglas del campeonato</label>
         <textarea className="textarea" value={form.rules} onChange={e => setField('rules', e.target.value)} rows={4} placeholder="Formato, duración de partidos, reglas específicas…" />
       </div>
+      <div style={{ marginBottom: 20 }}>
+        <label className="field-label">Sitio (dirección o nombre del lugar)</label>
+        <input className="input" value={form.venueAddress} onChange={e => setField('venueAddress', e.target.value)} placeholder="Ej: Cancha anexa al Coliseo Universitario, Machala" />
+        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Se muestra en Inicio con un mapa. Mientras más específico (con ciudad), mejor lo ubica el mapa.</div>
+      </div>
 
       <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Puntuación y sanciones</div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 14 }}>
@@ -549,6 +701,55 @@ function SettingsModal({ meta, onClose, onSave, onReset }) {
         {numField('playoffSpots', 'Cupos a playoffs')}
         {numField('relegationSpots', 'Equipos en zona de alerta')}
       </div>
+
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Horarios (para "Asignar horarios automáticamente")</div>
+      <div style={{ marginBottom: 14 }}>
+        <label className="field-label">Cancha</label>
+        <input className="input" value={form.courtName} onChange={e => setField('courtName', e.target.value)} placeholder="Ej: Cancha Principal" />
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+        <div>
+          <label className="field-label">Hora de inicio diaria</label>
+          <input className="input" type="time" value={form.dailyStartTime} onChange={e => setField('dailyStartTime', e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Hora de cierre diaria</label>
+          <input className="input" type="time" value={form.dailyEndTime} onChange={e => setField('dailyEndTime', e.target.value)} />
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+        {numField('matchDurationMinutes', 'Duración partido (min)')}
+        {numField('breakBetweenMatchesMinutes', 'Descanso entre partidos (min)')}
+      </div>
+      <div style={{ marginBottom: 20 }}>
+        <label className="field-label">Días en que se juega</label>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+          {[[1, 'Lun'], [2, 'Mar'], [3, 'Mié'], [4, 'Jue'], [5, 'Vie'], [6, 'Sáb'], [0, 'Dom']].map(([num, label]) => {
+            const active = (form.playDays || []).includes(num);
+            return (
+              <button key={num} type="button"
+                onClick={() => setField('playDays', active ? (form.playDays || []).filter(d => d !== num) : [...(form.playDays || []), num])}
+                className={active ? 'btn btn-primary btn-sm' : 'btn btn-outline btn-sm'}>
+                {label}
+              </button>
+            );
+          })}
+        </div>
+        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 6 }}>"Asignar horarios automáticamente" solo va a usar estos días. Si no quieres restringir nada, deja los 7 marcados.</div>
+      </div>
+
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Premios (se muestran en Inicio cuando el torneo termine)</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+        <div>
+          <label className="field-label">Campeón</label>
+          <input className="input" value={form.championText} onChange={e => setField('championText', e.target.value)} placeholder="Ej: Firewall FC" />
+        </div>
+        <div>
+          <label className="field-label">2° Puesto</label>
+          <input className="input" value={form.runnerUpText} onChange={e => setField('runnerUpText', e.target.value)} placeholder="Ej: Niupi" />
+        </div>
+      </div>
+      <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: -12, marginBottom: 20 }}>El "Máximo Goleador" se calcula solo, no hay que escribirlo.</div>
 
       <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Acceso</div>
       <div style={{ marginBottom: 20 }}>
@@ -672,7 +873,7 @@ function MatchWidgetCard({ data }) {
               </div>
             </div>
             <div style={{ textAlign: 'center', fontSize: 11.5, color: '#9AA1AC', marginTop: 14, borderTop: '1px solid #EEF0F2', paddingTop: 10 }}>
-              {featured.match._label}{featured.match.date ? ' · ' + formatDate(featured.match.date) : ''}
+              {featured.match._label}{featured.match.date ? ' · ' + formatDateTime(featured.match.date, featured.match.time) : ''}
             </div>
           </>
         )}
@@ -743,11 +944,16 @@ const NAV_ITEMS = [
   { id: 'stats', label: 'Rankings', Icon: BarChart3 },
 ];
 
-function Sidebar({ tab, setTab, isAdmin, sessionEmail, canClaim, onOpenSettings, onLogout, onLoginClick, onClaim, tournamentName }) {
+function Sidebar({ tab, setTab, isAdmin, sessionEmail, canClaim, onOpenSettings, onLogout, onLoginClick, onClaim, tournamentName, logoUrl }) {
+  const [logoError, setLogoError] = useState(false);
   return (
     <div className="sidebar">
       <div className="sidebar-logo-row">
-        <div className="sidebar-logo-badge"><Trophy size={19} color="#fff" /></div>
+        <div className="sidebar-logo-badge">
+          {logoUrl && !logoError
+            ? <img src={logoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 10 }} onError={() => setLogoError(true)} />
+            : <Trophy size={19} color="#fff" />}
+        </div>
         <div className="sidebar-title">{tournamentName}</div>
       </div>
       <div className="sidebar-nav">
@@ -888,10 +1094,44 @@ export default function FutbolitoApp() {
     return { ...d, [key]: d[key].filter(m => m.id !== id) };
   });
   const generateFixture = () => update(d => {
-    const fixture = generateRoundRobin(d.teams.map(t => t.id)).map(f => ({
-      id: uid('match'), phase: 'liga', played: false, scoreA: 0, scoreB: 0, playerStats: {}, date: '', ...f,
+    const shuffledIds = shuffleArray(d.teams.map(t => t.id));
+    const fixture = generateRoundRobin(shuffledIds).map(f => ({
+      id: uid('match'), phase: 'liga', played: false, scoreA: 0, scoreB: 0, playerStats: {}, date: '', time: '', ...f,
     }));
     return { ...d, matches: fixture };
+  });
+
+  const autoScheduleMatches = () => update(d => {
+    const jornadas = [...new Set(d.matches.map(m => m.jornada))].sort((a, b) => a - b);
+    const dayGroups = jornadas.map(j => d.matches.filter(m => m.jornada === j));
+    const start = d.meta.startDate ? new Date(d.meta.startDate + 'T00:00:00') : new Date();
+    const { matches: scheduled } = scheduleGroupsSequentially(dayGroups, d.meta, start);
+    const byId = Object.fromEntries(scheduled.map(m => [m.id, m]));
+    return { ...d, matches: d.matches.map(m => byId[m.id] || m) };
+  });
+
+  const autoSchedulePlayoffs = () => update(d => {
+    const presentRounds = [...new Set(d.playoffMatches.map(m => m.round))];
+    const groups = [];
+    const used = new Set();
+    PLAYOFF_DAY_GROUPS_ORDER.forEach(g => {
+      const roundsHere = g.filter(r => presentRounds.includes(r));
+      if (roundsHere.length > 0) { groups.push(roundsHere); roundsHere.forEach(r => used.add(r)); }
+    });
+    presentRounds.forEach(r => { if (!used.has(r)) groups.push([r]); });
+    const dayGroups = groups.map(roundNames => d.playoffMatches.filter(m => roundNames.includes(m.round)));
+
+    // Empieza el siguiente día habilitado después del último partido de liga programado
+    // (o desde la fecha de inicio del torneo si la liga todavía no tiene horarios).
+    const ligaDates = d.matches.map(m => m.date).filter(Boolean).sort();
+    const lastLigaDate = ligaDates.length > 0 ? ligaDates[ligaDates.length - 1] : null;
+    const startFrom = lastLigaDate
+      ? new Date(new Date(lastLigaDate + 'T00:00:00').getTime() + 86400000)
+      : (d.meta.startDate ? new Date(d.meta.startDate + 'T00:00:00') : new Date());
+
+    const { matches: scheduled } = scheduleGroupsSequentially(dayGroups, d.meta, startFrom);
+    const byId = Object.fromEntries(scheduled.map(m => [m.id, m]));
+    return { ...d, playoffMatches: d.playoffMatches.map(m => byId[m.id] || m) };
   });
 
   const saveSettings = (meta) => { update(d => ({ ...d, meta })); setSettingsOpen(false); };
@@ -908,7 +1148,7 @@ export default function FutbolitoApp() {
           onLogout={logoutSession}
           onLoginClick={() => setLoginOpen(true)}
           onClaim={claimAdmin}
-          tournamentName={data.meta.name} />
+          tournamentName={data.meta.name} logoUrl={data.meta.logoUrl} />
 
         <div className="main-area">
           <div className="page-header">
@@ -934,8 +1174,9 @@ export default function FutbolitoApp() {
           {tab === 'equipos' && <EquiposTab data={data} isAdmin={isAdmin} onAdd={addTeam} onEdit={editTeam} onDelete={deleteTeam} standings={standings} />}
           {tab === 'jugadores' && <JugadoresTab data={data} isAdmin={isAdmin} onAdd={addPlayer} onEdit={editPlayer} onDelete={deletePlayer} />}
           {tab === 'partidos' && <PartidosTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('liga', p)} onGenerateFixture={generateFixture}
+            onAutoSchedule={autoScheduleMatches}
             onSaveResult={(id, payload) => saveMatchResult('liga', id, payload)} onDeleteMatch={(id) => deleteMatch('liga', id)} />}
-          {tab === 'playoffs' && <PlayoffsTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('playoff', p)}
+          {tab === 'playoffs' && <PlayoffsTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('playoff', p)} onAutoSchedule={autoSchedulePlayoffs}
             onSaveResult={(id, payload) => saveMatchResult('playoff', id, payload)} onDeleteMatch={(id) => deleteMatch('playoff', id)} />}
           {tab === 'sanciones' && <SancionesTab data={data} isAdmin={isAdmin} onMarkServed={markSuspensionServed} />}
 
@@ -965,6 +1206,43 @@ function QuickStat({ label, value, isText, onClick }) {
   );
 }
 
+function PremiosSection({ data }) {
+  const withStats = data.players.map(p => ({ p, stats: getPlayerStats(p.id, data) }));
+  const topScorer = [...withStats].filter(x => x.stats.goals > 0).sort((a, b) => b.stats.goals - a.stats.goals)[0];
+  const hasChampion = !!data.meta.championText;
+  const hasRunnerUp = !!data.meta.runnerUpText;
+  if (!hasChampion && !hasRunnerUp && !topScorer) return null;
+
+  return (
+    <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+      <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#1B2A4D', marginBottom: 16 }}>Premios</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 16 }}>
+        {hasChampion && (
+          <div style={{ textAlign: 'center' }}>
+            <Trophy size={30} color="#E8B93E" style={{ margin: '0 auto 8px' }} />
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>Campeón</div>
+            <div className="font-display" style={{ fontWeight: 700, fontSize: 14, color: '#1B2A4D', marginTop: 4 }}>{data.meta.championText}</div>
+          </div>
+        )}
+        {hasRunnerUp && (
+          <div style={{ textAlign: 'center' }}>
+            <Award size={30} color="#9AA1AC" style={{ margin: '0 auto 8px' }} />
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>2° Puesto</div>
+            <div className="font-display" style={{ fontWeight: 700, fontSize: 14, color: '#1B2A4D', marginTop: 4 }}>{data.meta.runnerUpText}</div>
+          </div>
+        )}
+        {topScorer && (
+          <div style={{ textAlign: 'center' }}>
+            <BarChart3 size={30} color="#2E9E4A" style={{ margin: '0 auto 8px' }} />
+            <div style={{ fontSize: 10.5, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>Máximo goleador</div>
+            <div className="font-display" style={{ fontWeight: 700, fontSize: 14, color: '#1B2A4D', marginTop: 4 }}>{topScorer.p.name} ({topScorer.stats.goals})</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function InicioTab({ data, isAdmin, onNavigate }) {
   const [rulesOpen, setRulesOpen] = useState(false);
   return (
@@ -988,10 +1266,16 @@ function InicioTab({ data, isAdmin, onNavigate }) {
 
       <div style={{ position: 'relative', height: 190, borderRadius: 12, overflow: 'hidden', marginBottom: 20, background: '#1B2A4D' }}>
         <div style={{ position: 'absolute', inset: 0, background: '#2E9E4A', clipPath: 'polygon(38% 0, 100% 0, 68% 100%, 0 100%)' }} />
-        <Trophy size={130} color="rgba(255,255,255,.08)" style={{ position: 'absolute', right: 18, bottom: -16 }} />
-        <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '0 34px' }}>
-          <div className="font-display" style={{ fontWeight: 800, fontSize: 28, color: '#fff', lineHeight: 1.1, maxWidth: 420 }}>{data.meta.name}</div>
-          <div style={{ fontWeight: 700, fontSize: 12.5, color: 'rgba(255,255,255,.85)', marginTop: 8, textTransform: 'uppercase', letterSpacing: '.08em' }}>{data.meta.category || 'Futbolito'}</div>
+        {!data.meta.logoUrl && <Trophy size={130} color="rgba(255,255,255,.08)" style={{ position: 'absolute', right: 18, bottom: -16 }} />}
+        <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', alignItems: 'center', gap: 18, padding: '0 34px' }}>
+          {data.meta.logoUrl && (
+            <img src={data.meta.logoUrl} alt="" style={{ width: 64, height: 64, borderRadius: 12, objectFit: 'cover', background: 'rgba(255,255,255,.15)', flexShrink: 0 }}
+              onError={e => { e.currentTarget.style.display = 'none'; }} />
+          )}
+          <div>
+            <div className="font-display" style={{ fontWeight: 800, fontSize: 28, color: '#fff', lineHeight: 1.1, maxWidth: 420 }}>{data.meta.name}</div>
+            <div style={{ fontWeight: 700, fontSize: 12.5, color: 'rgba(255,255,255,.85)', marginTop: 8, textTransform: 'uppercase', letterSpacing: '.08em' }}>{data.meta.category || 'Futbolito'}</div>
+          </div>
         </div>
       </div>
 
@@ -1002,12 +1286,47 @@ function InicioTab({ data, isAdmin, onNavigate }) {
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 12, marginBottom: 20 }}>
         <QuickStat label="Equipos" value={data.teams.length} onClick={() => onNavigate('equipos')} />
         <QuickStat label="Jugadores" value={data.players.length} onClick={() => onNavigate('jugadores')} />
         <QuickStat label="Partidos" value={data.matches.length + data.playoffMatches.length} onClick={() => onNavigate('partidos')} />
         <QuickStat label="Clasificación" value="Ver tabla" isText onClick={() => onNavigate('tabla')} />
       </div>
+
+      <PremiosSection data={data} />
+
+      {data.teams.length > 0 && (
+        <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+          <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#1B2A4D', marginBottom: 14 }}>Equipos</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 20 }}>
+            {data.teams.map(t => (
+              <button key={t.id} onClick={() => onNavigate('equipos')} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, width: 84, background: 'transparent', border: 'none', cursor: 'pointer' }}>
+                <Crest team={t} size="lg" />
+                <div style={{ fontSize: 11.5, fontWeight: 600, color: '#1B2A4D', textAlign: 'center', lineHeight: 1.25 }}>{t.name}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data.meta.venueAddress && (
+        <div className="card" style={{ padding: 20, marginBottom: 20, overflow: 'hidden' }}>
+          <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#1B2A4D', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <MapPin size={16} color="#2E9E4A" /> Sitio
+          </div>
+          <div style={{ fontSize: 13.5, color: '#4A4F58', marginBottom: 12 }}>{data.meta.venueAddress}</div>
+          <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #E3E5E9' }}>
+            <iframe
+              title="Mapa del sitio"
+              width="100%"
+              height="260"
+              style={{ border: 0, display: 'block' }}
+              loading="lazy"
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(data.meta.venueAddress)}&output=embed`}
+            />
+          </div>
+        </div>
+      )}
 
       {rulesOpen && (
         <Modal title="Reglas del campeonato" onClose={() => setRulesOpen(false)}>
@@ -1234,29 +1553,41 @@ function MatchRow({ m, teams, onOpen, last, clickable }) {
         <Crest team={teamB} size="sm" />
         <span style={{ fontSize: 13, fontWeight: 600, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamB ? teamB.name : 'Equipo eliminado'}</span>
       </div>
-      {m.date && <div style={{ fontSize: 11, color: '#9AA1AC', width: 80, textAlign: 'right', flexShrink: 0 }}>{formatDate(m.date)}</div>}
+      {m.date && <div style={{ fontSize: 11, color: '#9AA1AC', width: 96, textAlign: 'right', flexShrink: 0 }}>{formatDateTime(m.date, m.time)}</div>}
     </div>
   );
 }
 
-function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onSaveResult, onDeleteMatch }) {
+function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSchedule, onSaveResult, onDeleteMatch }) {
   const [modal, setModal] = useState(null);
   const [confirmGenerate, setConfirmGenerate] = useState(false);
-  const openMatch = isAdmin ? data.matches.find(m => m.id === modal) : null;
+  const [confirmSchedule, setConfirmSchedule] = useState(false);
+  const openMatch = data.matches.find(m => m.id === modal);
   const maxJornada = data.matches.reduce((mx, m) => Math.max(mx, m.jornada || 0), 0);
 
   return (
     <div>
       {isAdmin && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
-          <div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {data.teams.length >= 2 && (
               confirmGenerate
                 ? <ConfirmInline text={data.matches.length > 0 ? 'Esto borra el fixture actual ¿continuar?' : '¿Generar fixture todos-contra-todos?'} onConfirm={() => { onGenerateFixture(); setConfirmGenerate(false); }} onCancel={() => setConfirmGenerate(false)} />
                 : <button className="btn btn-outline" onClick={() => setConfirmGenerate(true)}><Calendar size={14} /> {data.matches.length > 0 ? 'Regenerar fixture' : 'Generar fixture (todos vs todos)'}</button>
             )}
+            {data.matches.length > 0 && (
+              confirmSchedule
+                ? <ConfirmInline text="Esto reemplaza fecha y hora de todos los partidos ¿continuar?" onConfirm={() => { onAutoSchedule(); setConfirmSchedule(false); }} onCancel={() => setConfirmSchedule(false)} />
+                : <button className="btn btn-outline" onClick={() => setConfirmSchedule(true)}><Clock size={14} /> Asignar horarios automáticamente</button>
+            )}
           </div>
           <button className="btn btn-primary" disabled={data.teams.length < 2} onClick={() => setModal('new')}><Plus size={14} /> Agregar partido manual</button>
+        </div>
+      )}
+
+      {isAdmin && data.matches.length > 0 && (
+        <div style={{ fontSize: 11.5, color: '#6B7280', marginBottom: 14 }}>
+          Cancha: {data.meta.courtName || 'sin nombre (configúrala en Configuración)'} · cada jornada completa se juega en un solo día ({formatPlayDays(data.meta.playDays)}), empezando a las {data.meta.dailyStartTime}, {data.meta.matchDurationMinutes} min por partido + {data.meta.breakBetweenMatchesMinutes} min de descanso.
         </div>
       )}
 
@@ -1266,31 +1597,144 @@ function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onSaveResul
         <EmptyState Icon={Calendar} title="Todavía no hay partidos" text={isAdmin ? 'Genera el fixture automático de liga o agrega partidos manualmente.' : 'El organizador todavía no publicó el fixture.'} />
       )}
 
-      {data.matches.length > 0 && <MatchList matches={data.matches} teams={data.teams} groupByJornada clickable={isAdmin} onOpenResult={(m) => setModal(m.id)} />}
+      {data.matches.length > 0 && <MatchList matches={data.matches} teams={data.teams} groupByJornada clickable onOpenResult={(m) => setModal(m.id)} />}
 
       {isAdmin && modal === 'new' && (
         <MatchFormModal teams={data.teams} phase="liga" suggestedJornada={maxJornada + 1 || 1}
           onClose={() => setModal(null)} onSave={(p) => { onAddMatch(p); setModal(null); }} />
       )}
-      {isAdmin && openMatch && (
-        <MatchResultModal match={openMatch} teams={data.teams} players={data.players}
-          onClose={() => setModal(null)}
-          onSave={(payload) => { onSaveResult(openMatch.id, payload); setModal(null); }}
-          onDelete={(id) => { onDeleteMatch(id); setModal(null); }} />
+      {openMatch && (
+        isAdmin
+          ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players}
+              onClose={() => setModal(null)}
+              onSave={(payload) => { onSaveResult(openMatch.id, payload); setModal(null); }}
+              onDelete={(id) => { onDeleteMatch(id); setModal(null); }} />
+          : <MatchDetailModal match={openMatch} teams={data.teams} players={data.players} onClose={() => setModal(null)} />
       )}
     </div>
   );
 }
 
-function PlayoffsTab({ data, isAdmin, onAddMatch, onSaveResult, onDeleteMatch }) {
+const BRACKET_ROUNDS = ['Cuartos de Final', 'Semifinal', 'Final'];
+const BRACKET_SLOT_BASE_HEIGHT = 62;
+const BRACKET_CARD_WIDTH = 216;
+const BRACKET_GAP_WIDTH = 44;
+
+function buildConnectorPath(count, slotHeight, gapWidth) {
+  let d = '';
+  const midX = gapWidth / 2;
+  for (let i = 0; i < count; i += 2) {
+    const y1 = i * slotHeight + slotHeight / 2;
+    const y2 = (i + 1) * slotHeight + slotHeight / 2;
+    const ymid = (y1 + y2) / 2;
+    d += `M0,${y1} H${midX} M0,${y2} H${midX} M${midX},${y1} V${y2} M${midX},${ymid} H${gapWidth} `;
+  }
+  return d;
+}
+
+function BracketMatchCard({ m, teams, onOpen }) {
+  const teamA = teams.find(t => t.id === m.teamAId);
+  const teamB = teams.find(t => t.id === m.teamBId);
+  return (
+    <button onClick={onOpen} className="card" style={{ width: BRACKET_CARD_WIDTH, padding: 0, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', display: 'block' }}>
+      {[[teamA, m.scoreA], [teamB, m.scoreB]].map(([t, score], idx) => (
+        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderBottom: idx === 0 ? '1px solid #EEF0F2' : 'none' }}>
+          <Crest team={t} size="sm" />
+          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t ? t.name : 'Por definir'}</span>
+          <span style={{ fontSize: 13, fontWeight: 800, color: m.played ? '#1B2A4D' : '#C7CBD1', flexShrink: 0 }}>{m.played ? score : '–'}</span>
+        </div>
+      ))}
+    </button>
+  );
+}
+
+function canRenderBracket(data) {
+  const presentRounds = BRACKET_ROUNDS.filter(r => data.playoffMatches.some(m => m.round === r));
+  if (presentRounds.length === 0) return false;
+  const roundMatches = presentRounds.map(r => data.playoffMatches.filter(m => m.round === r));
+  if (roundMatches[0].length < 2) return false;
+  for (let i = 1; i < roundMatches.length; i++) {
+    if (roundMatches[i - 1].length !== roundMatches[i].length * 2) return false;
+  }
+  return true;
+}
+
+function PlayoffBracket({ data, onOpenMatch }) {
+  const presentRounds = BRACKET_ROUNDS.filter(r => data.playoffMatches.some(m => m.round === r));
+  const roundMatches = presentRounds.map(r => data.playoffMatches.filter(m => m.round === r));
+  const thirdPlace = data.playoffMatches.filter(m => m.round === 'Tercer Puesto');
+
+  if (!canRenderBracket(data)) return null;
+
+  return (
+    <div style={{ marginBottom: 20 }}>
+      <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
+        <div style={{ display: 'flex', width: 'fit-content', marginBottom: 8 }}>
+          {roundMatches.map((matches, ri) => (
+            <Fragment key={ri}>
+              <div style={{ width: BRACKET_CARD_WIDTH, textAlign: 'center', fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.03em' }}>{presentRounds[ri]}</div>
+              {ri < roundMatches.length - 1 && <div style={{ width: BRACKET_GAP_WIDTH, flexShrink: 0 }} />}
+            </Fragment>
+          ))}
+        </div>
+        <div style={{ display: 'flex', width: 'fit-content' }}>
+          {roundMatches.map((matches, ri) => {
+            const slotHeight = BRACKET_SLOT_BASE_HEIGHT * Math.pow(2, ri);
+            return (
+              <Fragment key={ri}>
+                <div style={{ width: BRACKET_CARD_WIDTH, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+                  {matches.map(m => (
+                    <div key={m.id} style={{ height: slotHeight, display: 'flex', alignItems: 'center' }}>
+                      <BracketMatchCard m={m} teams={data.teams} onOpen={() => onOpenMatch(m.id)} />
+                    </div>
+                  ))}
+                </div>
+                {ri < roundMatches.length - 1 && (
+                  <svg width={BRACKET_GAP_WIDTH} height={matches.length * slotHeight} style={{ flexShrink: 0 }}>
+                    <path d={buildConnectorPath(matches.length, slotHeight, BRACKET_GAP_WIDTH)} stroke="#2E9E4A" strokeWidth="2" fill="none" />
+                  </svg>
+                )}
+              </Fragment>
+            );
+          })}
+        </div>
+      </div>
+
+      {thirdPlace.length > 0 && (
+        <div style={{ marginTop: 20 }}>
+          <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.03em', marginBottom: 8 }}>Tercer Puesto</div>
+          {thirdPlace.map(m => (
+            <div key={m.id} style={{ marginBottom: 8 }}><BracketMatchCard m={m} teams={data.teams} onOpen={() => onOpenMatch(m.id)} /></div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, onDeleteMatch }) {
   const [modal, setModal] = useState(null);
-  const openMatch = isAdmin ? data.playoffMatches.find(m => m.id === modal) : null;
+  const [confirmSchedule, setConfirmSchedule] = useState(false);
+  const openMatch = data.playoffMatches.find(m => m.id === modal);
 
   return (
     <div>
       {isAdmin && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
+          <div>
+            {data.playoffMatches.length > 0 && (
+              confirmSchedule
+                ? <ConfirmInline text="Esto reemplaza fecha y hora de todos los partidos de playoffs ¿continuar?" onConfirm={() => { onAutoSchedule(); setConfirmSchedule(false); }} onCancel={() => setConfirmSchedule(false)} />
+                : <button className="btn btn-outline" onClick={() => setConfirmSchedule(true)}><Clock size={14} /> Asignar horarios automáticamente</button>
+            )}
+          </div>
           <button className="btn btn-primary" disabled={data.teams.length < 2} onClick={() => setModal('new')}><Plus size={14} /> Agregar partido de playoffs</button>
+        </div>
+      )}
+
+      {isAdmin && data.playoffMatches.length > 0 && (
+        <div style={{ fontSize: 11.5, color: '#6B7280', marginBottom: 14 }}>
+          Cada ronda se juega completa en un solo día ({formatPlayDays(data.meta.playDays)}): cuartos, luego semis, y tercer puesto + final juntos el último día. Empieza el día siguiente al último partido de liga programado.
         </div>
       )}
 
@@ -1299,29 +1743,44 @@ function PlayoffsTab({ data, isAdmin, onAddMatch, onSaveResult, onDeleteMatch })
         <EmptyState Icon={Award} title="Aún no hay cuadro de playoffs" text={isAdmin ? 'Cuando termine la fase de liga, agrega aquí semifinales, final y demás cruces.' : 'El organizador todavía no publicó el cuadro de playoffs.'} />
       )}
 
-      {['Cuartos de Final', 'Semifinal', 'Tercer Puesto', 'Final'].concat(
-        [...new Set(data.playoffMatches.map(m => m.round))].filter(r => !['Cuartos de Final', 'Semifinal', 'Tercer Puesto', 'Final'].includes(r))
-      ).map(round => {
-        const matches = data.playoffMatches.filter(m => m.round === round);
-        if (matches.length === 0) return null;
-        return (
-          <div key={round} style={{ marginBottom: 16 }}>
-            <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.03em' }}>{round}</div>
-            <div className="card">
-              {matches.map((m, idx) => <MatchRow key={m.id} m={m} teams={data.teams} clickable={isAdmin} onOpen={() => setModal(m.id)} last={idx === matches.length - 1} />)}
+      {data.playoffMatches.length > 0 && canRenderBracket(data) && (
+        <PlayoffBracket data={data} onOpenMatch={(id) => setModal(id)} />
+      )}
+
+      {data.playoffMatches.length > 0 && !canRenderBracket(data) && (
+        <>
+          {isAdmin && (
+            <div style={{ fontSize: 11.5, color: '#9AA1AC', marginBottom: 14 }}>
+              El cuadro visual aparece cuando cada ronda tiene exactamente la mitad de partidos que la anterior (ej. 4 cuartos → 2 semis → 1 final). Mientras tanto, se muestra como lista.
             </div>
-          </div>
-        );
-      })}
+          )}
+          {['Cuartos de Final', 'Semifinal', 'Tercer Puesto', 'Final'].concat(
+            [...new Set(data.playoffMatches.map(m => m.round))].filter(r => !['Cuartos de Final', 'Semifinal', 'Tercer Puesto', 'Final'].includes(r))
+          ).map(round => {
+            const matches = data.playoffMatches.filter(m => m.round === round);
+            if (matches.length === 0) return null;
+            return (
+              <div key={round} style={{ marginBottom: 16 }}>
+                <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.03em' }}>{round}</div>
+                <div className="card">
+                  {matches.map((m, idx) => <MatchRow key={m.id} m={m} teams={data.teams} clickable onOpen={() => setModal(m.id)} last={idx === matches.length - 1} />)}
+                </div>
+              </div>
+            );
+          })}
+        </>
+      )}
 
       {isAdmin && modal === 'new' && (
         <MatchFormModal teams={data.teams} phase="playoff" onClose={() => setModal(null)} onSave={(p) => { onAddMatch(p); setModal(null); }} />
       )}
-      {isAdmin && openMatch && (
-        <MatchResultModal match={openMatch} teams={data.teams} players={data.players}
-          onClose={() => setModal(null)}
-          onSave={(payload) => { onSaveResult(openMatch.id, payload); setModal(null); }}
-          onDelete={(id) => { onDeleteMatch(id); setModal(null); }} />
+      {openMatch && (
+        isAdmin
+          ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players}
+              onClose={() => setModal(null)}
+              onSave={(payload) => { onSaveResult(openMatch.id, payload); setModal(null); }}
+              onDelete={(id) => { onDeleteMatch(id); setModal(null); }} />
+          : <MatchDetailModal match={openMatch} teams={data.teams} players={data.players} onClose={() => setModal(null)} />
       )}
     </div>
   );

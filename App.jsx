@@ -1276,7 +1276,7 @@ const NAV_ITEMS = [
   { id: 'stats', label: 'Rankings', Icon: BarChart3 },
 ];
 
-function Sidebar({ tab, setTab, isAdmin, sessionEmail, canClaim, onOpenSettings, onLogout, onLoginClick, onClaim, tournamentName, logoUrl }) {
+function Sidebar({ tab, setTab, isAdmin, sessionEmail, onOpenSettings, onLogout, onLoginClick, tournamentName, logoUrl }) {
   const [logoError, setLogoError] = useState(false);
   return (
     <div className="sidebar">
@@ -1297,11 +1297,6 @@ function Sidebar({ tab, setTab, isAdmin, sessionEmail, canClaim, onOpenSettings,
       </div>
       <div className="sidebar-footer">
         {isAdmin && <button className="sidebar-footer-link" onClick={onOpenSettings}><Settings size={14} /> Configuración</button>}
-        {canClaim && (
-          <button className="sidebar-footer-link" style={{ background: 'rgba(255,255,255,.14)' }} onClick={onClaim}>
-            <ShieldAlert size={14} /> Registrarme como organizador
-          </button>
-        )}
         {sessionEmail && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', color: 'rgba(255,255,255,.7)', fontSize: 11.5, overflow: 'hidden' }}>
             <Mail size={12} style={{ flexShrink: 0 }} />
@@ -1382,9 +1377,7 @@ export default function FutbolitoApp() {
 
   const sessionEmail = session?.user?.email || '';
   const isAdmin = !!(sessionEmail && data && data.meta.adminEmail && sessionEmail.toLowerCase() === data.meta.adminEmail.toLowerCase());
-  const canClaim = !!(sessionEmail && data && !data.meta.adminEmail);
 
-  const claimAdmin = () => update(d => ({ ...d, meta: { ...d.meta, adminEmail: sessionEmail } }));
   const logoutSession = () => supabase.auth.signOut();
 
   if (loading || !data) {
@@ -1507,11 +1500,10 @@ export default function FutbolitoApp() {
     <div className="futbolito-app" style={{ minHeight: '100vh' }}>
       <GlobalStyles />
       <div className="app-shell">
-        <Sidebar tab={tab} setTab={setTab} isAdmin={isAdmin} sessionEmail={sessionEmail} canClaim={canClaim}
+        <Sidebar tab={tab} setTab={setTab} isAdmin={isAdmin} sessionEmail={sessionEmail}
           onOpenSettings={() => setSettingsOpen(true)}
           onLogout={logoutSession}
           onLoginClick={() => setLoginOpen(true)}
-          onClaim={claimAdmin}
           tournamentName={data.meta.name} logoUrl={data.meta.logoUrl} />
 
         <div className="main-area">

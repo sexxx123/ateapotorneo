@@ -128,7 +128,7 @@ function defaultData() {
       logoUrl: '',
       championText: '', runnerUpText: '',
       pointsWin: 3, pointsDraw: 1, pointsLoss: 0,
-      yellowLimit: 3, redSuspensionMatches: 1, playoffSpots: 4, relegationSpots: 0,
+      yellowLimit: 3, redSuspensionMatches: 1, playoffSpots: 4, relegationSpots: 0, qualifiersPerGroup: 2,
       courtName: '', dailyStartTime: '09:00', dailyEndTime: '18:00',
       matchDurationMinutes: 20, breakBetweenMatchesMinutes: 10, playDays: [0, 1, 2, 3, 4, 5, 6],
       adminEmail: '',
@@ -137,7 +137,13 @@ function defaultData() {
     players: [],
     matches: [],
     playoffMatches: [],
+    news: [],
   };
+}
+
+function teamsUseGroups(teams) {
+  const groups = new Set(teams.filter(t => t.group && t.group.trim()).map(t => t.group.trim()));
+  return groups.size >= 2;
 }
 
 function generateRoundRobin(teamIds) {
@@ -294,6 +300,14 @@ function GlobalStyles() {
         .sidebar-footer{ border-top:none; margin-top:0; padding-top:0; flex-direction:row; flex-shrink:0; }
         .main-area{ padding:20px; }
         .two-col{ grid-template-columns:1fr !important; }
+      }
+      @media print{
+        .no-print{ display:none !important; }
+        .sidebar{ display:none !important; }
+        .app-shell{ display:block !important; }
+        .main-area{ padding:0 !important; }
+        body, .futbolito-app{ background:#fff !important; }
+        .card{ break-inside:avoid; border-color:#ccc !important; }
       }
     `}</style>
   );
@@ -455,6 +469,81 @@ function PlayerFormModal({ initial, teams, defaultTeamId, onClose, onSave }) {
         <button className="btn btn-primary" disabled={!name.trim() || !teamId}
           onClick={() => name.trim() && teamId && onSave({ name: name.trim(), number: number === '' ? '' : Number(number), position, teamId })}>
           {initial ? 'Guardar cambios' : 'Agregar jugador'}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+function BulkPlayersModal({ teams, defaultTeamId, onClose, onSave }) {
+  const [teamId, setTeamId] = useState(defaultTeamId || (teams[0] && teams[0].id) || '');
+  const [text, setText] = useState('');
+
+  const parsed = text.split('\n').map(l => l.trim()).filter(Boolean).map(line => {
+    const match = line.match(/^(\d+)\s+(.+)$/);
+    if (match) return { number: match[1], name: match[2].trim() };
+    return { number: '', name: line };
+  });
+
+  return (
+    <Modal title="Pegar lista de jugadores" onClose={onClose}>
+      <div style={{ marginBottom: 14 }}>
+        <label className="field-label">Equipo</label>
+        <select className="input" value={teamId} onChange={e => setTeamId(e.target.value)}>
+          {teams.length === 0 && <option value="">Sin equipos</option>}
+          {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+      </div>
+      <div style={{ marginBottom: 8 }}>
+        <label className="field-label">Un jugador por línea</label>
+        <textarea className="textarea" rows={8} value={text} onChange={e => setText(e.target.value)}
+          placeholder={'7 Juan Pérez\n10 María Gómez\nCarlos Ruiz'} />
+        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Si la línea empieza con un número, se usa como dorsal. El resto queda como nombre. La posición se puede ajustar después, jugador por jugador.</div>
+      </div>
+      {parsed.length > 0 && (
+        <div className="card" style={{ padding: 10, marginBottom: 18, maxHeight: 160, overflowY: 'auto' }}>
+          {parsed.map((p, i) => (
+            <div key={i} style={{ fontSize: 12.5, padding: '3px 0', color: '#2A2E35' }}>
+              {p.number ? <span style={{ color: '#9AA1AC', fontWeight: 700, marginRight: 6 }}>#{p.number}</span> : null}
+              {p.name}
+            </div>
+          ))}
+        </div>
+      )}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
+        <button className="btn btn-primary" disabled={!teamId || parsed.length === 0}
+          onClick={() => teamId && parsed.length > 0 && onSave(teamId, parsed)}>
+          Agregar {parsed.length || ''} jugador{parsed.length !== 1 ? 'es' : ''}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
+function NewsFormModal({ onClose, onSave }) {
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
+  return (
+    <Modal title="Nueva noticia" onClose={onClose}>
+      <div style={{ marginBottom: 14 }}>
+        <label className="field-label">Título</label>
+        <input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ej: Arranca la fase de grupos" autoFocus />
+      </div>
+      <div style={{ marginBottom: 14 }}>
+        <label className="field-label">Texto</label>
+        <textarea className="textarea" rows={4} value={body} onChange={e => setBody(e.target.value)} placeholder="Detalles de la noticia…" />
+      </div>
+      <div style={{ marginBottom: 18 }}>
+        <label className="field-label">URL de imagen (opcional)</label>
+        <input className="input" value={imageUrl} onChange={e => setImageUrl(e.target.value)} placeholder="https://..." />
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+        <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
+        <button className="btn btn-primary" disabled={!title.trim()}
+          onClick={() => title.trim() && onSave({ title: title.trim(), body: body.trim(), imageUrl: imageUrl.trim(), date: new Date().toISOString().slice(0, 10) })}>
+          Publicar
         </button>
       </div>
     </Modal>
@@ -734,9 +823,11 @@ function MatchDetailModal({ match, teams, players, onClose }) {
   );
 }
 
-function SettingsModal({ meta, onClose, onSave, onReset }) {
+function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
   const [form, setForm] = useState({ ...meta });
   const [confirmReset, setConfirmReset] = useState(false);
+  const [pendingImport, setPendingImport] = useState(null);
+  const [importError, setImportError] = useState('');
   const setField = (key, val) => setForm(f => ({ ...f, [key]: val }));
   const numField = (key, label) => (
     <div>
@@ -744,6 +835,28 @@ function SettingsModal({ meta, onClose, onSave, onReset }) {
       <input className="input" type="number" value={form[key]} onChange={e => setField(key, Number(e.target.value))} />
     </div>
   );
+
+  const handleFileSelected = (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    setImportError('');
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const parsed = JSON.parse(reader.result);
+        if (!parsed.meta || !Array.isArray(parsed.teams) || !Array.isArray(parsed.players) || !Array.isArray(parsed.matches)) {
+          setImportError('Ese archivo no tiene el formato esperado de un respaldo de este torneo.');
+          return;
+        }
+        setPendingImport(parsed);
+      } catch (err) {
+        setImportError('No se pudo leer el archivo. ¿Seguro que es el JSON de respaldo?');
+      }
+    };
+    reader.readAsText(file);
+  };
+
   return (
     <Modal title="Configuración del torneo" onClose={onClose}>
       <div style={{ marginBottom: 16 }}>
@@ -865,6 +978,15 @@ function SettingsModal({ meta, onClose, onSave, onReset }) {
         <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Solo este correo puede iniciar sesión como organizador y editar los datos. Si lo cambias por uno distinto al tuyo, perderás el acceso hasta iniciar sesión con el nuevo correo.</div>
       </div>
 
+      <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Respaldo</div>
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
+        <button type="button" className="btn btn-outline btn-sm" onClick={onExport}><FileText size={13} /> Descargar respaldo (JSON)</button>
+        <button type="button" className="btn btn-outline btn-sm" onClick={() => document.getElementById('import-backup-file').click()}><FileText size={13} /> Restaurar desde archivo</button>
+        <input id="import-backup-file" type="file" accept="application/json" style={{ display: 'none' }} onChange={handleFileSelected} />
+      </div>
+      {importError && <div style={{ fontSize: 12, color: '#C4302B', marginBottom: 10 }}>{importError}</div>}
+      <div style={{ fontSize: 11, color: '#9AA1AC', marginBottom: 20 }}>Descarga de vez en cuando una copia por si acaso. Restaurar reemplaza TODOS los datos actuales por los del archivo — no se puede deshacer.</div>
+
       <div style={{ borderTop: '1px solid #E3E5E9', paddingTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
         {confirmReset
           ? <ConfirmInline text="Esto borra TODOS los datos ¿continuar?" onConfirm={onReset} onCancel={() => setConfirmReset(false)} />
@@ -874,6 +996,18 @@ function SettingsModal({ meta, onClose, onSave, onReset }) {
           <button className="btn btn-primary" onClick={() => onSave(form)}><Check size={14} /> Guardar</button>
         </div>
       </div>
+
+      {pendingImport && (
+        <Modal title="Restaurar respaldo" onClose={() => setPendingImport(null)}>
+          <div style={{ fontSize: 13, color: '#2A2E35', marginBottom: 16 }}>
+            Vas a reemplazar TODOS los datos actuales (equipos, jugadores, partidos, configuración) con los del archivo que elegiste. Esto no se puede deshacer.
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <button className="btn btn-outline" onClick={() => setPendingImport(null)}>Cancelar</button>
+            <button className="btn btn-danger" onClick={() => { onImport(pendingImport); setPendingImport(null); }}><Check size={14} /> Sí, reemplazar todo</button>
+          </div>
+        </Modal>
+      )}
     </Modal>
   );
 }
@@ -1276,6 +1410,13 @@ export default function FutbolitoApp() {
   }));
 
   const addPlayer = (payload) => update(d => ({ ...d, players: [...d.players, { id: uid('player'), servedSuspensions: 0, ...payload }] }));
+  const bulkAddPlayers = (teamId, players) => update(d => ({
+    ...d,
+    players: [...d.players, ...players.map(p => ({
+      id: uid('player'), servedSuspensions: 0, teamId,
+      name: p.name, number: p.number === '' ? '' : Number(p.number), position: POSITIONS[2],
+    }))],
+  }));
   const editPlayer = (id, payload) => update(d => ({ ...d, players: d.players.map(p => p.id === id ? { ...p, ...payload } : p) }));
   const deletePlayer = (id) => update(d => ({ ...d, players: d.players.filter(p => p.id !== id) }));
   const markSuspensionServed = (id) => update(d => ({ ...d, players: d.players.map(p => p.id === id ? { ...p, servedSuspensions: (p.servedSuspensions || 0) + 1 } : p) }));
@@ -1336,6 +1477,30 @@ export default function FutbolitoApp() {
   const saveSettings = (meta) => { update(d => ({ ...d, meta })); setSettingsOpen(false); };
   const resetAll = () => { update(() => defaultData()); setSettingsOpen(false); };
 
+  const addNews = (item) => update(d => ({ ...d, news: [{ id: uid('news'), ...item }, ...(d.news || [])] }));
+  const deleteNews = (id) => update(d => ({ ...d, news: (d.news || []).filter(n => n.id !== id) }));
+
+  const exportData = () => {
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'torneo-respaldo-' + new Date().toISOString().slice(0, 10) + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  const importData = (parsed) => {
+    update(() => ({
+      ...defaultData(),
+      ...parsed,
+      meta: { ...defaultData().meta, ...parsed.meta },
+    }));
+    setSettingsOpen(false);
+  };
+
   const standings = computeStandings(data);
 
   return (
@@ -1361,7 +1526,7 @@ export default function FutbolitoApp() {
             </div>
           )}
 
-          {tab === 'inicio' && <InicioTab data={data} isAdmin={isAdmin} onNavigate={setTab} onViewTeam={setViewTeamId} />}
+          {tab === 'inicio' && <InicioTab data={data} isAdmin={isAdmin} onNavigate={setTab} onViewTeam={setViewTeamId} onAddNews={addNews} onDeleteNews={deleteNews} />}
 
           {tab === 'tabla' && (
             <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
@@ -1371,7 +1536,7 @@ export default function FutbolitoApp() {
           )}
 
           {tab === 'equipos' && <EquiposTab data={data} isAdmin={isAdmin} onAdd={addTeam} onEdit={editTeam} onDelete={deleteTeam} standings={standings} onViewTeam={setViewTeamId} />}
-          {tab === 'jugadores' && <JugadoresTab data={data} isAdmin={isAdmin} onAdd={addPlayer} onEdit={editPlayer} onDelete={deletePlayer} />}
+          {tab === 'jugadores' && <JugadoresTab data={data} isAdmin={isAdmin} onAdd={addPlayer} onEdit={editPlayer} onDelete={deletePlayer} onBulkAdd={bulkAddPlayers} />}
           {tab === 'partidos' && <PartidosTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('liga', p)} onGenerateFixture={generateFixture}
             onAutoSchedule={autoScheduleMatches}
             onSaveResult={(id, payload) => saveMatchResult('liga', id, payload)} onDeleteMatch={(id) => deleteMatch('liga', id)} />}
@@ -1388,7 +1553,7 @@ export default function FutbolitoApp() {
         </div>
       </div>
 
-      {settingsOpen && isAdmin && <SettingsModal meta={data.meta} onClose={() => setSettingsOpen(false)} onSave={saveSettings} onReset={resetAll} />}
+      {settingsOpen && isAdmin && <SettingsModal meta={data.meta} onClose={() => setSettingsOpen(false)} onSave={saveSettings} onReset={resetAll} onExport={exportData} onImport={importData} />}
       {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
       {viewTeamId && data.teams.find(t => t.id === viewTeamId) && (
         <TeamDetailModal team={data.teams.find(t => t.id === viewTeamId)} data={data} onClose={() => setViewTeamId(null)} />
@@ -1445,8 +1610,11 @@ function PremiosSection({ data }) {
   );
 }
 
-function InicioTab({ data, isAdmin, onNavigate, onViewTeam }) {
+function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteNews }) {
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [newsModalOpen, setNewsModalOpen] = useState(false);
+  const [confirmDeleteNewsId, setConfirmDeleteNewsId] = useState(null);
+  const news = data.news || [];
   return (
     <div>
       <div className="info-strip" style={{ marginBottom: 20 }}>
@@ -1497,6 +1665,35 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam }) {
 
       <PremiosSection data={data} />
 
+      <div className="card" style={{ padding: 20, marginBottom: 20 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: news.length > 0 ? 14 : 8 }}>
+          <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#1B2A4D' }}>Noticias</div>
+          {isAdmin && <button className="btn btn-outline btn-sm" onClick={() => setNewsModalOpen(true)}><Plus size={13} /> Agregar</button>}
+        </div>
+        {news.length === 0
+          ? <div style={{ fontSize: 12.5, color: '#9AA1AC' }}>Todavía no hay noticias publicadas.</div>
+          : news.map((n, idx) => (
+            <div key={n.id} style={{ display: 'flex', gap: 14, padding: '14px 0', borderTop: idx === 0 ? 'none' : '1px solid #EEF0F2' }}>
+              {n.imageUrl && (
+                <img src={n.imageUrl} alt="" style={{ width: 84, height: 84, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
+                  onError={e => { e.currentTarget.style.display = 'none'; }} />
+              )}
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
+                  <div className="font-display" style={{ fontWeight: 700, fontSize: 14, color: '#1B2A4D' }}>{n.title}</div>
+                  {isAdmin && (
+                    confirmDeleteNewsId === n.id
+                      ? <ConfirmInline text="¿Eliminar?" onConfirm={() => { onDeleteNews(n.id); setConfirmDeleteNewsId(null); }} onCancel={() => setConfirmDeleteNewsId(null)} />
+                      : <button className="icon-btn" style={{ flexShrink: 0 }} onClick={() => setConfirmDeleteNewsId(n.id)}><Trash2 size={12} /></button>
+                  )}
+                </div>
+                <div style={{ fontSize: 11, color: '#9AA1AC', margin: '2px 0 6px' }}>{formatDate(n.date)}</div>
+                {n.body && <div style={{ fontSize: 13, color: '#4A4F58', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{n.body}</div>}
+              </div>
+            </div>
+          ))}
+      </div>
+
       {data.teams.length > 0 && (
         <div className="card" style={{ padding: 20, marginBottom: 20 }}>
           <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#1B2A4D', marginBottom: 14 }}>Equipos</div>
@@ -1537,6 +1734,9 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam }) {
             : <div style={{ fontSize: 13, color: '#6B7280' }}>{isAdmin ? 'Todavía no agregaste las reglas. Puedes escribirlas en Configuración.' : 'El organizador todavía no publicó las reglas del campeonato.'}</div>}
         </Modal>
       )}
+      {isAdmin && newsModalOpen && (
+        <NewsFormModal onClose={() => setNewsModalOpen(false)} onSave={(item) => { onAddNews(item); setNewsModalOpen(false); }} />
+      )}
     </div>
   );
 }
@@ -1549,6 +1749,9 @@ function TablaTab({ data, standings, onViewTeam }) {
   const n = standings.length;
   return (
     <div>
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+        <button className="btn btn-outline btn-sm" onClick={() => window.print()}><FileText size={13} /> Imprimir / PDF</button>
+      </div>
       <div className="card" style={{ overflowX: 'auto' }}>
         <table className="data-table">
           <thead>
@@ -1650,7 +1853,7 @@ function EquiposTab({ data, isAdmin, onAdd, onEdit, onDelete, standings, onViewT
   );
 }
 
-function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete }) {
+function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
   const [modal, setModal] = useState(null);
   const [filterTeam, setFilterTeam] = useState('all');
   const [confirmId, setConfirmId] = useState(null);
@@ -1664,7 +1867,12 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete }) {
           <option value="all">Todos los equipos</option>
           {data.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
-        {isAdmin && <button className="btn btn-primary" disabled={data.teams.length === 0} onClick={() => setModal('new')}><Plus size={14} /> Agregar jugador</button>}
+        {isAdmin && (
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button className="btn btn-outline" disabled={data.teams.length === 0} onClick={() => setModal('bulk')}><FileText size={14} /> Pegar lista</button>
+            <button className="btn btn-primary" disabled={data.teams.length === 0} onClick={() => setModal('new')}><Plus size={14} /> Agregar jugador</button>
+          </div>
+        )}
       </div>
 
       {data.teams.length === 0 && <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 12 }}>Crea al menos un equipo antes de registrar jugadores.</div>}
@@ -1707,7 +1915,11 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete }) {
         )}
 
       {isAdmin && modal === 'new' && <PlayerFormModal teams={data.teams} defaultTeamId={filterTeam !== 'all' ? filterTeam : undefined} onClose={() => setModal(null)} onSave={(p) => { onAdd(p); setModal(null); }} />}
-      {isAdmin && modal && modal !== 'new' && (
+      {isAdmin && modal === 'bulk' && (
+        <BulkPlayersModal teams={data.teams} defaultTeamId={filterTeam !== 'all' ? filterTeam : undefined}
+          onClose={() => setModal(null)} onSave={(teamId, players) => { onBulkAdd(teamId, players); setModal(null); }} />
+      )}
+      {isAdmin && modal && modal !== 'new' && modal !== 'bulk' && (
         <PlayerFormModal teams={data.teams} initial={data.players.find(p => p.id === modal)} onClose={() => setModal(null)} onSave={(p) => { onEdit(modal, p); setModal(null); }} />
       )}
     </div>
@@ -1770,7 +1982,7 @@ function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSched
   return (
     <div>
       {isAdmin && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {data.teams.length >= 2 && (
               confirmGenerate
@@ -1784,6 +1996,12 @@ function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSched
             )}
           </div>
           <button className="btn btn-primary" disabled={data.teams.length < 2} onClick={() => setModal('new')}><Plus size={14} /> Agregar partido manual</button>
+        </div>
+      )}
+
+      {data.matches.length > 0 && (
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
+          <button className="btn btn-outline btn-sm" onClick={() => window.print()}><FileText size={13} /> Imprimir / PDF</button>
         </div>
       )}
 

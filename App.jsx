@@ -2,8 +2,7 @@ import { useState, useEffect, useCallback, Fragment } from 'react';
 import {
   Trophy, Users, User, Calendar, ShieldAlert, BarChart3, Settings,
   Plus, Trash2, X, AlertTriangle, Check, Pencil, Table2, Award, Loader2,
-  LogIn, LogOut, Mail, Home, FileText, UserCircle2, Send, Clock, MapPin,
-  ChevronLeft, ChevronRight
+  LogIn, LogOut, Mail, Home, FileText, UserCircle2, Send, Clock, MapPin
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
@@ -233,6 +232,8 @@ function GlobalStyles() {
       .page-subtitle{ font-family:'Inter',sans-serif; font-weight:600; font-size:14.5px; color:#3B4A6B; margin-top:4px; }
       .card{ background:#fff; border:1px solid #E3E5E9; border-radius:10px; font-family:'Inter',sans-serif; }
       .card-header-green{ background:#2E9E4A; color:#fff; font-family:'Poppins',sans-serif; font-weight:700; font-size:13.5px; padding:12px 16px; border-radius:10px 10px 0 0; }
+      .widget-select{ background:rgba(255,255,255,.12); color:#fff; border:1px solid rgba(255,255,255,.55); border-radius:14px; padding:3px 22px 3px 10px; font-size:11.5px; font-weight:700; font-family:'Inter',sans-serif; cursor:pointer; appearance:none; -webkit-appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 7px center; max-width:120px; text-overflow:ellipsis; }
+      .widget-select option{ color:#1B2A4D; }
       .btn{ font-family:'Inter',sans-serif; font-weight:600; padding:9px 16px; border-radius:8px; font-size:13px; cursor:pointer; border:1px solid transparent; display:inline-flex; align-items:center; gap:6px; white-space:nowrap; transition:opacity .15s, background .15s, border-color .15s, color .15s, transform .08s; }
       .btn:active{ transform:scale(.97); }
       .btn-primary{ background:#2E9E4A; color:#fff; }
@@ -938,69 +939,139 @@ function LoginModal({ onClose }) {
 
 function buildTimeline(data) {
   const all = [
-    ...data.matches.map(m => ({ ...m, _label: 'Jornada ' + m.jornada })),
-    ...data.playoffMatches.map(m => ({ ...m, _label: m.round })),
+    ...data.matches.map(m => ({ ...m, _label: 'Jornada ' + m.jornada, _phase: 'liga', _groupKey: m.jornada })),
+    ...data.playoffMatches.map(m => ({ ...m, _label: m.round, _phase: 'playoff', _groupKey: m.round })),
   ].filter(m => m.date);
   all.sort((a, b) => (a.date + ' ' + (a.time || '00:00')).localeCompare(b.date + ' ' + (b.time || '00:00')));
   return all;
 }
 
-function MatchWidgetCard({ data }) {
-  const timeline = buildTimeline(data);
-  const defaultIndex = (() => {
-    const idx = timeline.findIndex(m => !m.played);
-    if (idx !== -1) return idx;
-    return timeline.length > 0 ? timeline.length - 1 : 0;
-  })();
-  const [index, setIndex] = useState(defaultIndex);
-  const safeIndex = Math.min(index, Math.max(0, timeline.length - 1));
-  const match = timeline[safeIndex] || null;
+const PLAYOFF_ROUND_ORDER = ['Cuartos de Final', 'Semifinal', 'Tercer Puesto', 'Final'];
 
-  const teamA = match ? data.teams.find(t => t.id === match.teamAId) : null;
-  const teamB = match ? data.teams.find(t => t.id === match.teamBId) : null;
+function MiniMatchRow({ m, teams }) {
+  const teamA = teams.find(t => t.id === m.teamAId);
+  const teamB = teams.find(t => t.id === m.teamBId);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end', minWidth: 0 }}>
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamA ? teamA.name : '—'}</span>
+        <Crest team={teamA} size="sm" />
+      </div>
+      <div style={{ fontSize: 12, fontWeight: 800, color: m.played ? '#1B2A4D' : '#C7CBD1', minWidth: 34, textAlign: 'center', flexShrink: 0 }}>
+        {m.played ? m.scoreA + '-' + m.scoreB : 'vs'}
+      </div>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+        <Crest team={teamB} size="sm" />
+        <span style={{ fontSize: 12, fontWeight: 600, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamB ? teamB.name : '—'}</span>
+      </div>
+    </div>
+  );
+}
+
+function MatchWidgetCard({ data }) {
+  const ligaJornadas = [...new Set(data.matches.map(m => m.jornada))].sort((a, b) => a - b);
+  const playoffRoundsPresent = [...new Set(data.playoffMatches.map(m => m.round))];
+  const playoffRounds = PLAYOFF_ROUND_ORDER.filter(r => playoffRoundsPresent.includes(r))
+    .concat(playoffRoundsPresent.filter(r => !PLAYOFF_ROUND_ORDER.includes(r)));
+
+  const hasLiga = ligaJornadas.length > 0;
+  const hasPlayoffs = playoffRounds.length > 0;
+
+  const timeline = buildTimeline(data);
+  const defaultItem = timeline.find(m => !m.played) || timeline[timeline.length - 1] || null;
+
+  const [phase, setPhase] = useState(defaultItem ? defaultItem._phase : (hasLiga ? 'liga' : 'playoff'));
+  const [groupKey, setGroupKey] = useState(defaultItem ? defaultItem._groupKey : (hasLiga ? ligaJornadas[0] : playoffRounds[0]));
+
+  if (!hasLiga && !hasPlayoffs) {
+    return (
+      <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
+        <div className="card-header-green">Juegos</div>
+        <div style={{ padding: 18, fontSize: 12.5, color: '#9AA1AC', textAlign: 'center' }}>Aún no hay partidos programados.</div>
+      </div>
+    );
+  }
+
+  const groupOptions = phase === 'liga' ? ligaJornadas : playoffRounds;
+  const safeGroupKey = groupOptions.includes(groupKey) ? groupKey : groupOptions[0];
+  const groupMatches = phase === 'liga'
+    ? data.matches.filter(m => m.jornada === safeGroupKey)
+    : data.playoffMatches.filter(m => m.round === safeGroupKey);
+
+  const changePhase = (newPhase) => {
+    setPhase(newPhase);
+    const opts = newPhase === 'liga' ? ligaJornadas : playoffRounds;
+    setGroupKey(opts[0]);
+  };
+
+  const metaLine = [
+    phase === 'liga' ? 'Jornada ' + safeGroupKey : safeGroupKey,
+    data.meta.courtName || null,
+  ].filter(Boolean).join(' · ');
 
   return (
     <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
-      <div className="card-header-green" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <span>{match ? (match.played ? 'Resultado' : 'Próximo partido') : 'Partidos'}</span>
-        {timeline.length > 1 && (
-          <span style={{ display: 'flex', gap: 4 }}>
-            <button onClick={() => setIndex(i => Math.max(0, Math.min(i, timeline.length - 1) - 1))} disabled={safeIndex === 0}
-              style={{ background: 'rgba(255,255,255,.18)', border: 'none', borderRadius: 5, width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: safeIndex === 0 ? 'default' : 'pointer', opacity: safeIndex === 0 ? .4 : 1, color: '#fff' }}>
-              <ChevronLeft size={13} />
-            </button>
-            <button onClick={() => setIndex(i => Math.min(timeline.length - 1, Math.min(i, timeline.length - 1) + 1))} disabled={safeIndex === timeline.length - 1}
-              style={{ background: 'rgba(255,255,255,.18)', border: 'none', borderRadius: 5, width: 22, height: 22, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: safeIndex === timeline.length - 1 ? 'default' : 'pointer', opacity: safeIndex === timeline.length - 1 ? .4 : 1, color: '#fff' }}>
-              <ChevronRight size={13} />
-            </button>
-          </span>
-        )}
+      <div className="card-header-green" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+        <span>Juegos</span>
+        <span style={{ display: 'flex', gap: 6 }}>
+          {hasLiga && hasPlayoffs && (
+            <select className="widget-select" value={phase} onChange={e => changePhase(e.target.value)}>
+              <option value="liga">Liga</option>
+              <option value="playoff">Playoffs</option>
+            </select>
+          )}
+          <select className="widget-select" value={safeGroupKey} onChange={e => setGroupKey(phase === 'liga' ? Number(e.target.value) : e.target.value)}>
+            {groupOptions.map(opt => (
+              <option key={opt} value={opt}>{phase === 'liga' ? 'Jornada ' + opt : opt}</option>
+            ))}
+          </select>
+        </span>
       </div>
       <div style={{ padding: 18 }}>
-        {!match ? (
-          <div style={{ fontSize: 12.5, color: '#9AA1AC', textAlign: 'center', padding: '10px 0' }}>Aún no hay partidos programados.</div>
-        ) : (
-          <>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
-              <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
-                <Crest team={teamA} size="lg" />
-                <div style={{ fontSize: 11.5, fontWeight: 600, color: '#1B2A4D', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamA ? teamA.name : '—'}</div>
-              </div>
-              <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                {match.played
-                  ? <div className="font-display" style={{ fontSize: 20, fontWeight: 800, color: '#1B2A4D', border: '1px solid #E3E5E9', borderRadius: 8, padding: '4px 10px' }}>{match.scoreA} : {match.scoreB}</div>
-                  : <div style={{ fontSize: 13, fontWeight: 700, color: '#9AA1AC', border: '1px solid #E3E5E9', borderRadius: 8, padding: '8px 12px' }}>VS</div>}
-                <div style={{ marginTop: 6 }}>
-                  <span className={'status-pill ' + (match.played ? 'done' : 'pending')}>{match.played ? 'Finalizado' : 'Programado'}</span>
+        {groupMatches.length === 0 && (
+          <div style={{ fontSize: 12.5, color: '#9AA1AC', textAlign: 'center', padding: '10px 0' }}>Sin partidos en esta selección.</div>
+        )}
+
+        {groupMatches.length === 1 && (() => {
+          const match = groupMatches[0];
+          const teamA = data.teams.find(t => t.id === match.teamAId);
+          const teamB = data.teams.find(t => t.id === match.teamBId);
+          return (
+            <>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+                <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
+                  <Crest team={teamA} size="lg" />
+                  <div style={{ fontSize: 11.5, fontWeight: 600, color: '#1B2A4D', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamA ? teamA.name : '—'}</div>
+                </div>
+                <div style={{ textAlign: 'center', flexShrink: 0 }}>
+                  {match.played
+                    ? <div className="font-display" style={{ fontSize: 20, fontWeight: 800, color: '#1B2A4D', border: '1px solid #E3E5E9', borderRadius: 8, padding: '4px 10px' }}>{match.scoreA} : {match.scoreB}</div>
+                    : <div style={{ fontSize: 13, fontWeight: 700, color: '#9AA1AC', border: '1px solid #E3E5E9', borderRadius: 8, padding: '8px 12px' }}>VS</div>}
+                  <div style={{ marginTop: 6 }}>
+                    <span className={'status-pill ' + (match.played ? 'done' : 'pending')}>{match.played ? 'Finalizado' : 'Programado'}</span>
+                  </div>
+                </div>
+                <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
+                  <Crest team={teamB} size="lg" />
+                  <div style={{ fontSize: 11.5, fontWeight: 600, color: '#1B2A4D', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamB ? teamB.name : '—'}</div>
                 </div>
               </div>
-              <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
-                <Crest team={teamB} size="lg" />
-                <div style={{ fontSize: 11.5, fontWeight: 600, color: '#1B2A4D', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamB ? teamB.name : '—'}</div>
+              <div style={{ textAlign: 'center', fontSize: 11.5, color: '#9AA1AC', marginTop: 14, borderTop: '1px solid #EEF0F2', paddingTop: 10 }}>
+                {metaLine}{match.date ? ' · ' + formatDateTime(match.date, match.time) : ''}
               </div>
-            </div>
-            <div style={{ textAlign: 'center', fontSize: 11.5, color: '#9AA1AC', marginTop: 14, borderTop: '1px solid #EEF0F2', paddingTop: 10 }}>
-              {match._label}{match.date ? ' · ' + formatDateTime(match.date, match.time) : ''}
+            </>
+          );
+        })()}
+
+        {groupMatches.length > 1 && (
+          <>
+            {groupMatches.map((m, idx) => (
+              <div key={m.id} style={{ borderBottom: idx === groupMatches.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
+                <MiniMatchRow m={m} teams={data.teams} />
+              </div>
+            ))}
+            <div style={{ textAlign: 'center', fontSize: 11.5, color: '#9AA1AC', marginTop: 10, borderTop: '1px solid #EEF0F2', paddingTop: 10 }}>
+              {metaLine}
             </div>
           </>
         )}

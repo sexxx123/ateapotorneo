@@ -277,6 +277,8 @@ function GlobalStyles() {
       .info-strip-item .val{ font-size:13.5px; color:#1B2A4D; font-weight:600; margin-top:2px; }
       .stat-circle{ width:60px; height:60px; border-radius:50%; border:2px solid #2E9E4A; display:flex; align-items:center; justify-content:center; font-family:'Poppins',sans-serif; font-weight:800; font-size:19px; color:#1B2A4D; margin:0 auto; }
       .checkbox-row{ display:flex; align-items:center; gap:6px; cursor:pointer; user-select:none; }
+      .grid-2{ display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+      .grid-3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
       .checkbox-row input{ accent-color:#2E9E4A; width:15px; height:15px; cursor:pointer; }
       .swatch{ width:22px; height:22px; border-radius:6px; cursor:pointer; border:2px solid transparent; flex-shrink:0; }
       .swatch.selected{ border-color:#1B2A4D; }
@@ -292,14 +294,15 @@ function GlobalStyles() {
       .spin{ animation:spin 1s linear infinite; }
       @media (max-width:820px){
         .app-shell{ flex-direction:column; }
-        .sidebar{ width:100%; flex-direction:row; align-items:center; padding:14px 16px; gap:14px; }
+        .sidebar{ width:100%; flex-direction:column; align-items:stretch; padding:10px 12px 8px; gap:6px; }
         .sidebar-logo-row{ margin-bottom:0; }
-        .sidebar-title{ max-width:120px; }
-        .sidebar-nav{ flex-direction:row; overflow-x:auto; flex:1; }
-        .sidebar-nav-item{ flex-shrink:0; width:auto; }
-        .sidebar-footer{ border-top:none; margin-top:0; padding-top:0; flex-direction:row; flex-shrink:0; }
-        .main-area{ padding:20px; }
+        .sidebar-title{ max-width:220px; }
+        .sidebar-nav{ flex-direction:row; overflow-x:auto; flex:none; width:100%; gap:2px; -webkit-overflow-scrolling:touch; }
+        .sidebar-nav-item{ flex-shrink:0; width:auto; white-space:nowrap; }
+        .sidebar-footer{ border-top:1px solid rgba(255,255,255,.18); margin-top:2px; padding-top:8px; flex-direction:row; flex-wrap:wrap; width:100%; justify-content:space-between; align-items:center; }
+        .main-area{ padding:16px; }
         .two-col{ grid-template-columns:1fr !important; }
+        .grid-2, .grid-3{ grid-template-columns:1fr !important; }
       }
       @media print{
         .no-print{ display:none !important; }
@@ -449,7 +452,7 @@ function PlayerFormModal({ initial, teams, defaultTeamId, onClose, onSave }) {
           <input className="input" type="number" min="0" value={number} onChange={e => setNumber(e.target.value)} placeholder="#" />
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 18 }}>
+      <div className="grid-2" style={{ marginBottom: 18 }}>
         <div>
           <label className="field-label">Equipo</label>
           <select className="input" value={teamId} onChange={e => setTeamId(e.target.value)}>
@@ -643,7 +646,7 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
   const invalid = !teamAId || !teamBId || teamAId === teamBId;
   return (
     <Modal title={phase === 'liga' ? 'Agregar partido de liga' : 'Agregar partido de playoffs'} onClose={onClose}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+      <div className="grid-2" style={{ marginBottom: 14 }}>
         <div>
           <label className="field-label">Equipo local</label>
           <select className="input" value={teamAId} onChange={e => setTeamAId(e.target.value)}>
@@ -662,7 +665,7 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
           <AlertTriangle size={13} /> Selecciona dos equipos distintos.
         </div>
       )}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 18 }}>
+      <div className="grid-3" style={{ marginBottom: 18 }}>
         <div>
           <label className="field-label">{phase === 'liga' ? 'Jornada' : 'Ronda'}</label>
           {phase === 'liga'
@@ -734,7 +737,7 @@ function MatchResultModal({ match, teams, players, onClose, onSave, onDelete }) 
   return (
     <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Resultado'} onClose={onClose}>
       <div style={{ background: '#F6F9F7', border: '1px solid #E3E5E9', borderRadius: 10, padding: 16, marginBottom: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
           <input className="input" type="number" min="0" style={{ width: 54, textAlign: 'center', fontSize: 18, fontWeight: 700 }} value={scoreA} onChange={e => setScoreA(Math.max(0, Number(e.target.value)))} />
           <span className="font-display" style={{ color: '#9AA1AC', fontWeight: 700 }}>VS</span>
@@ -746,7 +749,7 @@ function MatchResultModal({ match, teams, players, onClose, onSave, onDelete }) 
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+      <div className="grid-2" style={{ gap: 18 }}>
         <div>
           <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#1B2A4D', marginBottom: 4 }}><TeamChip team={teamA} size="sm" /></div>
           {renderPlayerRows(playersA)}
@@ -799,7 +802,7 @@ function MatchDetailModal({ match, teams, players, onClose }) {
   return (
     <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Alineación'} onClose={onClose}>
       <div style={{ background: '#F6F9F7', border: '1px solid #E3E5E9', borderRadius: 10, padding: 16, marginBottom: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
           {match.played
             ? <div className="font-display" style={{ fontSize: 20, fontWeight: 800, color: '#1B2A4D', border: '1px solid #E3E5E9', borderRadius: 8, padding: '4px 12px' }}>{match.scoreA} : {match.scoreB}</div>
@@ -809,7 +812,7 @@ function MatchDetailModal({ match, teams, players, onClose }) {
         {match.date && <div style={{ textAlign: 'center', fontSize: 11.5, color: '#9AA1AC', marginTop: 8 }}>{formatDateTime(match.date, match.time)}</div>}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+      <div className="grid-2" style={{ gap: 18 }}>
         <div>
           <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#1B2A4D', marginBottom: 4 }}><TeamChip team={teamA} size="sm" /></div>
           {renderList(playersA)}
@@ -868,7 +871,7 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
         <input className="input" value={form.logoUrl} onChange={e => setField('logoUrl', e.target.value)} placeholder="https://..." />
         <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Pega el enlace de una imagen (subida a Imgur, Google Drive con acceso público, etc.). Se muestra en la barra lateral y en Inicio.</div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+      <div className="grid-2" style={{ marginBottom: 16 }}>
         <div>
           <label className="field-label">Categoría / deporte</label>
           <input className="input" value={form.category} onChange={e => setField('category', e.target.value)} placeholder="Ej: Futbolito" />
@@ -878,7 +881,7 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
           <input className="input" value={form.organizerName} onChange={e => setField('organizerName', e.target.value)} placeholder="Nombre del organizador" />
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+      <div className="grid-2" style={{ marginBottom: 16 }}>
         <div>
           <label className="field-label">Fecha de inicio</label>
           <input className="input" type="date" value={form.startDate} onChange={e => setField('startDate', e.target.value)} />
@@ -903,18 +906,18 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
       </div>
 
       <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Puntuación y sanciones</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12, marginBottom: 14 }}>
+      <div className="grid-3" style={{ marginBottom: 14 }}>
         {numField('pointsWin', 'Pts. victoria')}
         {numField('pointsDraw', 'Pts. empate')}
         {numField('pointsLoss', 'Pts. derrota')}
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+      <div className="grid-2" style={{ marginBottom: 20 }}>
         {numField('yellowLimit', 'Amarillas p/ sanción')}
         {numField('redSuspensionMatches', 'Partidos por roja')}
       </div>
 
       <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Clasificación</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+      <div className="grid-2" style={{ marginBottom: 20 }}>
         {numField('playoffSpots', 'Cupos a playoffs')}
         {numField('relegationSpots', 'Equipos en zona de alerta')}
       </div>
@@ -924,7 +927,7 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
         <label className="field-label">Cancha</label>
         <input className="input" value={form.courtName} onChange={e => setField('courtName', e.target.value)} placeholder="Ej: Cancha Principal" />
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
+      <div className="grid-2" style={{ marginBottom: 14 }}>
         <div>
           <label className="field-label">Hora de inicio diaria</label>
           <input className="input" type="time" value={form.dailyStartTime} onChange={e => setField('dailyStartTime', e.target.value)} />
@@ -934,7 +937,7 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
           <input className="input" type="time" value={form.dailyEndTime} onChange={e => setField('dailyEndTime', e.target.value)} />
         </div>
       </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 6 }}>
+      <div className="grid-2" style={{ marginBottom: 6 }}>
         {numField('matchDurationMinutes', 'Duración partido (min)')}
         {numField('breakBetweenMatchesMinutes', 'Descanso entre partidos (min)')}
       </div>
@@ -959,7 +962,7 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
       </div>
 
       <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Premios (se muestran en Inicio cuando el torneo termine)</div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
+      <div className="grid-2" style={{ marginBottom: 20 }}>
         <div>
           <label className="field-label">Campeón</label>
           <input className="input" value={form.championText} onChange={e => setField('championText', e.target.value)} placeholder="Ej: Firewall FC" />

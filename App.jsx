@@ -7,7 +7,13 @@ import {
 import { supabase } from './supabaseClient';
 
 const PALETTE = ['#2E9E4A', '#D8432E', '#3B82C4', '#E67E22', '#9B59B6', '#1ABC9C', '#C0392B', '#5B6EE1', '#B7950B', '#EC4899'];
-const POSITIONS = ['Portero', 'Defensa', 'Mediocampo', 'Delantero'];
+function ageColor(age) {
+  if (age === '' || age === undefined || age === null) return { bg: '#EEF0F2', fg: '#6B7280', label: '' };
+  const n = Number(age);
+  if (n >= 50) return { bg: '#FCE9E7', fg: '#B23A2E', label: '50+' };
+  if (n >= 40) return { bg: '#FCF3D9', fg: '#8A6A1E', label: '40-49' };
+  return { bg: '#E7F5EC', fg: '#1F7A3D', label: '≤39' };
+}
 
 function uid(prefix) {
   return prefix + '_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
@@ -124,11 +130,12 @@ function defaultData() {
       endDate: '',
       description: 'Campeonato de futbolito jugado entre los equipos participantes.',
       rules: '',
+      rulesPdfUrl: '',
       venueAddress: '',
       logoUrl: '',
       championText: '', runnerUpText: '',
       pointsWin: 3, pointsDraw: 1, pointsLoss: 0,
-      yellowLimit: 3, redSuspensionMatches: 1, playoffSpots: 4, relegationSpots: 0, qualifiersPerGroup: 2,
+      yellowLimit: 3, redSuspensionMatches: 1, playoffSpots: 4, relegationSpots: 0, idaYVuelta: false,
       courtName: '', dailyStartTime: '09:00', dailyEndTime: '18:00',
       matchDurationMinutes: 20, breakBetweenMatchesMinutes: 10, playDays: [0, 1, 2, 3, 4, 5, 6],
       adminEmail: '',
@@ -139,11 +146,6 @@ function defaultData() {
     playoffMatches: [],
     news: [],
   };
-}
-
-function teamsUseGroups(teams) {
-  const groups = new Set(teams.filter(t => t.group && t.group.trim()).map(t => t.group.trim()));
-  return groups.size >= 2;
 }
 
 function generateRoundRobin(teamIds) {
@@ -439,28 +441,32 @@ function ConfirmInline({ text, onConfirm, onCancel }) {
 
 /* ---------- Formularios modales ---------- */
 
-function LogoUploadField({ value, onChange, label, folder }) {
+function LogoUploadField({ value, onChange, label, folder, kind = 'image' }) {
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
+  const isPdf = kind === 'pdf';
   const inputId = 'logo-upload-' + folder + '-' + Math.random().toString(36).slice(2, 8);
 
   const handleFile = async (e) => {
     const file = e.target.files && e.target.files[0];
     e.target.value = '';
     if (!file) return;
-    if (!file.type.startsWith('image/')) { setError('Elige un archivo de imagen (jpg, png, etc.).'); return; }
-    if (file.size > 5 * 1024 * 1024) { setError('La imagen pesa más de 5MB, elige una más liviana.'); return; }
+    if (isPdf ? file.type !== 'application/pdf' : !file.type.startsWith('image/')) {
+      setError(isPdf ? 'Elige un archivo PDF.' : 'Elige un archivo de imagen (jpg, png, etc.).');
+      return;
+    }
+    if (file.size > 10 * 1024 * 1024) { setError('El archivo pesa más de 10MB, elige uno más liviano.'); return; }
     setError('');
     setUploading(true);
     try {
-      const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '') || 'png';
+      const ext = (file.name.split('.').pop() || (isPdf ? 'pdf' : 'png')).toLowerCase().replace(/[^a-z0-9]/g, '') || (isPdf ? 'pdf' : 'png');
       const path = folder + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.' + ext;
       const { error: upErr } = await supabase.storage.from('torneo-logos').upload(path, file, { upsert: true, cacheControl: '3600' });
       if (upErr) throw upErr;
       const { data: pub } = supabase.storage.from('torneo-logos').getPublicUrl(path);
       onChange(pub.publicUrl);
     } catch (err) {
-      setError('No se pudo subir la imagen. Revisa que exista el bucket "torneo-logos" en Supabase (ver instrucciones), o pega un link manualmente abajo.');
+      setError('No se pudo subir el archivo. Revisa que exista el bucket "torneo-logos" en Supabase, o pega un link manualmente abajo.');
     } finally {
       setUploading(false);
     }
@@ -469,15 +475,18 @@ function LogoUploadField({ value, onChange, label, folder }) {
   return (
     <div>
       <label className="field-label">{label}</label>
-      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
-        {value && (
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
+        {value && !isPdf && (
           <img src={value} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', border: '1px solid #E3E5E9', flexShrink: 0 }}
             onError={e => { e.currentTarget.style.visibility = 'hidden'; }} />
         )}
+        {value && isPdf && (
+          <a href={value} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><FileText size={13} /> Ver PDF actual</a>
+        )}
         <label htmlFor={inputId} className="btn btn-outline btn-sm" style={{ cursor: uploading ? 'default' : 'pointer', opacity: uploading ? .6 : 1 }}>
-          {uploading ? <Loader2 size={13} className="spin" /> : <Send size={13} />} {uploading ? 'Subiendo…' : 'Subir imagen'}
+          {uploading ? <Loader2 size={13} className="spin" /> : <Send size={13} />} {uploading ? 'Subiendo…' : (isPdf ? 'Subir PDF' : 'Subir imagen')}
         </label>
-        <input id={inputId} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleFile} disabled={uploading} />
+        <input id={inputId} type="file" accept={isPdf ? 'application/pdf' : 'image/*'} style={{ display: 'none' }} onChange={handleFile} disabled={uploading} />
       </div>
       <input className="input" value={value} onChange={e => onChange(e.target.value)} placeholder="o pega un link https://..." />
       {error && <div style={{ fontSize: 11, color: '#C4302B', marginTop: 5 }}>{error}</div>}
@@ -521,8 +530,9 @@ function TeamFormModal({ initial, onClose, onSave }) {
 function PlayerFormModal({ initial, teams, defaultTeamId, onClose, onSave }) {
   const [name, setName] = useState(initial ? initial.name : '');
   const [number, setNumber] = useState(initial ? initial.number : '');
-  const [position, setPosition] = useState(initial ? initial.position : POSITIONS[0]);
+  const [age, setAge] = useState(initial ? (initial.age ?? '') : '');
   const [teamId, setTeamId] = useState(initial ? initial.teamId : (defaultTeamId || (teams[0] && teams[0].id) || ''));
+  const preview = age !== '' ? ageColor(age) : null;
   return (
     <Modal title={initial ? 'Editar jugador' : 'Nuevo jugador'} onClose={onClose}>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 12, marginBottom: 14 }}>
@@ -544,16 +554,17 @@ function PlayerFormModal({ initial, teams, defaultTeamId, onClose, onSave }) {
           </select>
         </div>
         <div>
-          <label className="field-label">Posición</label>
-          <select className="input" value={position} onChange={e => setPosition(e.target.value)}>
-            {POSITIONS.map(p => <option key={p} value={p}>{p}</option>)}
-          </select>
+          <label className="field-label">Edad</label>
+          <input className="input" type="number" min="0" max="99" value={age} onChange={e => setAge(e.target.value)} placeholder="Ej: 34" />
+          {preview && preview.label && (
+            <span style={{ display: 'inline-block', marginTop: 6, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: preview.bg, color: preview.fg }}>{preview.label}</span>
+          )}
         </div>
       </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={!name.trim() || !teamId}
-          onClick={() => name.trim() && teamId && onSave({ name: name.trim(), number: number === '' ? '' : Number(number), position, teamId })}>
+          onClick={() => name.trim() && teamId && onSave({ name: name.trim(), number: number === '' ? '' : Number(number), age: age === '' ? '' : Number(age), teamId })}>
           {initial ? 'Guardar cambios' : 'Agregar jugador'}
         </button>
       </div>
@@ -663,16 +674,21 @@ function TeamDetailModal({ team, data, onClose }) {
         ? <div style={{ fontSize: 12.5, color: '#9AA1AC', marginBottom: 20 }}>Sin jugadores registrados.</div>
         : (
           <div className="card" style={{ marginBottom: 20 }}>
-            {players.map((p, idx) => (
-              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderBottom: idx === players.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
-                <Avatar size={26} />
-                <div style={{ flex: 1, fontSize: 13 }}>
-                  {p.number !== '' && p.number !== undefined ? <span style={{ color: '#9AA1AC', fontWeight: 700, marginRight: 6 }}>#{p.number}</span> : null}
-                  {p.name}
+            {players.map((p, idx) => {
+              const ac = ageColor(p.age);
+              return (
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderBottom: idx === players.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
+                  <Avatar size={26} />
+                  <div style={{ flex: 1, fontSize: 13 }}>
+                    {p.number !== '' && p.number !== undefined ? <span style={{ color: '#9AA1AC', fontWeight: 700, marginRight: 6 }}>#{p.number}</span> : null}
+                    {p.name}
+                  </div>
+                  {p.age !== '' && p.age !== undefined && (
+                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 10, background: ac.bg, color: ac.fg }}>{p.age} años</span>
+                  )}
                 </div>
-                <div style={{ fontSize: 11, color: '#9AA1AC' }}>{p.position}</div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -1016,6 +1032,10 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
         <textarea className="textarea" value={form.rules} onChange={e => setField('rules', e.target.value)} rows={4} placeholder="Formato, duración de partidos, reglas específicas…" />
       </div>
       <div style={{ marginBottom: 20 }}>
+        <LogoUploadField value={form.rulesPdfUrl} onChange={v => setField('rulesPdfUrl', v)} label="PDF de reglas (opcional)" folder="reglas" kind="pdf" />
+        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Si subes un PDF, aparece un botón para verlo/descargarlo junto al texto de reglas.</div>
+      </div>
+      <div style={{ marginBottom: 20 }}>
         <label className="field-label">Sitio (dirección o nombre del lugar)</label>
         <input className="input" value={form.venueAddress} onChange={e => setField('venueAddress', e.target.value)} placeholder="Ej: Cancha anexa al Coliseo Universitario, Machala" />
         <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Se muestra en Inicio con un mapa. Mientras más específico (con ciudad), mejor lo ubica el mapa.</div>
@@ -1033,10 +1053,14 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
       </div>
 
       <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Clasificación</div>
-      <div className="grid-2" style={{ marginBottom: 20 }}>
+      <div className="grid-2" style={{ marginBottom: 14 }}>
         {numField('playoffSpots', 'Cupos a playoffs')}
         {numField('relegationSpots', 'Equipos en zona de alerta')}
       </div>
+      <label className="checkbox-row" style={{ marginBottom: 20, fontSize: 13 }}>
+        <input type="checkbox" checked={!!form.idaYVuelta} onChange={e => setField('idaYVuelta', e.target.checked)} />
+        Ida y vuelta (todos contra todos dos veces, local y visitante)
+      </label>
 
       <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Horarios (para "Asignar horarios automáticamente")</div>
       <div style={{ marginBottom: 14 }}>
@@ -1541,7 +1565,7 @@ export default function FutbolitoApp() {
     ...d,
     players: [...d.players, ...players.map(p => ({
       id: uid('player'), servedSuspensions: 0, teamId,
-      name: p.name, number: p.number === '' ? '' : Number(p.number), position: POSITIONS[2],
+      name: p.name, number: p.number === '' ? '' : Number(p.number), age: '',
     }))],
   }));
   const editPlayer = (id, payload) => update(d => ({ ...d, players: d.players.map(p => p.id === id ? { ...p, ...payload } : p) }));
@@ -1562,7 +1586,13 @@ export default function FutbolitoApp() {
   });
   const generateFixture = () => update(d => {
     const shuffledIds = shuffleArray(d.teams.map(t => t.id));
-    const fixture = generateRoundRobin(shuffledIds).map(f => ({
+    let pairings = generateRoundRobin(shuffledIds);
+    if (d.meta.idaYVuelta) {
+      const maxJ = pairings.reduce((mx, f) => Math.max(mx, f.jornada), 0);
+      const vuelta = pairings.map(f => ({ jornada: f.jornada + maxJ, teamAId: f.teamBId, teamBId: f.teamAId }));
+      pairings = [...pairings, ...vuelta];
+    }
+    const fixture = pairings.map(f => ({
       id: uid('match'), phase: 'liga', played: false, scoreA: 0, scoreB: 0, playerStats: {}, date: '', time: '', ...f,
     }));
     return { ...d, matches: fixture };
@@ -1857,9 +1887,16 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteN
 
       {rulesOpen && (
         <Modal title="Reglas del campeonato" onClose={() => setRulesOpen(false)}>
+          {data.meta.rulesPdfUrl && (
+            <a href={data.meta.rulesPdfUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginBottom: data.meta.rules ? 18 : 0 }}>
+              <FileText size={14} /> Ver / descargar PDF de reglas
+            </a>
+          )}
           {data.meta.rules
             ? <div style={{ fontSize: 13.5, color: '#2A2E35', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.meta.rules}</div>
-            : <div style={{ fontSize: 13, color: '#6B7280' }}>{isAdmin ? 'Todavía no agregaste las reglas. Puedes escribirlas en Configuración.' : 'El organizador todavía no publicó las reglas del campeonato.'}</div>}
+            : (!data.meta.rulesPdfUrl && (
+              <div style={{ fontSize: 13, color: '#6B7280' }}>{isAdmin ? 'Todavía no agregaste las reglas. Puedes escribirlas o subir un PDF en Configuración.' : 'El organizador todavía no publicó las reglas del campeonato.'}</div>
+            ))}
         </Modal>
       )}
       {isAdmin && newsModalOpen && (
@@ -2011,30 +2048,36 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
       {filtered.length === 0
         ? <EmptyState Icon={User} title="Sin jugadores" text="Agrega jugadores y asígnalos a un equipo para llevar sus goles y tarjetas." />
         : (
-          <div className="card" style={{ overflowX: 'auto' }}>
-            <table className="data-table">
-              <thead><tr style={{ borderBottom: '1px solid #E3E5E9' }}><th style={{ textAlign: 'left' }}>Jugador</th><th>#</th><th style={{ textAlign: 'left' }}>Equipo</th><th>Posición</th>{isAdmin && <th></th>}</tr></thead>
-              <tbody>
-                {filtered.map((p, idx) => {
-                  const team = data.teams.find(t => t.id === p.teamId);
-                  return (
-                    <tr key={p.id} className={idx % 2 === 1 ? 'row-alt' : ''} style={{ borderBottom: '1px solid #EEF0F2' }}>
-                      <td className="team-name-cell">
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Avatar size={26} />{p.name}</span>
-                      </td>
-                      <td>{p.number !== '' && p.number !== undefined ? p.number : '—'}</td>
-                      <td style={{ textAlign: 'left' }}><TeamChip team={team} size="sm" /></td>
-                      <td style={{ color: '#6B7280' }}>{p.position}</td>
-                      {isAdmin && (
+          <>
+            <div className="card" style={{ overflowX: 'auto' }}>
+              <table className="data-table">
+                <thead><tr style={{ borderBottom: '1px solid #E3E5E9' }}><th style={{ textAlign: 'left' }}>Jugador</th><th>#</th><th style={{ textAlign: 'left' }}>Equipo</th><th>Edad</th>{isAdmin && <th></th>}</tr></thead>
+                <tbody>
+                  {filtered.map((p, idx) => {
+                    const team = data.teams.find(t => t.id === p.teamId);
+                    const ac = ageColor(p.age);
+                    return (
+                      <tr key={p.id} className={idx % 2 === 1 ? 'row-alt' : ''} style={{ borderBottom: '1px solid #EEF0F2' }}>
+                        <td className="team-name-cell">
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Avatar size={26} />{p.name}</span>
+                        </td>
+                        <td>{p.number !== '' && p.number !== undefined ? <span style={{ fontWeight: 700, color: '#1B2A4D' }}>#{p.number}</span> : '—'}</td>
+                        <td style={{ textAlign: 'left' }}><TeamChip team={team} size="sm" /></td>
                         <td>
-                          {confirmId === p.id
-                            ? <ConfirmInline text="¿Eliminar?" onConfirm={() => { onDelete(p.id); setConfirmId(null); }} onCancel={() => setConfirmId(null)} />
-                            : (
-                              <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-                                <button className="icon-btn" onClick={() => setModal(p.id)}><Pencil size={13} /></button>
-                                <button className="icon-btn" onClick={() => setConfirmId(p.id)}><Trash2 size={13} /></button>
-                              </div>
-                            )}
+                          {p.age !== '' && p.age !== undefined
+                            ? <span style={{ fontSize: 11.5, fontWeight: 700, padding: '2px 10px', borderRadius: 10, background: ac.bg, color: ac.fg }}>{p.age}</span>
+                            : <span style={{ color: '#C7CBD1' }}>—</span>}
+                        </td>
+                        {isAdmin && (
+                          <td>
+                            {confirmId === p.id
+                              ? <ConfirmInline text="¿Eliminar?" onConfirm={() => { onDelete(p.id); setConfirmId(null); }} onCancel={() => setConfirmId(null)} />
+                              : (
+                                <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                                  <button className="icon-btn" onClick={() => setModal(p.id)}><Pencil size={13} /></button>
+                                  <button className="icon-btn" onClick={() => setConfirmId(p.id)}><Trash2 size={13} /></button>
+                                </div>
+                              )}
                         </td>
                       )}
                     </tr>
@@ -2043,6 +2086,12 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
               </tbody>
             </table>
           </div>
+          <div style={{ display: 'flex', gap: 16, marginTop: 10, flexWrap: 'wrap', fontSize: 11, color: '#6B7280' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: '#E7F5EC' }} /> 39 o menos</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: '#FCF3D9' }} /> 40 a 49</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: '#FCE9E7' }} /> 50 o más</span>
+          </div>
+          </>
         )}
 
       {isAdmin && modal === 'new' && <PlayerFormModal teams={data.teams} defaultTeamId={filterTeam !== 'all' ? filterTeam : undefined} onClose={() => setModal(null)} onSave={(p) => { onAdd(p); setModal(null); }} />}
@@ -2117,8 +2166,8 @@ function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSched
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
             {data.teams.length >= 2 && (
               confirmGenerate
-                ? <ConfirmInline text={data.matches.length > 0 ? 'Esto borra el fixture actual ¿continuar?' : '¿Generar fixture todos-contra-todos?'} onConfirm={() => { onGenerateFixture(); setConfirmGenerate(false); }} onCancel={() => setConfirmGenerate(false)} />
-                : <button className="btn btn-outline" onClick={() => setConfirmGenerate(true)}><Calendar size={14} /> {data.matches.length > 0 ? 'Regenerar fixture' : 'Generar fixture (todos vs todos)'}</button>
+                ? <ConfirmInline text={data.matches.length > 0 ? 'Esto borra el fixture actual ¿continuar?' : (data.meta.idaYVuelta ? '¿Generar fixture ida y vuelta?' : '¿Generar fixture todos-contra-todos?')} onConfirm={() => { onGenerateFixture(); setConfirmGenerate(false); }} onCancel={() => setConfirmGenerate(false)} />
+                : <button className="btn btn-outline" onClick={() => setConfirmGenerate(true)}><Calendar size={14} /> {data.matches.length > 0 ? 'Regenerar fixture' : (data.meta.idaYVuelta ? 'Generar fixture (ida y vuelta)' : 'Generar fixture (todos vs todos)')}</button>
             )}
             {data.matches.length > 0 && (
               confirmSchedule

@@ -64,12 +64,6 @@ function shuffleArray(arr) {
   return a;
 }
 
-// Asigna fecha y hora a una lista de partidos (en el orden dado), uno detrás de otro,
-// sin cruces, respetando una sola cancha: cada partido empieza cuando termina el
-// descanso del anterior, y si no cabe antes de la hora de cierre, pasa al día siguiente.
-// Motor de horarios: recibe una lista de "grupos" de partidos (cada grupo se juega
-// completo el mismo día, en el orden dado) y los va colocando en los próximos días
-// habilitados en meta.playDays, uno detrás de otro dentro del día según duración/descanso.
 function scheduleGroupsSequentially(dayGroups, meta, startFromDate) {
   const duration = Math.max(5, Number(meta.matchDurationMinutes) || 20);
   const rest = Math.max(0, Number(meta.breakBetweenMatchesMinutes) || 0);
@@ -84,7 +78,6 @@ function scheduleGroupsSequentially(dayGroups, meta, startFromDate) {
     return String(h).padStart(2, '0') + ':' + String(m).padStart(2, '0');
   };
   const dayStartMin = toMinutes(meta.dailyStartTime || '09:00');
-  // 0=domingo, 1=lunes, ... 6=sábado (getDay() de JS). Si no hay ninguno elegido, se juega todos los días.
   const playDays = (Array.isArray(meta.playDays) && meta.playDays.length > 0) ? meta.playDays : [0, 1, 2, 3, 4, 5, 6];
 
   const advanceToPlayDay = (d) => {
@@ -187,10 +180,6 @@ function computeStandings(data) {
   });
   table.forEach(t => t.dg = t.gf - t.gc);
 
-  // Orden base por puntos, y dentro de cada grupo empatado en puntos, desempate
-  // por lo que pasó ENTRE ELLOS (enfrentamientos directos): puntos, diferencia y goles
-  // a favor solo de esos partidos. Si sigue empatado, cae a diferencia/goles generales
-  // y por último orden alfabético (para que el orden no cambie sin motivo).
   const sorted = [...table].sort((a, b) => b.pts - a.pts);
   const groups = [];
   let i = 0;
@@ -884,11 +873,24 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
   );
 }
 
+function validateAgeRule(teamPlayers) {
+  const over50 = teamPlayers.filter(p => p.age !== '' && p.age !== null && Number(p.age) >= 50).length;
+  const over40 = teamPlayers.filter(p => p.age !== '' && p.age !== null && Number(p.age) >= 40 && Number(p.age) < 50).length;
+  return {
+    valid: over50 >= 2 && over40 >= 1,
+    over50,
+    over40
+  };
+}
+
 function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, onDelete, onSwap }) {
   const teamA = teams.find(t => t.id === match.teamAId);
   const teamB = teams.find(t => t.id === match.teamBId);
   const playersA = players.filter(p => p.teamId === match.teamAId);
   const playersB = players.filter(p => p.teamId === match.teamBId);
+
+  const ruleA = validateAgeRule(playersA);
+  const ruleB = validateAgeRule(playersB);
 
   const initStats = {};
   [...playersA, ...playersB].forEach(p => {
@@ -944,7 +946,7 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
           <div style={{ flex: 1 }}><TeamChip team={teamB} /></div>
         </div>
         <div style={{ textAlign: 'center', fontSize: 12, color: '#64748B', marginTop: 12 }}>
-          Suma de goleadores registrados: {sumGoals(playersA)} - {sumGoals(playersB)} (puede diferir si hubo autogoles)
+          Suma de goleadores registrados: {sumGoals(playersA)} - {sumGoals(playersB)}
         </div>
       </div>
 
@@ -962,7 +964,7 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '12px 16px', marginBottom: 24, fontSize: 13, color: '#DC2626', flexWrap: 'wrap' }}>
           <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
           <span style={{ flex: 1, minWidth: 200, lineHeight: 1.5 }}>
-            Ya hay otro partido a esta misma fecha y hora: <strong>{conflictTeamA ? conflictTeamA.name : '—'} vs {conflictTeamB ? conflictTeamB.name : '—'}</strong> (antes tenía {formatDateTime(match.date, match.time)}).
+            Ya hay otro partido a esta misma fecha y hora: <strong>{conflictTeamA ? conflictTeamA.name : '—'} vs {conflictTeamB ? conflictTeamB.name : '—'}</strong>
           </span>
           <button type="button" className="btn btn-outline btn-sm" style={{ borderColor: '#FCA5A5', color: '#DC2626' }}
             onClick={() => {
@@ -977,21 +979,33 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
       <div className="grid-2" style={{ gap: 24 }}>
         <div>
           <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamA} size="md" /></div>
+          {!ruleA.valid && (
+            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span>Plantilla incompleta: Tiene {ruleA.over50}/2 de 50+ y {ruleA.over40}/1 de 40-49.</span>
+            </div>
+          )}
           {renderPlayerRows(playersA)}
         </div>
         <div>
           <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamB} size="md" /></div>
+          {!ruleB.valid && (
+            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span>Plantilla incompleta: Tiene {ruleB.over50}/2 de 50+ y {ruleB.over40}/1 de 40-49.</span>
+            </div>
+          )}
           {renderPlayerRows(playersB)}
         </div>
       </div>
 
       <div style={{ borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, paddingTop: 16, flexWrap: 'wrap', gap: 10 }}>
         {confirmDelete
-          ? <ConfirmInline text="¿Eliminar este partido?" onConfirm={() => onDelete(match.id)} onCancel={() => setConfirmDelete(false)} />
+          ? <ConfirmInline text="¿Eliminar partido?" onConfirm={() => onDelete(match.id)} onCancel={() => setConfirmDelete(false)} />
           : <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(true)}><Trash2 size={14} /> Eliminar partido</button>}
         <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
-          <button className="btn btn-outline" onClick={() => onSave({ date, time })}>Guardar solo horario</button>
+          <button className="btn btn-outline" onClick={() => onSave({ date, time })}>Guardar horario</button>
           <button className="btn btn-primary" onClick={() => onSave({ date, time, scoreA: Number(scoreA), scoreB: Number(scoreB), played: true, playerStats: stats })}>
             <Check size={16} /> Guardar resultado
           </button>
@@ -1006,6 +1020,10 @@ function MatchDetailModal({ match, teams, players, onClose }) {
   const teamB = teams.find(t => t.id === match.teamBId);
   const playersA = players.filter(p => p.teamId === match.teamAId);
   const playersB = players.filter(p => p.teamId === match.teamBId);
+  
+  const ruleA = validateAgeRule(playersA);
+  const ruleB = validateAgeRule(playersB);
+  
   const statFor = (pid) => (match.playerStats && match.playerStats[pid]) || { goals: 0, yellow: false, red: false };
 
   const renderList = (list) => list.length === 0
@@ -1041,10 +1059,22 @@ function MatchDetailModal({ match, teams, players, onClose }) {
       <div className="grid-2" style={{ gap: 24 }}>
         <div>
           <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamA} size="md" /></div>
+          {!ruleA.valid && (
+            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span>Plantilla incompleta: Tiene {ruleA.over50}/2 de 50+ y {ruleA.over40}/1 de 40-49.</span>
+            </div>
+          )}
           {renderList(playersA)}
         </div>
         <div>
           <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamB} size="md" /></div>
+          {!ruleB.valid && (
+            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span>Plantilla incompleta: Tiene {ruleB.over50}/2 de 50+ y {ruleB.over40}/1 de 40-49.</span>
+            </div>
+          )}
           {renderList(playersB)}
         </div>
       </div>
@@ -1569,7 +1599,6 @@ export default function FutbolitoApp() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [viewTeamId, setViewTeamId] = useState(null);
 
-  // Carga inicial de datos + sesión, y suscripción a cambios en vivo.
   useEffect(() => {
     let channel;
 
@@ -1719,8 +1748,6 @@ export default function FutbolitoApp() {
     presentRounds.forEach(r => { if (!used.has(r)) groups.push([r]); });
     const dayGroups = groups.map(roundNames => d.playoffMatches.filter(m => roundNames.includes(m.round)));
 
-    // Empieza el siguiente día habilitado después del último partido de liga programado
-    // (o desde la fecha de inicio del torneo si la liga todavía no tiene horarios).
     const ligaDates = d.matches.map(m => m.date).filter(Boolean).sort();
     const lastLigaDate = ligaDates.length > 0 ? ligaDates[ligaDates.length - 1] : null;
     const startFrom = lastLigaDate
@@ -2203,7 +2230,7 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
                         <td><TeamChip team={team} size="md" /></td>
                         <td>
                           {p.age !== '' && p.age !== undefined
-                            ? <span style={{ fontSize: 12.5, fontWeight: 700, padding: '4px 12px', borderRadius: 8, background: ac.bg, color: ac.fg }}>{p.age}</span>
+                            ? <span style={{ fontSize: 12.5, fontWeight: 700, padding: '4px 12px', borderRadius: 8, background: ac.bg, color: ac.fg, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{p.age}</span>
                             : <span style={{ color: '#CBD5E1' }}>—</span>}
                         </td>
                         {isAdmin && (
@@ -2523,6 +2550,215 @@ function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, 
           : <MatchDetailModal match={openMatch} teams={data.teams} players={data.players} onClose={() => setModal(null)} />
       )}
     </div>
+  );
+}
+
+function validateAgeRule(teamPlayers) {
+  const over50 = teamPlayers.filter(p => p.age !== '' && p.age !== null && Number(p.age) >= 50).length;
+  const over40 = teamPlayers.filter(p => p.age !== '' && p.age !== null && Number(p.age) >= 40 && Number(p.age) < 50).length;
+  return {
+    valid: over50 >= 2 && over40 >= 1,
+    over50,
+    over40
+  };
+}
+
+function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, onDelete, onSwap }) {
+  const teamA = teams.find(t => t.id === match.teamAId);
+  const teamB = teams.find(t => t.id === match.teamBId);
+  const playersA = players.filter(p => p.teamId === match.teamAId);
+  const playersB = players.filter(p => p.teamId === match.teamBId);
+
+  const ruleA = validateAgeRule(playersA);
+  const ruleB = validateAgeRule(playersB);
+
+  const initStats = {};
+  [...playersA, ...playersB].forEach(p => {
+    const existing = match.playerStats && match.playerStats[p.id];
+    initStats[p.id] = { goals: existing ? existing.goals || 0 : 0, yellow: existing ? !!existing.yellow : false, red: existing ? !!existing.red : false };
+  });
+
+  const [scoreA, setScoreA] = useState(match.scoreA || 0);
+  const [scoreB, setScoreB] = useState(match.scoreB || 0);
+  const [stats, setStats] = useState(initStats);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [date, setDate] = useState(match.date || '');
+  const [time, setTime] = useState(match.time || '');
+
+  const conflict = (date && time && allMatches)
+    ? allMatches.find(m => m.id !== match.id && m.date === date && m.time === time)
+    : null;
+  const conflictTeamA = conflict ? teams.find(t => t.id === conflict.teamAId) : null;
+  const conflictTeamB = conflict ? teams.find(t => t.id === conflict.teamBId) : null;
+
+  const setPlayerField = (pid, field, value) => setStats(prev => ({ ...prev, [pid]: { ...prev[pid], [field]: value } }));
+  const sumGoals = (list) => list.reduce((acc, p) => acc + (Number(stats[p.id]?.goals) || 0), 0);
+
+  const renderPlayerRows = (list) => list.length === 0
+    ? <div style={{ fontSize: 13, color: '#94A3B8', padding: '12px 0' }}>Sin jugadores registrados en este equipo.</div>
+    : list.map(p => (
+      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+        <div style={{ flex: 1, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700 }}>#{p.number}</span> : null} {p.name}
+        </div>
+        <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', padding: '8px' }}
+          value={stats[p.id]?.goals ?? 0}
+          onChange={e => setPlayerField(p.id, 'goals', Math.max(0, Number(e.target.value)))} />
+        <label className="checkbox-row" title="Tarjeta amarilla">
+          <input type="checkbox" checked={!!stats[p.id]?.yellow} onChange={e => setPlayerField(p.id, 'yellow', e.target.checked)} />
+          <span className="card-chip yellow" />
+        </label>
+        <label className="checkbox-row" title="Tarjeta roja">
+          <input type="checkbox" checked={!!stats[p.id]?.red} onChange={e => setPlayerField(p.id, 'red', e.target.checked)} />
+          <span className="card-chip red" />
+        </label>
+      </div>
+    ));
+
+  return (
+    <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Resultado'} onClose={onClose}>
+      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
+          <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', fontSize: 20, fontWeight: 800, padding: '10px' }} value={scoreA} onChange={e => setScoreA(Math.max(0, Number(e.target.value)))} />
+          <span className="font-display" style={{ color: '#94A3B8', fontWeight: 700, fontSize: 16 }}>VS</span>
+          <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', fontSize: 20, fontWeight: 800, padding: '10px' }} value={scoreB} onChange={e => setScoreB(Math.max(0, Number(e.target.value)))} />
+          <div style={{ flex: 1 }}><TeamChip team={teamB} /></div>
+        </div>
+        <div style={{ textAlign: 'center', fontSize: 12, color: '#64748B', marginTop: 12 }}>
+          Suma de goleadores registrados: {sumGoals(playersA)} - {sumGoals(playersB)}
+        </div>
+      </div>
+
+      <div className="grid-2" style={{ marginBottom: conflict ? 10 : 24 }}>
+        <div>
+          <label className="field-label">Fecha</label>
+          <input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} />
+        </div>
+        <div>
+          <label className="field-label">Hora</label>
+          <input className="input" type="time" value={time} onChange={e => setTime(e.target.value)} />
+        </div>
+      </div>
+      {conflict && (
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '12px 16px', marginBottom: 24, fontSize: 13, color: '#DC2626', flexWrap: 'wrap' }}>
+          <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+          <span style={{ flex: 1, minWidth: 200, lineHeight: 1.5 }}>
+            Ya hay otro partido a esta misma fecha y hora: <strong>{conflictTeamA ? conflictTeamA.name : '—'} vs {conflictTeamB ? conflictTeamB.name : '—'}</strong>
+          </span>
+          <button type="button" className="btn btn-outline btn-sm" style={{ borderColor: '#FCA5A5', color: '#DC2626' }}
+            onClick={() => {
+              onSwap(conflict.phase, conflict.id, { date: match.date, time: match.time });
+              onSave({ date, time });
+            }}>
+            Intercambiar horarios
+          </button>
+        </div>
+      )}
+
+      <div className="grid-2" style={{ gap: 24 }}>
+        <div>
+          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamA} size="md" /></div>
+          {!ruleA.valid && (
+            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span>Plantilla incompleta: Tiene {ruleA.over50}/2 de 50+ y {ruleA.over40}/1 de 40-49.</span>
+            </div>
+          )}
+          {renderPlayerRows(playersA)}
+        </div>
+        <div>
+          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamB} size="md" /></div>
+          {!ruleB.valid && (
+            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span>Plantilla incompleta: Tiene {ruleB.over50}/2 de 50+ y {ruleB.over40}/1 de 40-49.</span>
+            </div>
+          )}
+          {renderPlayerRows(playersB)}
+        </div>
+      </div>
+
+      <div style={{ borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, paddingTop: 16, flexWrap: 'wrap', gap: 10 }}>
+        {confirmDelete
+          ? <ConfirmInline text="¿Eliminar partido?" onConfirm={() => onDelete(match.id)} onCancel={() => setConfirmDelete(false)} />
+          : <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(true)}><Trash2 size={14} /> Eliminar partido</button>}
+        <div style={{ display: 'flex', gap: 10 }}>
+          <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
+          <button className="btn btn-outline" onClick={() => onSave({ date, time })}>Guardar horario</button>
+          <button className="btn btn-primary" onClick={() => onSave({ date, time, scoreA: Number(scoreA), scoreB: Number(scoreB), played: true, playerStats: stats })}>
+            <Check size={16} /> Guardar resultado
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+function MatchDetailModal({ match, teams, players, onClose }) {
+  const teamA = teams.find(t => t.id === match.teamAId);
+  const teamB = teams.find(t => t.id === match.teamBId);
+  const playersA = players.filter(p => p.teamId === match.teamAId);
+  const playersB = players.filter(p => p.teamId === match.teamBId);
+  
+  const ruleA = validateAgeRule(playersA);
+  const ruleB = validateAgeRule(playersB);
+  
+  const statFor = (pid) => (match.playerStats && match.playerStats[pid]) || { goals: 0, yellow: false, red: false };
+
+  const renderList = (list) => list.length === 0
+    ? <div style={{ fontSize: 13, color: '#94A3B8', padding: '12px 0' }}>Sin jugadores registrados en este equipo.</div>
+    : list.map(p => {
+      const s = statFor(p.id);
+      return (
+        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+          <Avatar size={28} />
+          <div style={{ flex: 1, fontSize: 14, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700, marginRight: 8 }}>#{p.number}</span> : null}
+            {p.name}
+          </div>
+          {s.goals > 0 && <span style={{ fontSize: 13, color: '#22C55E', fontWeight: 800, flexShrink: 0 }}>⚽ {s.goals}</span>}
+          <CardBadge yellow={s.yellow ? 1 : 0} red={s.red ? 1 : 0} />
+        </div>
+      );
+    });
+
+  return (
+    <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Alineación'} onClose={onClose}>
+      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
+          {match.played
+            ? <div className="font-display" style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', border: '1px solid #E2E8F0', borderRadius: 10, padding: '6px 16px', background: '#fff' }}>{match.scoreA} : {match.scoreB}</div>
+            : <span className="status-pill pending" style={{ fontSize: 12, padding: '6px 14px' }}>Programado</span>}
+          <div style={{ flex: 1 }}><TeamChip team={teamB} /></div>
+        </div>
+        {match.date && <div style={{ textAlign: 'center', fontSize: 12.5, color: '#64748B', marginTop: 12 }}>{formatDateTime(match.date, match.time)}</div>}
+      </div>
+
+      <div className="grid-2" style={{ gap: 24 }}>
+        <div>
+          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamA} size="md" /></div>
+          {!ruleA.valid && (
+            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span>Plantilla incompleta: Tiene {ruleA.over50}/2 de 50+ y {ruleA.over40}/1 de 40-49.</span>
+            </div>
+          )}
+          {renderList(playersA)}
+        </div>
+        <div>
+          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamB} size="md" /></div>
+          {!ruleB.valid && (
+            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
+              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
+              <span>Plantilla incompleta: Tiene {ruleB.over50}/2 de 50+ y {ruleB.over40}/1 de 40-49.</span>
+            </div>
+          )}
+          {renderList(playersB)}
+        </div>
+      </div>
+    </Modal>
   );
 }
 

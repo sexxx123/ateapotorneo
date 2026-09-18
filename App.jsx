@@ -11,9 +11,10 @@ const PALETTE = ['#22C55E', '#EF4444', '#3B82F6', '#F97316', '#A855F7', '#14B8A6
 function ageColor(age) {
   if (age === '' || age === undefined || age === null) return { bg: '#F1F5F9', fg: '#64748B', label: '' };
   const n = Number(age);
-  if (n >= 50) return { bg: '#FEF2F2', fg: '#DC2626', label: '50+' };
-  if (n >= 40) return { bg: '#FFFBEB', fg: '#D97706', label: '40-49' };
-  return { bg: '#ECFDF5', fg: '#059669', label: '≤39' };
+  // Colores sólidos para resaltar claramente las categorías por reglas de cancha
+  if (n >= 50) return { bg: '#EF4444', fg: '#FFFFFF', label: '50+' };
+  if (n >= 40) return { bg: '#F97316', fg: '#FFFFFF', label: '40-49' };
+  return { bg: '#10B981', fg: '#FFFFFF', label: '≤39' };
 }
 
 function uid(prefix) {
@@ -264,8 +265,26 @@ function GlobalStyles() {
       .font-display { font-family: 'Poppins', sans-serif; }
       .app-shell { display: flex; min-height: 100vh; }
       
-      /* Sidebar Premium Refinado */
-      .sidebar { width: 260px; flex-shrink: 0; background: #0B1121; border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; padding: 28px 20px; z-index: 10; }
+      /* Sidebar Premium Refinado y Fijo (Sticky) */
+      .sidebar { 
+        width: 260px; 
+        flex-shrink: 0; 
+        background: #0B1121; 
+        border-right: 1px solid rgba(255,255,255,0.05); 
+        display: flex; 
+        flex-direction: column; 
+        padding: 28px 20px; 
+        z-index: 10;
+        position: sticky;
+        top: 0;
+        height: 100vh;
+        overflow-y: auto;
+      }
+      /* Ocultar barra de desplazamiento del sidebar en webkit para un look más limpio */
+      .sidebar::-webkit-scrollbar { width: 4px; }
+      .sidebar::-webkit-scrollbar-track { background: transparent; }
+      .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
+
       .sidebar-logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; padding: 0 6px; }
       .sidebar-logo-badge { width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
       .sidebar-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 15px; color: #FFFFFF; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
@@ -388,7 +407,17 @@ function GlobalStyles() {
       /* Responsive */
       @media (max-width: 820px) {
         .app-shell { flex-direction: column; }
-        .sidebar { width: 100%; flex-direction: column; align-items: stretch; padding: 16px; gap: 8px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); }
+        .sidebar { 
+          width: 100%; 
+          height: auto; 
+          position: relative; 
+          flex-direction: column; 
+          align-items: stretch; 
+          padding: 16px; 
+          gap: 8px; 
+          border-right: none; 
+          border-bottom: 1px solid rgba(255,255,255,0.05); 
+        }
         .sidebar-logo-row { margin-bottom: 8px; }
         .sidebar-nav { flex-direction: row; overflow-x: auto; flex: none; width: 100%; gap: 6px; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
         .sidebar-nav-item { flex-shrink: 0; width: auto; white-space: nowrap; padding: 10px 16px; }
@@ -617,7 +646,7 @@ function PlayerFormModal({ initial, teams, defaultTeamId, onClose, onSave }) {
           <label className="field-label">Edad</label>
           <input className="input" type="number" min="0" max="99" value={age} onChange={e => setAge(e.target.value)} placeholder="Ej: 34" />
           {preview && preview.label && (
-            <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 8, background: preview.bg, color: preview.fg }}>{preview.label}</span>
+            <span style={{ display: 'inline-block', marginTop: 8, fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 8, background: preview.bg, color: preview.fg, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>{preview.label}</span>
           )}
         </div>
       </div>
@@ -748,7 +777,7 @@ function TeamDetailModal({ team, data, onClose }) {
                     {p.name}
                   </div>
                   {p.age !== '' && p.age !== undefined && (
-                    <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 8, background: ac.bg, color: ac.fg }}>{p.age} años</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 8, background: ac.bg, color: ac.fg, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>{p.age} años</span>
                   )}
                 </div>
               );
@@ -2174,7 +2203,7 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
                         <td><TeamChip team={team} size="md" /></td>
                         <td>
                           {p.age !== '' && p.age !== undefined
-                            ? <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 12, background: ac.bg, color: ac.fg }}>{p.age}</span>
+                            ? <span style={{ fontSize: 12.5, fontWeight: 700, padding: '4px 12px', borderRadius: 8, background: ac.bg, color: ac.fg }}>{p.age}</span>
                             : <span style={{ color: '#CBD5E1' }}>—</span>}
                         </td>
                         {isAdmin && (
@@ -2196,9 +2225,9 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
             </table>
           </div>
           <div style={{ display: 'flex', gap: 20, marginTop: 16, flexWrap: 'wrap', fontSize: 12, color: '#64748B', fontWeight: 500 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#ECFDF5' }} /> 39 o menos</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#FFFBEB' }} /> 40 a 49</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#FEF2F2' }} /> 50 o más</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#10B981' }} /> 39 o menos</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#F97316' }} /> 40 a 49</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#EF4444' }} /> 50 o más</span>
           </div>
           </>
         )}

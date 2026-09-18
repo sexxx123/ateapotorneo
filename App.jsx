@@ -9,11 +9,11 @@ import { supabase } from './supabaseClient';
 const PALETTE = ['#22C55E', '#EF4444', '#3B82F6', '#F97316', '#A855F7', '#14B8A6', '#E11D48', '#6366F1', '#EAB308', '#EC4899'];
 
 function ageColor(age) {
-  if (age === '' || age === undefined || age === null) return { bg: '#EEF0F2', fg: '#6B7280', label: '' };
+  if (age === '' || age === undefined || age === null) return { bg: '#F1F5F9', fg: '#64748B', label: '' };
   const n = Number(age);
-  if (n >= 50) return { bg: '#FCE9E7', fg: '#B23A2E', label: '50+' };
-  if (n >= 40) return { bg: '#FCF3D9', fg: '#8A6A1E', label: '40-49' };
-  return { bg: '#E7F5EC', fg: '#1F7A3D', label: '≤39' };
+  if (n >= 50) return { bg: '#FEF2F2', fg: '#DC2626', label: '50+' };
+  if (n >= 40) return { bg: '#FFFBEB', fg: '#D97706', label: '40-49' };
+  return { bg: '#ECFDF5', fg: '#059669', label: '≤39' };
 }
 
 function uid(prefix) {
@@ -262,85 +262,101 @@ function GlobalStyles() {
       .futbolito-app { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; }
       .futbolito-app * { box-sizing: border-box; }
       .font-display { font-family: 'Poppins', sans-serif; }
-      .app-shell { display: flex; min-height: 640px; }
+      .app-shell { display: flex; min-height: 100vh; }
       
-      /* Sidebar Premium */
-      .sidebar { width: 260px; flex-shrink: 0; background: linear-gradient(180deg, #0F172A 0%, #1E293B 100%); display: flex; flex-direction: column; padding: 28px 20px; box-shadow: 4px 0 15px rgba(0,0,0,0.05); z-index: 10; }
+      /* Sidebar Premium Refinado */
+      .sidebar { width: 260px; flex-shrink: 0; background: #0B1121; border-right: 1px solid rgba(255,255,255,0.05); display: flex; flex-direction: column; padding: 28px 20px; z-index: 10; }
       .sidebar-logo-row { display: flex; align-items: center; gap: 12px; margin-bottom: 32px; padding: 0 6px; }
-      .sidebar-logo-badge { width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0.05) 100%); box-shadow: 0 4px 10px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; backdrop-filter: blur(4px); }
-      .sidebar-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 16px; color: #FFFFFF; line-height: 1.25; text-shadow: 0 2px 4px rgba(0,0,0,0.2); overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-      .sidebar-nav { display: flex; flex-direction: column; gap: 6px; flex: 1; }
-      .sidebar-nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; color: #94A3B8; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 14px; cursor: pointer; background: transparent; border: none; text-align: left; width: 100%; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
-      .sidebar-nav-item:hover { background: rgba(255,255,255,0.08); color: #F8FAFC; transform: translateX(4px); }
-      .sidebar-nav-item.active { background: linear-gradient(90deg, #22C55E 0%, #16A34A 100%); color: #FFFFFF; box-shadow: 0 4px 12px rgba(34,197,94,0.25); }
-      .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; margin-top: 16px; display: flex; flex-direction: column; gap: 4px; }
-      .sidebar-footer-link { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; color: #94A3B8; font-size: 13px; font-weight: 600; cursor: pointer; background: transparent; border: none; text-align: left; width: 100%; transition: all 0.2s; }
-      .sidebar-footer-link:hover { background: rgba(255,255,255,0.08); color: #F8FAFC; }
+      .sidebar-logo-badge { width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 100%); border: 1px solid rgba(255,255,255,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+      .sidebar-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 15px; color: #FFFFFF; line-height: 1.25; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+      .sidebar-nav { display: flex; flex-direction: column; gap: 4px; flex: 1; }
+      .sidebar-nav-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; color: #94A3B8; font-family: 'Inter', sans-serif; font-weight: 500; font-size: 14px; cursor: pointer; background: transparent; border: none; text-align: left; width: 100%; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); }
+      .sidebar-nav-item:hover { background: rgba(255,255,255,0.05); color: #F8FAFC; }
+      .sidebar-nav-item.active { background: linear-gradient(90deg, #22C55E 0%, #16A34A 100%); color: #FFFFFF; font-weight: 600; box-shadow: 0 4px 12px rgba(34,197,94,0.25); }
+      
+      .sidebar-footer { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+      .sidebar-footer-link { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; color: #94A3B8; font-size: 13px; font-weight: 500; cursor: pointer; background: transparent; border: none; text-align: left; width: 100%; transition: all 0.2s; }
+      .sidebar-footer-link:hover { background: rgba(255,255,255,0.05); color: #F8FAFC; }
+      
+      /* Tarjeta de usuario en Sidebar */
+      .sidebar-user-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
+      .sidebar-footer-link.logout:hover { background: rgba(239, 68, 68, 0.1) !important; color: #FCA5A5 !important; }
       
       /* Área Principal */
       .main-area { flex: 1; padding: 36px 48px; min-width: 0; }
       .page-header { margin-bottom: 32px; }
-      .page-title { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 32px; color: #0F172A; letter-spacing: -0.03em; line-height: 1.15; }
+      .page-title { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 32px; color: #0F172A; letter-spacing: -0.02em; line-height: 1.15; }
       .page-subtitle { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 15px; color: #64748B; margin-top: 6px; }
       
-      /* Tarjetas (Cards) Modernas */
-      .card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.03); font-family: 'Inter', sans-serif; transition: box-shadow 0.2s; }
-      .card:hover { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05), 0 4px 6px -4px rgba(0, 0, 0, 0.025); }
-      .card-header-green { background: linear-gradient(90deg, #22C55E 0%, #16A34A 100%); color: #fff; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 14px; padding: 16px 20px; border-radius: 15px 15px 0 0; }
+      /* Tarjetas Genéricas */
+      .card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); font-family: 'Inter', sans-serif; }
+      .card-header-green { background: #22C55E; color: #fff; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 14px; padding: 16px 20px; border-radius: 15px 15px 0 0; }
       
-      /* Componentes Pequeños */
-      .widget-select { background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; padding: 6px 26px 6px 12px; font-size: 12px; font-weight: 600; font-family: 'Inter', sans-serif; cursor: pointer; appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 10px center; max-width: 140px; text-overflow: ellipsis; backdrop-filter: blur(4px); transition: all 0.2s; }
-      .widget-select:hover { background: rgba(255,255,255,0.25); }
-      .widget-select option { color: #1E293B; background: #FFF; }
+      /* Tarjetas de Equipo (EquiposTab) */
+      .team-card { display: flex; flex-direction: column; position: relative; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); transition: all 0.25s ease; height: 100%; }
+      .team-card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04); border-color: #CBD5E1; }
+      .team-card-accent { position: absolute; top: 0; left: 0; right: 0; height: 4px; opacity: 0.9; }
+      .team-card-header { padding: 20px 16px 12px; display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+      .team-card-title-group { display: flex; align-items: center; gap: 12px; min-width: 0; cursor: pointer; flex: 1; }
+      .team-card-title { font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 15px; color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .team-card-actions { display: flex; gap: 4px; flex-shrink: 0; }
+      .team-card-body { padding: 0 16px 20px; display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+      .team-card-players { font-size: 13px; color: #64748B; display: flex; align-items: center; gap: 6px; }
+      .team-card-stats { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: #475569; }
+      .team-card-stats strong { color: #0F172A; font-weight: 700; }
+      .team-card-stats .dot { color: #CBD5E1; font-size: 10px; }
       
-      /* Botones Premium */
-      .btn { font-family: 'Inter', sans-serif; font-weight: 600; padding: 10px 18px; border-radius: 10px; font-size: 13.5px; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+      /* Botones sutiles (Editar/Borrar en cards) */
+      .icon-btn-subtle { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; color: #94A3B8; cursor: pointer; transition: all 0.2s; }
+      .icon-btn-subtle:hover { background: #F1F5F9; color: #334155; }
+      .icon-btn-subtle.danger:hover { background: #FEF2F2; color: #DC2626; }
+      
+      /* Botones y UI Base */
+      .btn { font-family: 'Inter', sans-serif; font-weight: 600; padding: 10px 16px; border-radius: 10px; font-size: 13.5px; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; transition: all 0.2s; }
       .btn:active { transform: scale(0.97); }
-      .btn-primary { background: linear-gradient(180deg, #22C55E 0%, #16A34A 100%); color: #fff; border-color: #15803D; text-shadow: 0 1px 2px rgba(0,0,0,0.1); box-shadow: 0 4px 6px -1px rgba(34,197,94,0.2), 0 2px 4px -2px rgba(34,197,94,0.2); }
-      .btn-primary:hover { background: linear-gradient(180deg, #4ADE80 0%, #16A34A 100%); box-shadow: 0 6px 8px -1px rgba(34,197,94,0.3); }
-      .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; filter: grayscale(40%); box-shadow: none; }
+      .btn-primary { background: #22C55E; color: #fff; box-shadow: 0 2px 4px rgba(34,197,94,0.2); }
+      .btn-primary:hover { background: #16A34A; box-shadow: 0 4px 6px rgba(34,197,94,0.3); }
+      .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
       .btn-outline { background: #FFFFFF; color: #334155; border-color: #CBD5E1; }
-      .btn-outline:hover { border-color: #22C55E; color: #16A34A; background: #F8FAFC; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+      .btn-outline:hover { border-color: #22C55E; color: #16A34A; background: #F8FAFC; }
       .btn-danger { background: #FEF2F2; color: #DC2626; border-color: #FECACA; }
-      .btn-danger:hover { background: #DC2626; color: #fff; border-color: #DC2626; box-shadow: 0 4px 6px -1px rgba(220,38,38,0.2); }
+      .btn-danger:hover { background: #DC2626; color: #fff; border-color: #DC2626; }
       .btn-sm { padding: 8px 14px; font-size: 12.5px; }
       
-      .icon-btn { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B; cursor: pointer; flex-shrink: 0; transition: all 0.2s; box-shadow: 0 1px 2px rgba(0,0,0,0.02); }
-      .icon-btn:hover { border-color: #22C55E; color: #16A34A; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); }
+      .icon-btn { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
+      .icon-btn:hover { border-color: #22C55E; color: #16A34A; }
       
-      /* Formularios e Inputs */
-      .input, textarea.textarea { background: #F8FAFC; border: 1px solid #CBD5E1; color: #1E293B; padding: 10px 14px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; width: 100%; transition: all 0.2s; box-shadow: inset 0 1px 2px rgba(0,0,0,0.02); }
-      .input:focus, textarea.textarea:focus { background: #FFFFFF; border-color: #22C55E; box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.15); outline: none; }
+      /* Inputs */
+      .input, textarea.textarea { background: #F8FAFC; border: 1px solid #CBD5E1; color: #1E293B; padding: 10px 14px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; width: 100%; transition: all 0.2s; }
+      .input:focus, textarea.textarea:focus { background: #FFFFFF; border-color: #22C55E; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); outline: none; }
       .input::placeholder, textarea.textarea::placeholder { color: #94A3B8; }
       textarea.textarea { resize: vertical; min-height: 80px; }
       label.field-label { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; margin-bottom: 6px; display: block; font-weight: 700; }
       
-      /* UI Específica */
-      .crest { display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; color: #fff; font-family: 'Poppins', sans-serif; font-weight: 700; flex-shrink: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+      /* Escudos y Chips */
+      .crest { display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; color: #fff; font-family: 'Poppins', sans-serif; font-weight: 700; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
       .team-name-cell { font-family: 'Inter', sans-serif; font-weight: 600; text-align: left !important; color: #0F172A; }
       .card-chip { display: inline-block; width: 12px; height: 16px; border-radius: 3px; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
       .card-chip.yellow { background: #FACC15; }
       .card-chip.red { background: #EF4444; }
       
-      /* Tablas de Datos */
+      /* Tablas de Datos Refinadas */
       table.data-table { border-collapse: separate; border-spacing: 0; width: 100%; }
-      table.data-table th { font-family: 'Inter', sans-serif; font-weight: 700; color: #64748B; font-size: 11.5px; text-align: center; padding: 14px 12px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.05em; background: #F1F5F9; border-bottom: 2px solid #E2E8F0; }
-      table.data-table th:first-child { border-top-left-radius: 16px; }
+      table.data-table th { background: #FFFFFF; font-family: 'Inter', sans-serif; font-weight: 700; color: #64748B; font-size: 11px; text-align: center; padding: 16px 16px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #F1F5F9; }
+      table.data-table th:first-child { text-align: left; border-top-left-radius: 16px; }
       table.data-table th:last-child { border-top-right-radius: 16px; }
-      table.data-table td { font-family: 'Inter', sans-serif; font-size: 14px; text-align: center; padding: 12px 10px; white-space: nowrap; color: #334155; border-bottom: 1px solid #F1F5F9; transition: background 0.2s; }
-      tr.row-alt td { background: #FAFAF9; }
+      table.data-table td { background: #FFFFFF; font-family: 'Inter', sans-serif; font-size: 14px; text-align: center; padding: 14px 16px; white-space: nowrap; color: #334155; border-bottom: 1px solid #F1F5F9; transition: background 0.15s; vertical-align: middle; }
+      table.data-table td:first-child { text-align: left; }
       table.data-table tbody tr:hover td { background: #F8FAFC; }
-      tr.zone-top td { background: rgba(34, 197, 94, 0.03); }
-      tr.zone-top { box-shadow: inset 4px 0 0 #22C55E; }
-      tr.zone-bottom td { background: rgba(239, 68, 68, 0.03); }
-      tr.zone-bottom { box-shadow: inset 4px 0 0 #EF4444; }
+      
+      .dorsal-text { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 14px; color: #0F172A; }
       
       /* Elementos visuales auxiliares */
       .avatar-circle { border-radius: 50%; background: #F1F5F9; border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: center; color: #94A3B8; flex-shrink: 0; }
       .status-pill { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-block; letter-spacing: 0.02em; }
       .status-pill.done { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
       .status-pill.pending { background: #F8FAFC; color: #64748B; border: 1px solid #E2E8F0; }
-      .info-strip { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px 20px; display: flex; gap: 32px; flex-wrap: wrap; align-items: center; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); }
+      .info-strip { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px 20px; display: flex; gap: 32px; flex-wrap: wrap; align-items: center; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); }
       .info-strip-item .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; font-weight: 700; }
       .info-strip-item .val { font-size: 14.5px; color: #0F172A; font-weight: 600; margin-top: 4px; }
       .stat-circle { width: 64px; height: 64px; border-radius: 50%; border: 3px solid #22C55E; display: flex; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 22px; color: #0F172A; margin: 0 auto; box-shadow: 0 4px 10px rgba(34,197,94,0.15); background: #FFFFFF; }
@@ -360,15 +376,11 @@ function GlobalStyles() {
       .futbolito-app ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
       .futbolito-app ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
       
-      .futbolito-app input[type=color] { -webkit-appearance: none; appearance: none; border: none; width: 36px; height: 36px; padding: 0; border-radius: 8px; overflow: hidden; background: transparent; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-      .futbolito-app input[type=color]::-webkit-color-swatch-wrapper { padding: 0; }
-      .futbolito-app input[type=color]::-webkit-color-swatch { border: 1px solid #E2E8F0; border-radius: 8px; }
+      /* Modales */
+      .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: flex-start; justify-content: center; z-index: 50; padding: 32px 16px; overflow-y: auto; animation: fadeIn 0.2s ease-out; }
+      .modal-box { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 640px; width: 100%; margin: auto; animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
       
-      /* Modales Premium con Glassmorphism */
-      .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(6px); display: flex; align-items: flex-start; justify-content: center; z-index: 50; padding: 32px 16px; overflow-y: auto; animation: fadeIn 0.25s ease-out; }
-      .modal-box { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 640px; width: 100%; margin: auto; animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1); }
-      
-      @keyframes fadeIn { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(6px); } }
+      @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
       @keyframes slideUp { from { opacity: 0; transform: translateY(20px) scale(0.98); } to { opacity: 1; transform: translateY(0) scale(1); } }
       @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
       .spin { animation: spin 1s linear infinite; }
@@ -376,11 +388,11 @@ function GlobalStyles() {
       /* Responsive */
       @media (max-width: 820px) {
         .app-shell { flex-direction: column; }
-        .sidebar { width: 100%; flex-direction: column; align-items: stretch; padding: 16px; gap: 8px; border-radius: 0 0 24px 24px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
+        .sidebar { width: 100%; flex-direction: column; align-items: stretch; padding: 16px; gap: 8px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); }
         .sidebar-logo-row { margin-bottom: 8px; }
         .sidebar-nav { flex-direction: row; overflow-x: auto; flex: none; width: 100%; gap: 6px; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
         .sidebar-nav-item { flex-shrink: 0; width: auto; white-space: nowrap; padding: 10px 16px; }
-        .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.1); margin-top: 8px; padding-top: 12px; flex-direction: row; flex-wrap: wrap; width: 100%; justify-content: space-between; align-items: center; }
+        .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px; padding-top: 12px; }
         .main-area { padding: 24px 16px; }
         .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
       }
@@ -398,19 +410,19 @@ function GlobalStyles() {
 }
 
 function Crest({ team, size }) {
-  const s = size === 'sm' ? 24 : size === 'lg' ? 46 : 30;
+  const s = size === 'sm' ? 24 : size === 'md' ? 36 : size === 'lg' ? 46 : 30;
   const fs = Math.round(s * 0.36);
   const [imgError, setImgError] = useState(false);
-  if (!team) return <div className="crest" style={{ width: s, height: s, background: '#B9BEC6', fontSize: fs }}>?</div>;
+  if (!team) return <div className="crest" style={{ width: s, height: s, background: '#E2E8F0', color: '#94A3B8', fontSize: fs }}>?</div>;
   if (team.logoUrl && !imgError) {
     return <img src={team.logoUrl} alt="" onError={() => setImgError(true)}
-      style={{ width: s, height: s, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }} />;
+      style={{ width: s, height: s, borderRadius: 8, objectFit: 'cover', flexShrink: 0, border: '1px solid #E2E8F0' }} />;
   }
   return <div className="crest" style={{ width: s, height: s, background: team.color, fontSize: fs }}>{initials(team.name)}</div>;
 }
 
 function TeamChip({ team, size, onClick }) {
-  if (!team) return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#9AA1AC' }}><Crest size={size} /> Equipo eliminado</span>;
+  if (!team) return <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, color: '#94A3B8' }}><Crest size={size} /> Equipo eliminado</span>;
   const content = (
     <>
       <Crest team={team} size={size} />
@@ -437,9 +449,9 @@ function Avatar({ size }) {
 }
 
 function CardBadge({ yellow, red }) {
-  if (!yellow && !red) return <span style={{ color: '#C7CBD1' }}>—</span>;
+  if (!yellow && !red) return <span style={{ color: '#CBD5E1' }}>—</span>;
   return (
-    <span style={{ display: 'inline-flex', gap: 3, alignItems: 'center' }}>
+    <span style={{ display: 'inline-flex', gap: 4, alignItems: 'center' }}>
       {yellow > 0 && <span className="card-chip yellow" title={yellow + ' amarilla(s)'} />}
       {red > 0 && <span className="card-chip red" title={red + ' roja(s)'} />}
     </span>
@@ -450,11 +462,11 @@ function Modal({ title, onClose, children }) {
   return (
     <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-box">
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 20px', borderBottom: '1px solid #E3E5E9' }}>
-          <h3 className="font-display" style={{ fontSize: 18, fontWeight: 700, color: '#1B2A4D', margin: 0 }}>{title}</h3>
-          <button onClick={onClose} className="icon-btn" aria-label="Cerrar"><X size={16} /></button>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid #E2E8F0' }}>
+          <h3 className="font-display" style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: 0 }}>{title}</h3>
+          <button onClick={onClose} className="icon-btn-subtle" aria-label="Cerrar"><X size={18} /></button>
         </div>
-        <div style={{ padding: 20 }}>{children}</div>
+        <div style={{ padding: 24 }}>{children}</div>
       </div>
     </div>
   );
@@ -462,20 +474,22 @@ function Modal({ title, onClose, children }) {
 
 function EmptyState({ Icon, title, text }) {
   return (
-    <div className="card" style={{ padding: '40px 20px', textAlign: 'center' }}>
-      <Icon size={28} color="#C7CBD1" style={{ margin: '0 auto 12px' }} />
-      <div className="font-display" style={{ fontSize: 16, fontWeight: 700, color: '#1B2A4D' }}>{title}</div>
-      <div style={{ fontSize: 13, color: '#6B7280', marginTop: 4, maxWidth: 380, marginLeft: 'auto', marginRight: 'auto' }}>{text}</div>
+    <div className="card" style={{ padding: '48px 24px', textAlign: 'center' }}>
+      <div style={{ width: 64, height: 64, borderRadius: '50%', background: '#F1F5F9', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+        <Icon size={32} color="#94A3B8" />
+      </div>
+      <div className="font-display" style={{ fontSize: 18, fontWeight: 700, color: '#0F172A' }}>{title}</div>
+      <div style={{ fontSize: 14, color: '#64748B', marginTop: 8, maxWidth: 400, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.5 }}>{text}</div>
     </div>
   );
 }
 
 function ConfirmInline({ text, onConfirm, onCancel }) {
   return (
-    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-      <span style={{ fontSize: 12, color: '#C4302B', fontWeight: 600 }}>{text}</span>
-      <button className="btn btn-danger btn-sm" onClick={onConfirm}><Check size={13} /></button>
-      <button className="btn btn-outline btn-sm" onClick={onCancel}><X size={13} /></button>
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, background: '#FEF2F2', padding: '6px 10px', borderRadius: 10, border: '1px solid #FECACA' }}>
+      <span style={{ fontSize: 12.5, color: '#DC2626', fontWeight: 600 }}>{text}</span>
+      <button className="btn btn-danger btn-sm" onClick={onConfirm}><Check size={14} /></button>
+      <button className="btn btn-outline btn-sm" onClick={onCancel} style={{ borderColor: '#FCA5A5', color: '#DC2626' }}><X size={14} /></button>
     </span>
   );
 }
@@ -518,19 +532,19 @@ function LogoUploadField({ value, onChange, label, folder, kind = 'image' }) {
       <label className="field-label">{label}</label>
       <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
         {value && !isPdf && (
-          <img src={value} alt="" style={{ width: 40, height: 40, borderRadius: 8, objectFit: 'cover', border: '1px solid #E3E5E9', flexShrink: 0 }}
+          <img src={value} alt="" style={{ width: 44, height: 44, borderRadius: 10, objectFit: 'cover', border: '1px solid #E2E8F0', flexShrink: 0 }}
             onError={e => { e.currentTarget.style.visibility = 'hidden'; }} />
         )}
         {value && isPdf && (
-          <a href={value} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><FileText size={13} /> Ver PDF actual</a>
+          <a href={value} target="_blank" rel="noreferrer" className="btn btn-outline btn-sm"><FileText size={14} /> Ver PDF actual</a>
         )}
         <label htmlFor={inputId} className="btn btn-outline btn-sm" style={{ cursor: uploading ? 'default' : 'pointer', opacity: uploading ? .6 : 1 }}>
-          {uploading ? <Loader2 size={13} className="spin" /> : <Send size={13} />} {uploading ? 'Subiendo…' : (isPdf ? 'Subir PDF' : 'Subir imagen')}
+          {uploading ? <Loader2 size={14} className="spin" /> : <Send size={14} />} {uploading ? 'Subiendo…' : (isPdf ? 'Subir PDF' : 'Subir imagen')}
         </label>
         <input id={inputId} type="file" accept={isPdf ? 'application/pdf' : 'image/*'} style={{ display: 'none' }} onChange={handleFile} disabled={uploading} />
       </div>
       <input className="input" value={value} onChange={e => onChange(e.target.value)} placeholder="o pega un link https://..." />
-      {error && <div style={{ fontSize: 11, color: '#C4302B', marginTop: 5 }}>{error}</div>}
+      {error && <div style={{ fontSize: 12, color: '#DC2626', marginTop: 6 }}>{error}</div>}
     </div>
   );
 }
@@ -542,28 +556,28 @@ function TeamFormModal({ initial, onClose, onSave }) {
   const [photoUrl, setPhotoUrl] = useState(initial ? (initial.photoUrl || '') : '');
   return (
     <Modal title={initial ? 'Editar equipo' : 'Nuevo equipo'} onClose={onClose}>
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ marginBottom: 16 }}>
         <label className="field-label">Nombre del equipo</label>
         <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ej: Los Halcones" autoFocus />
       </div>
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ marginBottom: 16 }}>
         <label className="field-label">Color / identidad</label>
-        <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           {PALETTE.map(c => (
             <span key={c} className={'swatch' + (c === color ? ' selected' : '')} style={{ background: c }} onClick={() => setColor(c)} />
           ))}
           <input type="color" value={color} onChange={e => setColor(e.target.value)} />
         </div>
       </div>
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ marginBottom: 16 }}>
         <LogoUploadField value={logoUrl} onChange={setLogoUrl} label="Logo del equipo (opcional)" folder="equipos" />
-        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Si no pones nada, se usa un escudo con las iniciales del equipo.</div>
+        <div style={{ fontSize: 12, color: '#64748B', marginTop: 6 }}>Si no pones nada, se usa un escudo con las iniciales del equipo.</div>
       </div>
-      <div style={{ marginBottom: 18 }}>
+      <div style={{ marginBottom: 24 }}>
         <LogoUploadField value={photoUrl} onChange={setPhotoUrl} label="Foto del equipo (opcional)" folder="equipos-fotos" />
-        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>La foto grupal de los integrantes. Se muestra en Inicio y en la ficha del equipo.</div>
+        <div style={{ fontSize: 12, color: '#64748B', marginTop: 6 }}>La foto grupal de los integrantes. Se muestra en Inicio y en la ficha del equipo.</div>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={!name.trim()} onClick={() => name.trim() && onSave({ name: name.trim(), color, logoUrl: logoUrl.trim(), photoUrl: photoUrl.trim() })}>
           {initial ? 'Guardar cambios' : 'Agregar equipo'}
@@ -581,7 +595,7 @@ function PlayerFormModal({ initial, teams, defaultTeamId, onClose, onSave }) {
   const preview = age !== '' ? ageColor(age) : null;
   return (
     <Modal title={initial ? 'Editar jugador' : 'Nuevo jugador'} onClose={onClose}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 12, marginBottom: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 16, marginBottom: 16 }}>
         <div>
           <label className="field-label">Nombre del jugador</label>
           <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ej: Juan Pérez" autoFocus />
@@ -591,7 +605,7 @@ function PlayerFormModal({ initial, teams, defaultTeamId, onClose, onSave }) {
           <input className="input" type="number" min="0" value={number} onChange={e => setNumber(e.target.value)} placeholder="#" />
         </div>
       </div>
-      <div className="grid-2" style={{ marginBottom: 18 }}>
+      <div className="grid-2" style={{ marginBottom: 24 }}>
         <div>
           <label className="field-label">Equipo</label>
           <select className="input" value={teamId} onChange={e => setTeamId(e.target.value)}>
@@ -603,11 +617,11 @@ function PlayerFormModal({ initial, teams, defaultTeamId, onClose, onSave }) {
           <label className="field-label">Edad</label>
           <input className="input" type="number" min="0" max="99" value={age} onChange={e => setAge(e.target.value)} placeholder="Ej: 34" />
           {preview && preview.label && (
-            <span style={{ display: 'inline-block', marginTop: 6, fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 10, background: preview.bg, color: preview.fg }}>{preview.label}</span>
+            <span style={{ display: 'inline-block', marginTop: 8, fontSize: 11.5, fontWeight: 700, padding: '4px 10px', borderRadius: 8, background: preview.bg, color: preview.fg }}>{preview.label}</span>
           )}
         </div>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={!name.trim() || !teamId}
           onClick={() => name.trim() && teamId && onSave({ name: name.trim(), number: number === '' ? '' : Number(number), age: age === '' ? '' : Number(age), teamId })}>
@@ -630,30 +644,30 @@ function BulkPlayersModal({ teams, defaultTeamId, onClose, onSave }) {
 
   return (
     <Modal title="Pegar lista de jugadores" onClose={onClose}>
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ marginBottom: 16 }}>
         <label className="field-label">Equipo</label>
         <select className="input" value={teamId} onChange={e => setTeamId(e.target.value)}>
           {teams.length === 0 && <option value="">Sin equipos</option>}
           {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
       </div>
-      <div style={{ marginBottom: 8 }}>
+      <div style={{ marginBottom: 10 }}>
         <label className="field-label">Un jugador por línea</label>
         <textarea className="textarea" rows={8} value={text} onChange={e => setText(e.target.value)}
           placeholder={'7 Juan Pérez\n10 María Gómez\nCarlos Ruiz'} />
-        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Si la línea empieza con un número, se usa como dorsal. El resto queda como nombre. La posición se puede ajustar después, jugador por jugador.</div>
+        <div style={{ fontSize: 12, color: '#64748B', marginTop: 6 }}>Si la línea empieza con un número, se usa como dorsal. El resto queda como nombre. La posición se puede ajustar después, jugador por jugador.</div>
       </div>
       {parsed.length > 0 && (
-        <div className="card" style={{ padding: 10, marginBottom: 18, maxHeight: 160, overflowY: 'auto' }}>
+        <div className="card" style={{ padding: 12, marginBottom: 24, maxHeight: 160, overflowY: 'auto' }}>
           {parsed.map((p, i) => (
-            <div key={i} style={{ fontSize: 12.5, padding: '3px 0', color: '#2A2E35' }}>
-              {p.number ? <span style={{ color: '#9AA1AC', fontWeight: 700, marginRight: 6 }}>#{p.number}</span> : null}
+            <div key={i} style={{ fontSize: 13.5, padding: '4px 0', color: '#1E293B' }}>
+              {p.number ? <span style={{ color: '#64748B', fontWeight: 700, marginRight: 8 }}>#{p.number}</span> : null}
               {p.name}
             </div>
           ))}
         </div>
       )}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={!teamId || parsed.length === 0}
           onClick={() => teamId && parsed.length > 0 && onSave(teamId, parsed)}>
@@ -670,18 +684,18 @@ function NewsFormModal({ onClose, onSave }) {
   const [imageUrl, setImageUrl] = useState('');
   return (
     <Modal title="Nueva noticia" onClose={onClose}>
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ marginBottom: 16 }}>
         <label className="field-label">Título</label>
         <input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Ej: Arranca la fase de grupos" autoFocus />
       </div>
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ marginBottom: 16 }}>
         <label className="field-label">Texto</label>
         <textarea className="textarea" rows={4} value={body} onChange={e => setBody(e.target.value)} placeholder="Detalles de la noticia…" />
       </div>
-      <div style={{ marginBottom: 18 }}>
+      <div style={{ marginBottom: 24 }}>
         <LogoUploadField value={imageUrl} onChange={setImageUrl} label="Imagen (opcional)" folder="noticias" />
       </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={!title.trim()}
           onClick={() => title.trim() && onSave({ title: title.trim(), body: body.trim(), imageUrl: imageUrl.trim(), date: new Date().toISOString().slice(0, 10) })}>
@@ -708,33 +722,33 @@ function TeamDetailModal({ team, data, onClose }) {
   return (
     <Modal title={team.name} onClose={onClose}>
       {team.photoUrl && (
-        <img src={team.photoUrl} alt="" style={{ width: '100%', maxHeight: 260, objectFit: 'cover', borderRadius: 10, marginBottom: 16, border: '1px solid #E3E5E9' }}
+        <img src={team.photoUrl} alt="" style={{ width: '100%', maxHeight: 260, objectFit: 'cover', borderRadius: 12, marginBottom: 20, border: '1px solid #E2E8F0' }}
           onError={e => { e.currentTarget.style.display = 'none'; }} />
       )}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
         <Crest team={team} size="lg" />
         <div>
-          <div className="font-display" style={{ fontWeight: 800, fontSize: 18, color: '#1B2A4D' }}>{team.name}</div>
-          {row && <div style={{ fontSize: 12.5, color: '#6B7280', marginTop: 2 }}>{row.pj} PJ · {row.pts} PTS · DIF {row.dg > 0 ? '+' + row.dg : row.dg}</div>}
+          <div className="font-display" style={{ fontWeight: 800, fontSize: 20, color: '#0F172A' }}>{team.name}</div>
+          {row && <div style={{ fontSize: 13.5, color: '#64748B', marginTop: 4, fontWeight: 500 }}>{row.pj} PJ · {row.pts} PTS · DIF {row.dg > 0 ? '+' + row.dg : row.dg}</div>}
         </div>
       </div>
 
-      <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#1B2A4D', marginBottom: 8 }}>Jugadores ({players.length})</div>
+      <div className="font-display" style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', marginBottom: 10 }}>Jugadores ({players.length})</div>
       {players.length === 0
-        ? <div style={{ fontSize: 12.5, color: '#9AA1AC', marginBottom: 20 }}>Sin jugadores registrados.</div>
+        ? <div style={{ fontSize: 13.5, color: '#94A3B8', marginBottom: 24 }}>Sin jugadores registrados.</div>
         : (
-          <div className="card" style={{ marginBottom: 20 }}>
+          <div className="card" style={{ marginBottom: 24, overflow: 'hidden' }}>
             {players.map((p, idx) => {
               const ac = ageColor(p.age);
               return (
-                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderBottom: idx === players.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
-                  <Avatar size={26} />
-                  <div style={{ flex: 1, fontSize: 13 }}>
-                    {p.number !== '' && p.number !== undefined ? <span style={{ color: '#9AA1AC', fontWeight: 700, marginRight: 6 }}>#{p.number}</span> : null}
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: idx === players.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
+                  <Avatar size={28} />
+                  <div style={{ flex: 1, fontSize: 14 }}>
+                    {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700, marginRight: 8 }}>#{p.number}</span> : null}
                     {p.name}
                   </div>
                   {p.age !== '' && p.age !== undefined && (
-                    <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 9px', borderRadius: 10, background: ac.bg, color: ac.fg }}>{p.age} años</span>
+                    <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 8, background: ac.bg, color: ac.fg }}>{p.age} años</span>
                   )}
                 </div>
               );
@@ -742,18 +756,18 @@ function TeamDetailModal({ team, data, onClose }) {
           </div>
         )}
 
-      <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#1B2A4D', marginBottom: 8 }}>Próximos partidos</div>
+      <div className="font-display" style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', marginBottom: 10 }}>Próximos partidos</div>
       {upcoming.length === 0
-        ? <div style={{ fontSize: 12.5, color: '#9AA1AC', marginBottom: 20 }}>No hay partidos programados.</div>
+        ? <div style={{ fontSize: 13.5, color: '#94A3B8', marginBottom: 24 }}>No hay partidos programados.</div>
         : (
-          <div className="card" style={{ marginBottom: 20 }}>
+          <div className="card" style={{ marginBottom: 24, overflow: 'hidden' }}>
             {upcoming.map((m, idx) => {
               const opp = opponentOf(m);
               return (
-                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: idx === upcoming.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
-                  <Crest team={opp} size="sm" />
-                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#1B2A4D' }}>vs {opp ? opp.name : 'Por definir'}</div>
-                  <div style={{ fontSize: 11, color: '#9AA1AC', textAlign: 'right' }}>{m._label}{m.date ? ' · ' + formatDateTime(m.date, m.time) : ''}</div>
+                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: idx === upcoming.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
+                  <Crest team={opp} size="md" />
+                  <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#0F172A' }}>vs {opp ? opp.name : 'Por definir'}</div>
+                  <div style={{ fontSize: 12, color: '#64748B', textAlign: 'right' }}>{m._label}{m.date ? ' · ' + formatDateTime(m.date, m.time) : ''}</div>
                 </div>
               );
             })}
@@ -762,18 +776,18 @@ function TeamDetailModal({ team, data, onClose }) {
 
       {past.length > 0 && (
         <>
-          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#1B2A4D', marginBottom: 8 }}>Resultados recientes</div>
-          <div className="card">
+          <div className="font-display" style={{ fontSize: 15, fontWeight: 700, color: '#0F172A', marginBottom: 10 }}>Resultados recientes</div>
+          <div className="card" style={{ overflow: 'hidden' }}>
             {past.slice(0, 8).map((m, idx, arr) => {
               const opp = opponentOf(m);
               const myScore = m.teamAId === team.id ? m.scoreA : m.scoreB;
               const oppScore = m.teamAId === team.id ? m.scoreB : m.scoreA;
-              const color = myScore > oppScore ? '#2E9E4A' : myScore < oppScore ? '#C4302B' : '#6B7280';
+              const color = myScore > oppScore ? '#22C55E' : myScore < oppScore ? '#DC2626' : '#64748B';
               return (
-                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
-                  <Crest team={opp} size="sm" />
-                  <div style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#1B2A4D' }}>vs {opp ? opp.name : 'Por definir'}</div>
-                  <div className="font-display" style={{ fontSize: 13, fontWeight: 800, color }}>{myScore} - {oppScore}</div>
+                <div key={m.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', borderBottom: idx === arr.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
+                  <Crest team={opp} size="md" />
+                  <div style={{ flex: 1, fontSize: 14, fontWeight: 600, color: '#0F172A' }}>vs {opp ? opp.name : 'Por definir'}</div>
+                  <div className="font-display" style={{ fontSize: 14, fontWeight: 800, color }}>{myScore} - {oppScore}</div>
                 </div>
               );
             })}
@@ -794,7 +808,7 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
   const invalid = !teamAId || !teamBId || teamAId === teamBId;
   return (
     <Modal title={phase === 'liga' ? 'Agregar partido de liga' : 'Agregar partido de playoffs'} onClose={onClose}>
-      <div className="grid-2" style={{ marginBottom: 14 }}>
+      <div className="grid-2" style={{ marginBottom: 16 }}>
         <div>
           <label className="field-label">Equipo local</label>
           <select className="input" value={teamAId} onChange={e => setTeamAId(e.target.value)}>
@@ -809,11 +823,11 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
         </div>
       </div>
       {invalid && teamAId && teamBId && (
-        <div style={{ fontSize: 12, color: '#C4302B', marginBottom: 12, display: 'flex', gap: 6, alignItems: 'center' }}>
-          <AlertTriangle size={13} /> Selecciona dos equipos distintos.
+        <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 16, display: 'flex', gap: 6, alignItems: 'center' }}>
+          <AlertTriangle size={14} /> Selecciona dos equipos distintos.
         </div>
       )}
-      <div className="grid-3" style={{ marginBottom: 18 }}>
+      <div className="grid-3" style={{ marginBottom: 24 }}>
         <div>
           <label className="field-label">{phase === 'liga' ? 'Jornada' : 'Ronda'}</label>
           {phase === 'liga'
@@ -829,7 +843,7 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
           <input className="input" type="time" value={time} onChange={e => setTime(e.target.value)} />
         </div>
       </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={invalid} onClick={() => onSave({
           teamAId, teamBId, date, time,
@@ -870,13 +884,13 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
   const sumGoals = (list) => list.reduce((acc, p) => acc + (Number(stats[p.id]?.goals) || 0), 0);
 
   const renderPlayerRows = (list) => list.length === 0
-    ? <div style={{ fontSize: 12, color: '#9AA1AC', padding: '10px 0' }}>Sin jugadores registrados en este equipo.</div>
+    ? <div style={{ fontSize: 13, color: '#94A3B8', padding: '12px 0' }}>Sin jugadores registrados en este equipo.</div>
     : list.map(p => (
-      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '7px 0', borderBottom: '1px solid #EEF0F2' }}>
-        <div style={{ flex: 1, fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}>
-          {p.number !== '' && p.number !== undefined ? <span style={{ color: '#9AA1AC', fontWeight: 700 }}>#{p.number}</span> : null} {p.name}
+      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+        <div style={{ flex: 1, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+          {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700 }}>#{p.number}</span> : null} {p.name}
         </div>
-        <input className="input" type="number" min="0" style={{ width: 56, textAlign: 'center' }}
+        <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', padding: '8px' }}
           value={stats[p.id]?.goals ?? 0}
           onChange={e => setPlayerField(p.id, 'goals', Math.max(0, Number(e.target.value)))} />
         <label className="checkbox-row" title="Tarjeta amarilla">
@@ -892,20 +906,20 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
 
   return (
     <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Resultado'} onClose={onClose}>
-      <div style={{ background: '#F6F9F7', border: '1px solid #E3E5E9', borderRadius: 10, padding: 16, marginBottom: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
-          <input className="input" type="number" min="0" style={{ width: 54, textAlign: 'center', fontSize: 18, fontWeight: 700 }} value={scoreA} onChange={e => setScoreA(Math.max(0, Number(e.target.value)))} />
-          <span className="font-display" style={{ color: '#9AA1AC', fontWeight: 700 }}>VS</span>
-          <input className="input" type="number" min="0" style={{ width: 54, textAlign: 'center', fontSize: 18, fontWeight: 700 }} value={scoreB} onChange={e => setScoreB(Math.max(0, Number(e.target.value)))} />
+          <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', fontSize: 20, fontWeight: 800, padding: '10px' }} value={scoreA} onChange={e => setScoreA(Math.max(0, Number(e.target.value)))} />
+          <span className="font-display" style={{ color: '#94A3B8', fontWeight: 700, fontSize: 16 }}>VS</span>
+          <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', fontSize: 20, fontWeight: 800, padding: '10px' }} value={scoreB} onChange={e => setScoreB(Math.max(0, Number(e.target.value)))} />
           <div style={{ flex: 1 }}><TeamChip team={teamB} /></div>
         </div>
-        <div style={{ textAlign: 'center', fontSize: 11, color: '#9AA1AC', marginTop: 8 }}>
+        <div style={{ textAlign: 'center', fontSize: 12, color: '#64748B', marginTop: 12 }}>
           Suma de goleadores registrados: {sumGoals(playersA)} - {sumGoals(playersB)} (puede diferir si hubo autogoles)
         </div>
       </div>
 
-      <div className="grid-2" style={{ marginBottom: conflict ? 8 : 18 }}>
+      <div className="grid-2" style={{ marginBottom: conflict ? 10 : 24 }}>
         <div>
           <label className="field-label">Fecha</label>
           <input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} />
@@ -916,12 +930,12 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
         </div>
       </div>
       {conflict && (
-        <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start', background: '#FDEEEE', border: '1px solid #F1C9C7', borderRadius: 8, padding: '10px 12px', marginBottom: 18, fontSize: 12.5, color: '#8a2a24', flexWrap: 'wrap' }}>
-          <AlertTriangle size={15} style={{ flexShrink: 0, marginTop: 1 }} />
-          <span style={{ flex: 1, minWidth: 200 }}>
+        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '12px 16px', marginBottom: 24, fontSize: 13, color: '#DC2626', flexWrap: 'wrap' }}>
+          <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
+          <span style={{ flex: 1, minWidth: 200, lineHeight: 1.5 }}>
             Ya hay otro partido a esta misma fecha y hora: <strong>{conflictTeamA ? conflictTeamA.name : '—'} vs {conflictTeamB ? conflictTeamB.name : '—'}</strong> (antes tenía {formatDateTime(match.date, match.time)}).
           </span>
-          <button type="button" className="btn btn-outline btn-sm" style={{ borderColor: '#E5A9A4', color: '#8a2a24', flexShrink: 0 }}
+          <button type="button" className="btn btn-outline btn-sm" style={{ borderColor: '#FCA5A5', color: '#DC2626' }}
             onClick={() => {
               onSwap(conflict.phase, conflict.id, { date: match.date, time: match.time });
               onSave({ date, time });
@@ -931,26 +945,26 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
         </div>
       )}
 
-      <div className="grid-2" style={{ gap: 18 }}>
+      <div className="grid-2" style={{ gap: 24 }}>
         <div>
-          <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#1B2A4D', marginBottom: 4 }}><TeamChip team={teamA} size="sm" /></div>
+          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamA} size="md" /></div>
           {renderPlayerRows(playersA)}
         </div>
         <div>
-          <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#1B2A4D', marginBottom: 4 }}><TeamChip team={teamB} size="sm" /></div>
+          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamB} size="md" /></div>
           {renderPlayerRows(playersB)}
         </div>
       </div>
 
-      <div style={{ borderTop: '1px solid #E3E5E9', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 18, paddingTop: 14, flexWrap: 'wrap', gap: 8 }}>
+      <div style={{ borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, paddingTop: 16, flexWrap: 'wrap', gap: 10 }}>
         {confirmDelete
           ? <ConfirmInline text="¿Eliminar este partido?" onConfirm={() => onDelete(match.id)} onCancel={() => setConfirmDelete(false)} />
-          : <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(true)}><Trash2 size={13} /> Eliminar partido</button>}
-        <div style={{ display: 'flex', gap: 8 }}>
+          : <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(true)}><Trash2 size={14} /> Eliminar partido</button>}
+        <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
           <button className="btn btn-outline" onClick={() => onSave({ date, time })}>Guardar solo horario</button>
           <button className="btn btn-primary" onClick={() => onSave({ date, time, scoreA: Number(scoreA), scoreB: Number(scoreB), played: true, playerStats: stats })}>
-            <Check size={14} /> Guardar resultado
+            <Check size={16} /> Guardar resultado
           </button>
         </div>
       </div>
@@ -966,17 +980,17 @@ function MatchDetailModal({ match, teams, players, onClose }) {
   const statFor = (pid) => (match.playerStats && match.playerStats[pid]) || { goals: 0, yellow: false, red: false };
 
   const renderList = (list) => list.length === 0
-    ? <div style={{ fontSize: 12, color: '#9AA1AC', padding: '10px 0' }}>Sin jugadores registrados en este equipo.</div>
+    ? <div style={{ fontSize: 13, color: '#94A3B8', padding: '12px 0' }}>Sin jugadores registrados en este equipo.</div>
     : list.map(p => {
       const s = statFor(p.id);
       return (
-        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '1px solid #EEF0F2' }}>
-          <Avatar size={26} />
-          <div style={{ flex: 1, fontSize: 13, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {p.number !== '' && p.number !== undefined ? <span style={{ color: '#9AA1AC', fontWeight: 700, marginRight: 6 }}>#{p.number}</span> : null}
+        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+          <Avatar size={28} />
+          <div style={{ flex: 1, fontSize: 14, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700, marginRight: 8 }}>#{p.number}</span> : null}
             {p.name}
           </div>
-          {s.goals > 0 && <span style={{ fontSize: 12, color: '#2E9E4A', fontWeight: 800, flexShrink: 0 }}>⚽ {s.goals}</span>}
+          {s.goals > 0 && <span style={{ fontSize: 13, color: '#22C55E', fontWeight: 800, flexShrink: 0 }}>⚽ {s.goals}</span>}
           <CardBadge yellow={s.yellow ? 1 : 0} red={s.red ? 1 : 0} />
         </div>
       );
@@ -984,24 +998,24 @@ function MatchDetailModal({ match, teams, players, onClose }) {
 
   return (
     <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Alineación'} onClose={onClose}>
-      <div style={{ background: '#F6F9F7', border: '1px solid #E3E5E9', borderRadius: 10, padding: 16, marginBottom: 18 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
           {match.played
-            ? <div className="font-display" style={{ fontSize: 20, fontWeight: 800, color: '#1B2A4D', border: '1px solid #E3E5E9', borderRadius: 8, padding: '4px 12px' }}>{match.scoreA} : {match.scoreB}</div>
-            : <span className="status-pill pending">Programado</span>}
+            ? <div className="font-display" style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', border: '1px solid #E2E8F0', borderRadius: 10, padding: '6px 16px', background: '#fff' }}>{match.scoreA} : {match.scoreB}</div>
+            : <span className="status-pill pending" style={{ fontSize: 12, padding: '6px 14px' }}>Programado</span>}
           <div style={{ flex: 1 }}><TeamChip team={teamB} /></div>
         </div>
-        {match.date && <div style={{ textAlign: 'center', fontSize: 11.5, color: '#9AA1AC', marginTop: 8 }}>{formatDateTime(match.date, match.time)}</div>}
+        {match.date && <div style={{ textAlign: 'center', fontSize: 12.5, color: '#64748B', marginTop: 12 }}>{formatDateTime(match.date, match.time)}</div>}
       </div>
 
-      <div className="grid-2" style={{ gap: 18 }}>
+      <div className="grid-2" style={{ gap: 24 }}>
         <div>
-          <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#1B2A4D', marginBottom: 4 }}><TeamChip team={teamA} size="sm" /></div>
+          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamA} size="md" /></div>
           {renderList(playersA)}
         </div>
         <div>
-          <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#1B2A4D', marginBottom: 4 }}><TeamChip team={teamB} size="sm" /></div>
+          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamB} size="md" /></div>
           {renderList(playersB)}
         </div>
       </div>
@@ -1051,7 +1065,7 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
       </div>
       <div style={{ marginBottom: 16 }}>
         <LogoUploadField value={form.logoUrl} onChange={v => setField('logoUrl', v)} label="Logo del torneo (opcional)" folder="torneo" />
-        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Se muestra en la barra lateral y en Inicio.</div>
+        <div style={{ fontSize: 12, color: '#64748B', marginTop: 6 }}>Se muestra en la barra lateral y en Inicio.</div>
       </div>
       <div className="grid-2" style={{ marginBottom: 16 }}>
         <div>
@@ -1077,47 +1091,47 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
         <label className="field-label">Acerca de (descripción)</label>
         <textarea className="textarea" value={form.description} onChange={e => setField('description', e.target.value)} rows={3} />
       </div>
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 24 }}>
         <label className="field-label">Reglas del campeonato</label>
         <textarea className="textarea" value={form.rules} onChange={e => setField('rules', e.target.value)} rows={4} placeholder="Formato, duración de partidos, reglas específicas…" />
       </div>
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 24 }}>
         <LogoUploadField value={form.rulesPdfUrl} onChange={v => setField('rulesPdfUrl', v)} label="PDF de reglas (opcional)" folder="reglas" kind="pdf" />
-        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Si subes un PDF, aparece un botón para verlo/descargarlo junto al texto de reglas.</div>
+        <div style={{ fontSize: 12, color: '#64748B', marginTop: 6 }}>Si subes un PDF, aparece un botón para verlo/descargarlo junto al texto de reglas.</div>
       </div>
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 24 }}>
         <label className="field-label">Sitio (dirección o nombre del lugar)</label>
         <input className="input" value={form.venueAddress} onChange={e => setField('venueAddress', e.target.value)} placeholder="Ej: Cancha anexa al Coliseo Universitario, Machala" />
-        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Se muestra en Inicio con un mapa. Mientras más específico (con ciudad), mejor lo ubica el mapa.</div>
+        <div style={{ fontSize: 12, color: '#64748B', marginTop: 6 }}>Se muestra en Inicio con un mapa. Mientras más específico (con ciudad), mejor lo ubica el mapa.</div>
       </div>
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Puntuación y sanciones</div>
-      <div className="grid-3" style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Puntuación y sanciones</div>
+      <div className="grid-3" style={{ marginBottom: 16 }}>
         {numField('pointsWin', 'Pts. victoria')}
         {numField('pointsDraw', 'Pts. empate')}
         {numField('pointsLoss', 'Pts. derrota')}
       </div>
-      <div className="grid-2" style={{ marginBottom: 20 }}>
+      <div className="grid-2" style={{ marginBottom: 24 }}>
         {numField('yellowLimit', 'Amarillas p/ sanción')}
         {numField('redSuspensionMatches', 'Partidos por roja')}
       </div>
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Clasificación</div>
-      <div className="grid-2" style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Clasificación</div>
+      <div className="grid-2" style={{ marginBottom: 16 }}>
         {numField('playoffSpots', 'Cupos a playoffs')}
         {numField('relegationSpots', 'Equipos en zona de alerta')}
       </div>
-      <label className="checkbox-row" style={{ marginBottom: 20, fontSize: 13 }}>
+      <label className="checkbox-row" style={{ marginBottom: 24, fontSize: 14 }}>
         <input type="checkbox" checked={!!form.idaYVuelta} onChange={e => setField('idaYVuelta', e.target.checked)} />
         Ida y vuelta (todos contra todos dos veces, local y visitante)
       </label>
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Horarios (para "Asignar horarios automáticamente")</div>
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Horarios (para "Asignar horarios automáticamente")</div>
+      <div style={{ marginBottom: 16 }}>
         <label className="field-label">Cancha</label>
         <input className="input" value={form.courtName} onChange={e => setField('courtName', e.target.value)} placeholder="Ej: Cancha Principal" />
       </div>
-      <div className="grid-2" style={{ marginBottom: 14 }}>
+      <div className="grid-2" style={{ marginBottom: 16 }}>
         <div>
           <label className="field-label">Hora de inicio diaria</label>
           <input className="input" type="time" value={form.dailyStartTime} onChange={e => setField('dailyStartTime', e.target.value)} />
@@ -1127,16 +1141,16 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
           <input className="input" type="time" value={form.dailyEndTime} onChange={e => setField('dailyEndTime', e.target.value)} />
         </div>
       </div>
-      <div className="grid-2" style={{ marginBottom: 6 }}>
+      <div className="grid-2" style={{ marginBottom: 8 }}>
         {numField('matchDurationMinutes', 'Duración partido (min)')}
         {numField('breakBetweenMatchesMinutes', 'Descanso entre partidos (min)')}
       </div>
-      <div style={{ fontSize: 11, color: '#9AA1AC', marginBottom: 20 }}>
+      <div style={{ fontSize: 12, color: '#64748B', marginBottom: 24, lineHeight: 1.5 }}>
         Cada partido empieza <strong>{(Number(form.matchDurationMinutes) || 0) + (Number(form.breakBetweenMatchesMinutes) || 0)} minutos</strong> después del anterior. Para que sea cada hora en punto (9:00, 10:00, 11:00…), que estos dos números sumen 60.
       </div>
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ marginBottom: 24 }}>
         <label className="field-label">Días en que se juega</label>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           {[[1, 'Lun'], [2, 'Mar'], [3, 'Mié'], [4, 'Jue'], [5, 'Vie'], [6, 'Sáb'], [0, 'Dom']].map(([num, label]) => {
             const active = (form.playDays || []).includes(num);
             return (
@@ -1148,11 +1162,11 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
             );
           })}
         </div>
-        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 6 }}>"Asignar horarios automáticamente" solo va a usar estos días. Si no quieres restringir nada, deja los 7 marcados.</div>
+        <div style={{ fontSize: 12, color: '#64748B', marginTop: 8 }}>"Asignar horarios automáticamente" solo va a usar estos días. Si no quieres restringir nada, deja los 7 marcados.</div>
       </div>
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Premios (se muestran en Inicio cuando el torneo termine)</div>
-      <div className="grid-2" style={{ marginBottom: 20 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Premios (se muestran en Inicio cuando el torneo termine)</div>
+      <div className="grid-2" style={{ marginBottom: 24 }}>
         <div>
           <label className="field-label">Campeón</label>
           <input className="input" value={form.championText} onChange={e => setField('championText', e.target.value)} placeholder="Ej: Firewall FC" />
@@ -1162,42 +1176,42 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
           <input className="input" value={form.runnerUpText} onChange={e => setField('runnerUpText', e.target.value)} placeholder="Ej: Niupi" />
         </div>
       </div>
-      <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: -12, marginBottom: 20 }}>El "Máximo Goleador" se calcula solo, no hay que escribirlo.</div>
+      <div style={{ fontSize: 12, color: '#64748B', marginTop: -14, marginBottom: 24 }}>El "Máximo Goleador" se calcula solo, no hay que escribirlo.</div>
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Acceso</div>
-      <div style={{ marginBottom: 20 }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Acceso</div>
+      <div style={{ marginBottom: 24 }}>
         <label className="field-label">Correo del organizador</label>
         <input className="input" type="email" value={form.adminEmail} onChange={e => setField('adminEmail', e.target.value)} placeholder="tucorreo@ejemplo.com" />
-        <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 5 }}>Solo este correo puede iniciar sesión como organizador y editar los datos. Si lo cambias por uno distinto al tuyo, perderás el acceso hasta iniciar sesión con el nuevo correo.</div>
+        <div style={{ fontSize: 12, color: '#64748B', marginTop: 8, lineHeight: 1.5 }}>Solo este correo puede iniciar sesión como organizador y editar los datos. Si lo cambias por uno distinto al tuyo, perderás el acceso hasta iniciar sesión con el nuevo correo.</div>
       </div>
 
-      <div style={{ fontSize: 11, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 10 }}>Respaldo</div>
-      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8, flexWrap: 'wrap' }}>
-        <button type="button" className="btn btn-outline btn-sm" onClick={onExport}><FileText size={13} /> Descargar respaldo (JSON)</button>
-        <button type="button" className="btn btn-outline btn-sm" onClick={() => document.getElementById('import-backup-file').click()}><FileText size={13} /> Restaurar desde archivo</button>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Respaldo</div>
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 10, flexWrap: 'wrap' }}>
+        <button type="button" className="btn btn-outline btn-sm" onClick={onExport}><FileText size={14} /> Descargar respaldo (JSON)</button>
+        <button type="button" className="btn btn-outline btn-sm" onClick={() => document.getElementById('import-backup-file').click()}><FileText size={14} /> Restaurar desde archivo</button>
         <input id="import-backup-file" type="file" accept="application/json" style={{ display: 'none' }} onChange={handleFileSelected} />
       </div>
-      {importError && <div style={{ fontSize: 12, color: '#C4302B', marginBottom: 10 }}>{importError}</div>}
-      <div style={{ fontSize: 11, color: '#9AA1AC', marginBottom: 20 }}>Descarga de vez en cuando una copia por si acaso. Restaurar reemplaza TODOS los datos actuales por los del archivo — no se puede deshacer.</div>
+      {importError && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 12 }}>{importError}</div>}
+      <div style={{ fontSize: 12, color: '#64748B', marginBottom: 24, lineHeight: 1.5 }}>Descarga de vez en cuando una copia por si acaso. Restaurar reemplaza TODOS los datos actuales por los del archivo — no se puede deshacer.</div>
 
-      <div style={{ borderTop: '1px solid #E3E5E9', paddingTop: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10 }}>
+      <div style={{ borderTop: '1px solid #E2E8F0', paddingTop: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12 }}>
         {confirmReset
           ? <ConfirmInline text="Esto borra TODOS los datos ¿continuar?" onConfirm={onReset} onCancel={() => setConfirmReset(false)} />
-          : <button className="btn btn-danger btn-sm" onClick={() => setConfirmReset(true)}><Trash2 size={13} /> Reiniciar todos los datos</button>}
-        <div style={{ display: 'flex', gap: 8 }}>
+          : <button className="btn btn-danger btn-sm" onClick={() => setConfirmReset(true)}><Trash2 size={14} /> Reiniciar todos los datos</button>}
+        <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
-          <button className="btn btn-primary" onClick={() => onSave(form)}><Check size={14} /> Guardar</button>
+          <button className="btn btn-primary" onClick={() => onSave(form)}><Check size={16} /> Guardar</button>
         </div>
       </div>
 
       {pendingImport && (
         <Modal title="Restaurar respaldo" onClose={() => setPendingImport(null)}>
-          <div style={{ fontSize: 13, color: '#2A2E35', marginBottom: 16 }}>
+          <div style={{ fontSize: 14, color: '#1E293B', marginBottom: 20, lineHeight: 1.6 }}>
             Vas a reemplazar TODOS los datos actuales (equipos, jugadores, partidos, configuración) con los del archivo que elegiste. Esto no se puede deshacer.
           </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
             <button className="btn btn-outline" onClick={() => setPendingImport(null)}>Cancelar</button>
-            <button className="btn btn-danger" onClick={() => { onImport(pendingImport); setPendingImport(null); }}><Check size={14} /> Sí, reemplazar todo</button>
+            <button className="btn btn-danger" onClick={() => { onImport(pendingImport); setPendingImport(null); }}><Check size={16} /> Sí, reemplazar todo</button>
           </div>
         </Modal>
       )}
@@ -1227,14 +1241,14 @@ function LoginModal({ onClose }) {
   if (sent) {
     return (
       <Modal title="Revisa tu correo" onClose={onClose}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '10px 0 4px' }}>
-          <Mail size={30} color="#22C55E" style={{ marginBottom: 12 }} />
-          <div style={{ fontSize: 13.5, color: '#2A2E35', marginBottom: 6 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', padding: '16px 0 8px' }}>
+          <Mail size={40} color="#22C55E" style={{ marginBottom: 16 }} />
+          <div style={{ fontSize: 15, color: '#0F172A', marginBottom: 8 }}>
             Te enviamos un enlace de acceso a <strong>{email}</strong>.
           </div>
-          <div style={{ fontSize: 12.5, color: '#6B7280' }}>Ábrelo desde este mismo dispositivo para iniciar sesión. Puede tardar uno o dos minutos.</div>
+          <div style={{ fontSize: 13.5, color: '#64748B', lineHeight: 1.5 }}>Ábrelo desde este mismo dispositivo para iniciar sesión. Puede tardar uno o dos minutos.</div>
         </div>
-        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 18 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', marginTop: 24 }}>
           <button className="btn btn-outline" onClick={onClose}>Cerrar</button>
         </div>
       </Modal>
@@ -1243,19 +1257,19 @@ function LoginModal({ onClose }) {
 
   return (
     <Modal title="Hacer login" onClose={onClose}>
-      <div style={{ fontSize: 13, color: '#6B7280', marginBottom: 14 }}>
+      <div style={{ fontSize: 14, color: '#64748B', marginBottom: 16, lineHeight: 1.5 }}>
         Escribe tu correo y te enviamos un enlace de acceso — no necesitas contraseña. Quien inicie sesión con el correo registrado como organizador podrá editar los datos del torneo; el resto solo podrá ver.
       </div>
-      <div style={{ marginBottom: 14 }}>
+      <div style={{ marginBottom: 16 }}>
         <label className="field-label">Correo</label>
         <input className="input" type="email" value={email} autoFocus placeholder="tucorreo@ejemplo.com"
           onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} />
       </div>
-      {error && <div style={{ fontSize: 12, color: '#C4302B', marginBottom: 12 }}>{error}</div>}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+      {error && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 16 }}>{error}</div>}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={sending} onClick={submit}>
-          {sending ? <Loader2 size={14} className="spin" /> : <Send size={14} />} {sending ? 'Enviando…' : 'Enviar enlace de acceso'}
+          {sending ? <Loader2 size={16} className="spin" /> : <Send size={16} />} {sending ? 'Enviando…' : 'Enviar enlace de acceso'}
         </button>
       </div>
     </Modal>
@@ -1279,17 +1293,17 @@ function MiniMatchRow({ m, teams }) {
   const teamA = teams.find(t => t.id === m.teamAId);
   const teamB = teams.find(t => t.id === m.teamBId);
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 0' }}>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end', minWidth: 0 }}>
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamA ? teamA.name : '—'}</span>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0' }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end', minWidth: 0 }}>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamA ? teamA.name : '—'}</span>
         <Crest team={teamA} size="sm" />
       </div>
-      <div style={{ fontSize: 12, fontWeight: 800, color: m.played ? '#1B2A4D' : '#C7CBD1', minWidth: 34, textAlign: 'center', flexShrink: 0 }}>
+      <div style={{ fontSize: 13, fontWeight: 800, color: m.played ? '#0F172A' : '#CBD5E1', minWidth: 40, textAlign: 'center', flexShrink: 0 }}>
         {m.played ? m.scoreA + '-' + m.scoreB : 'vs'}
       </div>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
         <Crest team={teamB} size="sm" />
-        <span style={{ fontSize: 12, fontWeight: 600, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamB ? teamB.name : '—'}</span>
+        <span style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamB ? teamB.name : '—'}</span>
       </div>
     </div>
   );
@@ -1314,7 +1328,7 @@ function MatchWidgetCard({ data }) {
     return (
       <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
         <div className="card-header-green">Juegos</div>
-        <div style={{ padding: 18, fontSize: 12.5, color: '#9AA1AC', textAlign: 'center' }}>Aún no hay partidos programados.</div>
+        <div style={{ padding: 20, fontSize: 13.5, color: '#94A3B8', textAlign: 'center' }}>Aún no hay partidos programados.</div>
       </div>
     );
   }
@@ -1338,9 +1352,9 @@ function MatchWidgetCard({ data }) {
 
   return (
     <div className="card" style={{ overflow: 'hidden', marginBottom: 16 }}>
-      <div className="card-header-green" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexWrap: 'wrap' }}>
+      <div className="card-header-green" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
         <span>Juegos</span>
-        <span style={{ display: 'flex', gap: 6 }}>
+        <span style={{ display: 'flex', gap: 8 }}>
           {hasLiga && hasPlayoffs && (
             <select className="widget-select" value={phase} onChange={e => changePhase(e.target.value)}>
               <option value="liga">Fase 1 · Liga</option>
@@ -1354,9 +1368,9 @@ function MatchWidgetCard({ data }) {
           </select>
         </span>
       </div>
-      <div style={{ padding: 18 }}>
+      <div style={{ padding: 20 }}>
         {groupMatches.length === 0 && (
-          <div style={{ fontSize: 12.5, color: '#9AA1AC', textAlign: 'center', padding: '10px 0' }}>Sin partidos en esta selección.</div>
+          <div style={{ fontSize: 13.5, color: '#94A3B8', textAlign: 'center', padding: '12px 0' }}>Sin partidos en esta selección.</div>
         )}
 
         {groupMatches.length === 1 && (() => {
@@ -1365,25 +1379,25 @@ function MatchWidgetCard({ data }) {
           const teamB = data.teams.find(t => t.id === match.teamBId);
           return (
             <>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 12 }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
                 <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
                   <Crest team={teamA} size="lg" />
-                  <div style={{ fontSize: 11.5, fontWeight: 600, color: '#1B2A4D', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamA ? teamA.name : '—'}</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: '#0F172A', marginTop: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamA ? teamA.name : '—'}</div>
                 </div>
                 <div style={{ textAlign: 'center', flexShrink: 0 }}>
                   {match.played
-                    ? <div className="font-display" style={{ fontSize: 20, fontWeight: 800, color: '#1B2A4D', border: '1px solid #E3E5E9', borderRadius: 8, padding: '4px 10px' }}>{match.scoreA} : {match.scoreB}</div>
-                    : <div style={{ fontSize: 13, fontWeight: 700, color: '#9AA1AC', border: '1px solid #E3E5E9', borderRadius: 8, padding: '8px 12px' }}>VS</div>}
-                  <div style={{ marginTop: 6 }}>
+                    ? <div className="font-display" style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', border: '1px solid #E2E8F0', borderRadius: 10, padding: '4px 12px' }}>{match.scoreA} : {match.scoreB}</div>
+                    : <div style={{ fontSize: 14, fontWeight: 700, color: '#94A3B8', border: '1px solid #E2E8F0', borderRadius: 10, padding: '8px 14px' }}>VS</div>}
+                  <div style={{ marginTop: 8 }}>
                     <span className={'status-pill ' + (match.played ? 'done' : 'pending')}>{match.played ? 'Finalizado' : 'Programado'}</span>
                   </div>
                 </div>
                 <div style={{ textAlign: 'center', flex: 1, minWidth: 0 }}>
                   <Crest team={teamB} size="lg" />
-                  <div style={{ fontSize: 11.5, fontWeight: 600, color: '#1B2A4D', marginTop: 6, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamB ? teamB.name : '—'}</div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: '#0F172A', marginTop: 8, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamB ? teamB.name : '—'}</div>
                 </div>
               </div>
-              <div style={{ textAlign: 'center', fontSize: 11.5, color: '#9AA1AC', marginTop: 14, borderTop: '1px solid #EEF0F2', paddingTop: 10 }}>
+              <div style={{ textAlign: 'center', fontSize: 12.5, color: '#64748B', marginTop: 16, borderTop: '1px solid #F1F5F9', paddingTop: 12 }}>
                 {metaLine}{match.date ? ' · ' + formatDateTime(match.date, match.time) : ''}
               </div>
             </>
@@ -1393,11 +1407,11 @@ function MatchWidgetCard({ data }) {
         {groupMatches.length > 1 && (
           <>
             {groupMatches.map((m, idx) => (
-              <div key={m.id} style={{ borderBottom: idx === groupMatches.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
+              <div key={m.id} style={{ borderBottom: idx === groupMatches.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
                 <MiniMatchRow m={m} teams={data.teams} />
               </div>
             ))}
-            <div style={{ textAlign: 'center', fontSize: 11.5, color: '#9AA1AC', marginTop: 10, borderTop: '1px solid #EEF0F2', paddingTop: 10 }}>
+            <div style={{ textAlign: 'center', fontSize: 12.5, color: '#64748B', marginTop: 12, borderTop: '1px solid #F1F5F9', paddingTop: 12 }}>
               {metaLine}
             </div>
           </>
@@ -1415,30 +1429,30 @@ function StatsWidgetCard({ data }) {
   return (
     <div className="card" style={{ overflow: 'hidden' }}>
       <div className="card-header-green">Estadísticas del torneo</div>
-      <div style={{ padding: 18 }}>
-        <div style={{ display: 'flex', gap: 20, justifyContent: 'center', marginBottom: 16 }}>
+      <div style={{ padding: 20 }}>
+        <div style={{ display: 'flex', gap: 24, justifyContent: 'center', marginBottom: 20 }}>
           <div style={{ textAlign: 'center' }}>
             <div className="stat-circle">{allPlayed.length}</div>
-            <div style={{ fontSize: 10.5, color: '#6B7280', marginTop: 6, fontWeight: 700 }}>PARTIDOS</div>
+            <div style={{ fontSize: 11, color: '#64748B', marginTop: 8, fontWeight: 700 }}>PARTIDOS</div>
           </div>
           <div style={{ textAlign: 'center' }}>
             <div className="stat-circle">{totalGoals}</div>
-            <div style={{ fontSize: 10.5, color: '#6B7280', marginTop: 6, fontWeight: 700 }}>GOLES</div>
+            <div style={{ fontSize: 11, color: '#64748B', marginTop: 8, fontWeight: 700 }}>GOLES</div>
           </div>
         </div>
-        <div style={{ fontSize: 10.5, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em', marginBottom: 8 }}>Goleadores</div>
+        <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 10 }}>Goleadores</div>
         {top3.length === 0
-          ? <div style={{ fontSize: 12, color: '#9AA1AC' }}>Sin goles registrados todavía.</div>
+          ? <div style={{ fontSize: 13, color: '#94A3B8' }}>Sin goles registrados todavía.</div>
           : top3.map(({ p, stats }) => {
             const team = data.teams.find(t => t.id === p.teamId);
             return (
-              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 0', borderBottom: '1px solid #F0F1F3' }}>
-                <Avatar size={26} />
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+                <Avatar size={28} />
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <div style={{ fontSize: 12.5, fontWeight: 600, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                  <div style={{ fontSize: 10.5, color: '#9AA1AC' }}>{team ? team.name : ''}</div>
+                  <div style={{ fontSize: 13.5, fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
+                  <div style={{ fontSize: 11.5, color: '#64748B' }}>{team ? team.name : ''}</div>
                 </div>
-                <div style={{ fontSize: 13, fontWeight: 800, color: '#22C55E' }}>{stats.goals}</div>
+                <div style={{ fontSize: 14, fontWeight: 800, color: '#22C55E' }}>{stats.goals}</div>
               </div>
             );
           })}
@@ -1477,28 +1491,36 @@ function Sidebar({ tab, setTab, isAdmin, sessionEmail, onOpenSettings, onLogout,
         <div className="sidebar-logo-badge">
           {logoUrl && !logoError
             ? <img src={logoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 10 }} onError={() => setLogoError(true)} />
-            : <Trophy size={19} color="#fff" />}
+            : <Trophy size={20} color="#fff" />}
         </div>
         <div className="sidebar-title">{tournamentName}</div>
       </div>
       <div className="sidebar-nav">
         {NAV_ITEMS.map(({ id, label, Icon }) => (
           <button key={id} className={'sidebar-nav-item' + (tab === id ? ' active' : '')} onClick={() => setTab(id)}>
-            <Icon size={16} /> {label}
+            <Icon size={18} /> {label}
           </button>
         ))}
       </div>
       <div className="sidebar-footer">
-        {isAdmin && <button className="sidebar-footer-link" onClick={onOpenSettings}><Settings size={14} /> Configuración</button>}
-        {sessionEmail && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', color: 'rgba(255,255,255,.7)', fontSize: 11.5, overflow: 'hidden' }}>
-            <Mail size={12} style={{ flexShrink: 0 }} />
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sessionEmail}</span>
-          </div>
-        )}
-        <button className="sidebar-footer-link" onClick={sessionEmail ? onLogout : onLoginClick}>
-          {sessionEmail ? <LogOut size={14} /> : <LogIn size={14} />} {sessionEmail ? 'Cerrar sesión' : 'Hacer login'}
-        </button>
+        {isAdmin && <button className="sidebar-footer-link" onClick={onOpenSettings}><Settings size={16} /> Configuración</button>}
+        
+        <div className="sidebar-user-card">
+          {sessionEmail && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '4px 4px 8px', borderBottom: '1px solid rgba(255,255,255,0.08)', marginBottom: 4 }}>
+              <div style={{ width: 32, height: 32, borderRadius: '50%', background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontWeight: 'bold', fontSize: 12, flexShrink: 0 }}>
+                {initials(sessionEmail.split('@')[0])}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: '#F8FAFC', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sessionEmail.split('@')[0]}</div>
+                <div style={{ fontSize: 10, color: '#94A3B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{sessionEmail}</div>
+              </div>
+            </div>
+          )}
+          <button className="sidebar-footer-link logout" onClick={sessionEmail ? onLogout : onLoginClick}>
+            {sessionEmail ? <LogOut size={16} /> : <LogIn size={16} />} {sessionEmail ? 'Cerrar sesión' : 'Hacer login'}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1592,8 +1614,8 @@ export default function FutbolitoApp() {
     return (
       <div className="futbolito-app" style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
         <GlobalStyles />
-        <div style={{ textAlign: 'center', color: '#6B7280' }}>
-          <Loader2 className="spin" size={26} style={{ margin: '0 auto 10px' }} />
+        <div style={{ textAlign: 'center', color: '#64748B' }}>
+          <Loader2 className="spin" size={32} style={{ margin: '0 auto 12px' }} />
           Cargando campeonato…
         </div>
       </div>
@@ -1711,7 +1733,7 @@ export default function FutbolitoApp() {
   const standings = computeStandings(data);
 
   return (
-    <div className="futbolito-app" style={{ minHeight: '100vh' }}>
+    <div className="futbolito-app">
       <GlobalStyles />
       <div className="app-shell">
         <Sidebar tab={tab} setTab={setTab} isAdmin={isAdmin} sessionEmail={sessionEmail}
@@ -1727,15 +1749,15 @@ export default function FutbolitoApp() {
           </div>
 
           {saveError && (
-            <div style={{ marginBottom: 16, padding: '10px 14px', background: '#FDEEEE', border: '1px solid #F1C9C7', borderRadius: 8, fontSize: 12, color: '#C4302B', display: 'flex', gap: 6, alignItems: 'center' }}>
-              <AlertTriangle size={13} /> {saveError}
+            <div style={{ marginBottom: 20, padding: '12px 16px', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, fontSize: 13, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'center' }}>
+              <AlertTriangle size={16} /> {saveError}
             </div>
           )}
 
           {tab === 'inicio' && <InicioTab data={data} isAdmin={isAdmin} onNavigate={setTab} onViewTeam={setViewTeamId} onAddNews={addNews} onDeleteNews={deleteNews} />}
 
           {tab === 'tabla' && (
-            <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
+            <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
               <TablaTab data={data} standings={standings} onViewTeam={setViewTeamId} />
               <RightColumn data={data} />
             </div>
@@ -1753,7 +1775,7 @@ export default function FutbolitoApp() {
           {tab === 'sanciones' && <SancionesTab data={data} isAdmin={isAdmin} onMarkServed={markSuspensionServed} />}
 
           {tab === 'stats' && (
-            <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20, alignItems: 'start' }}>
+            <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
               <StatsTab data={data} standings={standings} />
               <RightColumn data={data} />
             </div>
@@ -1774,9 +1796,9 @@ export default function FutbolitoApp() {
 
 function QuickStat({ label, value, isText, onClick }) {
   return (
-    <button onClick={onClick} className="card" style={{ padding: '16px 18px', textAlign: 'left', cursor: 'pointer', width: '100%' }}>
-      <div style={{ fontSize: 10.5, color: '#6B7280', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '.04em' }}>{label}</div>
-      <div className="font-display" style={{ fontSize: isText ? 15 : 23, fontWeight: 800, color: '#1B2A4D', marginTop: 4 }}>{value}</div>
+    <button onClick={onClick} className="card" style={{ padding: '20px', textAlign: 'left', cursor: 'pointer', width: '100%', border: 'none' }}>
+      <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+      <div className="font-display" style={{ fontSize: isText ? 16 : 28, fontWeight: 800, color: '#0F172A', marginTop: 6 }}>{value}</div>
     </button>
   );
 }
@@ -1789,28 +1811,28 @@ function PremiosSection({ data }) {
   if (!hasChampion && !hasRunnerUp && !topScorer) return null;
 
   return (
-    <div className="card" style={{ padding: 20, marginBottom: 20 }}>
-      <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#1B2A4D', marginBottom: 16 }}>Premios</div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 16 }}>
+    <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+      <div className="font-display" style={{ fontWeight: 700, fontSize: 18, color: '#0F172A', marginBottom: 20 }}>Premios</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 20 }}>
         {hasChampion && (
           <div style={{ textAlign: 'center' }}>
-            <Trophy size={30} color="#E8B93E" style={{ margin: '0 auto 8px' }} />
-            <div style={{ fontSize: 10.5, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>Campeón</div>
-            <div className="font-display" style={{ fontWeight: 700, fontSize: 14, color: '#1B2A4D', marginTop: 4 }}>{data.meta.championText}</div>
+            <Trophy size={36} color="#EAB308" style={{ margin: '0 auto 12px' }} />
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Campeón</div>
+            <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#0F172A', marginTop: 6 }}>{data.meta.championText}</div>
           </div>
         )}
         {hasRunnerUp && (
           <div style={{ textAlign: 'center' }}>
-            <Award size={30} color="#9AA1AC" style={{ margin: '0 auto 8px' }} />
-            <div style={{ fontSize: 10.5, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>2° Puesto</div>
-            <div className="font-display" style={{ fontWeight: 700, fontSize: 14, color: '#1B2A4D', marginTop: 4 }}>{data.meta.runnerUpText}</div>
+            <Award size={36} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>2° Puesto</div>
+            <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#0F172A', marginTop: 6 }}>{data.meta.runnerUpText}</div>
           </div>
         )}
         {topScorer && (
           <div style={{ textAlign: 'center' }}>
-            <BarChart3 size={30} color="#22C55E" style={{ margin: '0 auto 8px' }} />
-            <div style={{ fontSize: 10.5, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.04em' }}>Máximo goleador</div>
-            <div className="font-display" style={{ fontWeight: 700, fontSize: 14, color: '#1B2A4D', marginTop: 4 }}>{topScorer.p.name} ({topScorer.stats.goals})</div>
+            <BarChart3 size={36} color="#22C55E" style={{ margin: '0 auto 12px' }} />
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Máximo goleador</div>
+            <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#0F172A', marginTop: 6 }}>{topScorer.p.name} ({topScorer.stats.goals})</div>
           </div>
         )}
       </div>
@@ -1825,7 +1847,7 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteN
   const news = data.news || [];
   return (
     <div>
-      <div className="info-strip" style={{ marginBottom: 20 }}>
+      <div className="info-strip" style={{ marginBottom: 24 }}>
         <div className="info-strip-item">
           <div className="lbl">Inicio</div>
           <div className="val">{formatDate(data.meta.startDate) || 'Por definir'}</div>
@@ -1839,32 +1861,32 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteN
           <div className="val">{data.meta.organizerName || 'Por definir'}</div>
         </div>
         <div style={{ flex: 1 }} />
-        <button className="btn btn-outline btn-sm" onClick={() => setRulesOpen(true)}><FileText size={13} /> Reglas del campeonato</button>
+        <button className="btn btn-outline btn-sm" onClick={() => setRulesOpen(true)}><FileText size={14} /> Reglas del campeonato</button>
       </div>
 
-      <div style={{ position: 'relative', height: 190, borderRadius: 12, overflow: 'hidden', marginBottom: 20, background: '#1B2A4D' }}>
-        <div style={{ position: 'absolute', inset: 0, background: '#22C55E', clipPath: 'polygon(38% 0, 100% 0, 68% 100%, 0 100%)' }} />
-        {!data.meta.logoUrl && <Trophy size={130} color="rgba(255,255,255,.08)" style={{ position: 'absolute', right: 18, bottom: -16 }} />}
-        <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', alignItems: 'center', gap: 18, padding: '0 34px' }}>
+      <div style={{ position: 'relative', height: 220, borderRadius: 16, overflow: 'hidden', marginBottom: 24, background: '#0F172A', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', clipPath: 'polygon(42% 0, 100% 0, 68% 100%, 0 100%)' }} />
+        {!data.meta.logoUrl && <Trophy size={160} color="rgba(255,255,255,.05)" style={{ position: 'absolute', right: 24, bottom: -24 }} />}
+        <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', alignItems: 'center', gap: 24, padding: '0 40px' }}>
           {data.meta.logoUrl && (
-            <img src={data.meta.logoUrl} alt="" style={{ width: 128, height: 128, borderRadius: 14, objectFit: 'cover', background: 'rgba(255,255,255,.15)', flexShrink: 0, boxShadow: '0 4px 14px rgba(0,0,0,.18)' }}
+            <img src={data.meta.logoUrl} alt="" style={{ width: 140, height: 140, borderRadius: 16, objectFit: 'cover', background: 'rgba(255,255,255,.15)', flexShrink: 0, boxShadow: '0 10px 25px rgba(0,0,0,.2)' }}
               onError={e => { e.currentTarget.style.display = 'none'; }} />
           )}
           <div>
-            <div className="font-display" style={{ fontWeight: 800, fontSize: 28, color: '#fff', lineHeight: 1.1, maxWidth: 420 }}>{data.meta.name}</div>
-            <div style={{ fontWeight: 700, fontSize: 12.5, color: 'rgba(255,255,255,.85)', marginTop: 8, textTransform: 'uppercase', letterSpacing: '.08em' }}>{data.meta.category || 'Futbolito'}</div>
+            <div className="font-display" style={{ fontWeight: 800, fontSize: 36, color: '#fff', lineHeight: 1.1, maxWidth: 500, textShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>{data.meta.name}</div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,.9)', marginTop: 12, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{data.meta.category || 'Futbolito'}</div>
           </div>
         </div>
       </div>
 
-      <div className="card" style={{ padding: 20, marginBottom: 20 }}>
-        <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#1B2A4D', marginBottom: 8 }}>Acerca de</div>
-        <div style={{ fontSize: 13.5, color: '#4A4F58', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
+      <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+        <div className="font-display" style={{ fontWeight: 700, fontSize: 18, color: '#0F172A', marginBottom: 12 }}>Acerca de</div>
+        <div style={{ fontSize: 14.5, color: '#475569', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>
           {data.meta.description || 'Todavía no hay una descripción del torneo.'}
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 16, marginBottom: 24 }}>
         <QuickStat label="Equipos" value={data.teams.length} onClick={() => onNavigate('equipos')} />
         <QuickStat label="Jugadores" value={data.players.length} onClick={() => onNavigate('jugadores')} />
         <QuickStat label="Partidos" value={data.matches.length + data.playoffMatches.length} onClick={() => onNavigate('partidos')} />
@@ -1873,55 +1895,55 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteN
 
       <PremiosSection data={data} />
 
-      <div className="card" style={{ padding: 20, marginBottom: 20 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: news.length > 0 ? 14 : 8 }}>
-          <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#1B2A4D' }}>Noticias</div>
-          {isAdmin && <button className="btn btn-outline btn-sm" onClick={() => setNewsModalOpen(true)}><Plus size={13} /> Agregar</button>}
+      <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: news.length > 0 ? 20 : 12 }}>
+          <div className="font-display" style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>Noticias</div>
+          {isAdmin && <button className="btn btn-outline btn-sm" onClick={() => setNewsModalOpen(true)}><Plus size={14} /> Agregar</button>}
         </div>
         {news.length === 0
-          ? <div style={{ fontSize: 12.5, color: '#9AA1AC' }}>Todavía no hay noticias publicadas.</div>
+          ? <div style={{ fontSize: 13.5, color: '#94A3B8' }}>Todavía no hay noticias publicadas.</div>
           : news.map((n, idx) => (
-            <div key={n.id} style={{ display: 'flex', gap: 14, padding: '14px 0', borderTop: idx === 0 ? 'none' : '1px solid #EEF0F2' }}>
+            <div key={n.id} style={{ display: 'flex', gap: 16, padding: '16px 0', borderTop: idx === 0 ? 'none' : '1px solid #F1F5F9' }}>
               {n.imageUrl && (
-                <img src={n.imageUrl} alt="" style={{ width: 84, height: 84, borderRadius: 8, objectFit: 'cover', flexShrink: 0 }}
+                <img src={n.imageUrl} alt="" style={{ width: 100, height: 100, borderRadius: 10, objectFit: 'cover', flexShrink: 0, border: '1px solid #E2E8F0' }}
                   onError={e => { e.currentTarget.style.display = 'none'; }} />
               )}
               <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }}>
-                  <div className="font-display" style={{ fontWeight: 700, fontSize: 14, color: '#1B2A4D' }}>{n.title}</div>
+                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                  <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#0F172A' }}>{n.title}</div>
                   {isAdmin && (
                     confirmDeleteNewsId === n.id
                       ? <ConfirmInline text="¿Eliminar?" onConfirm={() => { onDeleteNews(n.id); setConfirmDeleteNewsId(null); }} onCancel={() => setConfirmDeleteNewsId(null)} />
-                      : <button className="icon-btn" style={{ flexShrink: 0 }} onClick={() => setConfirmDeleteNewsId(n.id)}><Trash2 size={12} /></button>
+                      : <button className="icon-btn-subtle" style={{ flexShrink: 0 }} onClick={() => setConfirmDeleteNewsId(n.id)}><Trash2 size={14} /></button>
                   )}
                 </div>
-                <div style={{ fontSize: 11, color: '#9AA1AC', margin: '2px 0 6px' }}>{formatDate(n.date)}</div>
-                {n.body && <div style={{ fontSize: 13, color: '#4A4F58', lineHeight: 1.5, whiteSpace: 'pre-wrap' }}>{n.body}</div>}
+                <div style={{ fontSize: 12, color: '#64748B', margin: '4px 0 10px' }}>{formatDate(n.date)}</div>
+                {n.body && <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{n.body}</div>}
               </div>
             </div>
           ))}
       </div>
 
       {data.teams.length > 0 && (
-        <div className="card" style={{ padding: 20, marginBottom: 20 }}>
-          <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#1B2A4D', marginBottom: 14 }}>Equipos</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 16 }}>
+        <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+          <div className="font-display" style={{ fontWeight: 700, fontSize: 18, color: '#0F172A', marginBottom: 20 }}>Equipos</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 20 }}>
             {data.teams.map(t => (
-              <button key={t.id} onClick={() => onViewTeam(t.id)} style={{ display: 'flex', flexDirection: 'column', gap: 8, background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left' }}>
-                <div style={{ position: 'relative', width: '100%', aspectRatio: '1', borderRadius: 10, overflow: 'hidden', background: t.color + '20', border: '1px solid #E3E5E9' }}>
+              <button key={t.id} onClick={() => onViewTeam(t.id)} style={{ display: 'flex', flexDirection: 'column', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', transition: 'transform 0.2s' }} onMouseOver={e => e.currentTarget.style.transform = 'scale(1.05)'} onMouseOut={e => e.currentTarget.style.transform = 'scale(1)'}>
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '1', borderRadius: 12, overflow: 'hidden', background: t.color + '15', border: '1px solid #E2E8F0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
                   {t.photoUrl ? (
                     <img src={t.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                       onError={e => { e.currentTarget.style.display = 'none'; }} />
                   ) : (
                     <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Users size={32} color={t.color} style={{ opacity: .45 }} />
+                      <Users size={36} color={t.color} style={{ opacity: .4 }} />
                     </div>
                   )}
-                  <div style={{ position: 'absolute', left: 8, bottom: 8 }}>
+                  <div style={{ position: 'absolute', left: 10, bottom: 10, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}>
                     <Crest team={t} size="sm" />
                   </div>
                 </div>
-                <div style={{ fontSize: 12.5, fontWeight: 600, color: '#1B2A4D', textAlign: 'center', lineHeight: 1.25 }}>{t.name}</div>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: '#0F172A', textAlign: 'center', lineHeight: 1.3 }}>{t.name}</div>
               </button>
             ))}
           </div>
@@ -1929,16 +1951,16 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteN
       )}
 
       {data.meta.venueAddress && (
-        <div className="card" style={{ padding: 20, marginBottom: 20, overflow: 'hidden' }}>
-          <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#1B2A4D', marginBottom: 8, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <MapPin size={16} color="#22C55E" /> Sitio
+        <div className="card" style={{ padding: 24, marginBottom: 24, overflow: 'hidden' }}>
+          <div className="font-display" style={{ fontWeight: 700, fontSize: 18, color: '#0F172A', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}>
+            <MapPin size={18} color="#22C55E" /> Sitio
           </div>
-          <div style={{ fontSize: 13.5, color: '#4A4F58', marginBottom: 12 }}>{data.meta.venueAddress}</div>
-          <div style={{ borderRadius: 10, overflow: 'hidden', border: '1px solid #E3E5E9' }}>
+          <div style={{ fontSize: 14.5, color: '#475569', marginBottom: 16 }}>{data.meta.venueAddress}</div>
+          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #E2E8F0' }}>
             <iframe
               title="Mapa del sitio"
               width="100%"
-              height="260"
+              height="280"
               style={{ border: 0, display: 'block' }}
               loading="lazy"
               src={`https://maps.google.com/maps?q=${encodeURIComponent(data.meta.venueAddress)}&output=embed`}
@@ -1950,14 +1972,14 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteN
       {rulesOpen && (
         <Modal title="Reglas del campeonato" onClose={() => setRulesOpen(false)}>
           {data.meta.rulesPdfUrl && (
-            <a href={data.meta.rulesPdfUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginBottom: data.meta.rules ? 18 : 0 }}>
-              <FileText size={14} /> Ver / descargar PDF de reglas
+            <a href={data.meta.rulesPdfUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginBottom: data.meta.rules ? 20 : 0 }}>
+              <FileText size={16} /> Ver / descargar PDF de reglas
             </a>
           )}
           {data.meta.rules
-            ? <div style={{ fontSize: 13.5, color: '#2A2E35', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.meta.rules}</div>
+            ? <div style={{ fontSize: 14.5, color: '#1E293B', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.meta.rules}</div>
             : (!data.meta.rulesPdfUrl && (
-              <div style={{ fontSize: 13, color: '#6B7280' }}>{isAdmin ? 'Todavía no agregaste las reglas. Puedes escribirlas o subir un PDF en Configuración.' : 'El organizador todavía no publicó las reglas del campeonato.'}</div>
+              <div style={{ fontSize: 14, color: '#64748B' }}>{isAdmin ? 'Todavía no agregaste las reglas. Puedes escribirlas o subir un PDF en Configuración.' : 'El organizador todavía no publicó las reglas del campeonato.'}</div>
             ))}
         </Modal>
       )}
@@ -1976,14 +1998,14 @@ function TablaTab({ data, standings, onViewTeam }) {
   const n = standings.length;
   return (
     <div>
-      <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
-        <button className="btn btn-outline btn-sm" onClick={() => window.print()}><FileText size={13} /> Imprimir / PDF</button>
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+        <button className="btn btn-outline btn-sm" onClick={() => window.print()}><FileText size={14} /> Imprimir / PDF</button>
       </div>
       <div className="card" style={{ overflowX: 'auto' }}>
         <table className="data-table">
           <thead>
-            <tr style={{ borderBottom: '1px solid #E3E5E9' }}>
-              <th>#</th><th style={{ textAlign: 'left' }}>Equipo</th><th>Pts</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DIF</th>
+            <tr>
+              <th>#</th><th>Equipo</th><th>Pts</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DIF</th>
             </tr>
           </thead>
           <tbody>
@@ -1993,8 +2015,7 @@ function TablaTab({ data, standings, onViewTeam }) {
               const relegated = relegation > 0 && i >= n - relegation;
               return (
                 <tr key={row.teamId}
-                  className={(i % 2 === 1 ? 'row-alt ' : '') + (qualifies ? 'zone-top' : relegated ? 'zone-bottom' : '')}
-                  style={{ borderBottom: '1px solid #EEF0F2' }}>
+                  className={(i % 2 === 1 ? 'row-alt ' : '') + (qualifies ? 'zone-top' : relegated ? 'zone-bottom' : '')}>
                   <td>{i + 1}</td>
                   <td className="team-name-cell"><TeamChip team={team} size="sm" onClick={team ? () => onViewTeam(team.id) : undefined} /></td>
                   <td style={{ color: '#22C55E', fontWeight: 800 }}>{row.pts}</td>
@@ -2006,19 +2027,19 @@ function TablaTab({ data, standings, onViewTeam }) {
           </tbody>
         </table>
       </div>
-      <div style={{ display: 'flex', gap: 18, marginTop: 10, flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: 20, marginTop: 12, flexWrap: 'wrap' }}>
         {data.meta.playoffSpots > 0 && (
-          <div style={{ fontSize: 11.5, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 10, height: 10, background: '#22C55E', borderRadius: 3 }} /> Clasifica a playoffs
+          <div style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>
+            <span style={{ width: 12, height: 12, background: '#22C55E', borderRadius: 4 }} /> Clasifica a playoffs
           </div>
         )}
         {relegation > 0 && (
-          <div style={{ fontSize: 11.5, color: '#6B7280', display: 'flex', alignItems: 'center', gap: 6 }}>
-            <span style={{ width: 10, height: 10, background: '#E11D48', borderRadius: 3 }} /> Zona de alerta
+          <div style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>
+            <span style={{ width: 12, height: 12, background: '#EF4444', borderRadius: 4 }} /> Zona de alerta
           </div>
         )}
       </div>
-      <div style={{ fontSize: 11, color: '#9AA1AC', marginTop: 8 }}>
+      <div style={{ fontSize: 11.5, color: '#94A3B8', marginTop: 12 }}>
         Desempate: puntos → resultado entre ellos → diferencia de gol → goles a favor.
       </div>
     </div>
@@ -2032,41 +2053,60 @@ function EquiposTab({ data, isAdmin, onAdd, onEdit, onDelete, standings, onViewT
   return (
     <div>
       {isAdmin && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 14 }}>
-          <button className="btn btn-primary" onClick={() => setModal('new')}><Plus size={14} /> Agregar equipo</button>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
+          <button className="btn btn-primary" onClick={() => setModal('new')}><Plus size={16} /> Agregar equipo</button>
         </div>
       )}
 
       {data.teams.length === 0
         ? <EmptyState Icon={Users} title="Sin equipos todavía" text="Agrega el primer equipo del campeonato para empezar a registrar jugadores y partidos." />
         : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(230px, 1fr))', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
             {data.teams.map(team => {
               const row = standings.find(s => s.teamId === team.id);
               const playerCount = data.players.filter(p => p.teamId === team.id).length;
               return (
-                <div key={team.id} className="card" style={{ padding: 16 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 10 }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 0, cursor: 'pointer' }} onClick={() => onViewTeam(team.id)}>
-                      <Crest team={team} />
-                      <div className="font-display" style={{ fontWeight: 700, fontSize: 15, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{team.name}</div>
+                <div key={team.id} className="team-card">
+                  <div className="team-card-accent" style={{ background: team.color }} />
+                  <div className="team-card-header">
+                    <div className="team-card-title-group" onClick={() => onViewTeam(team.id)}>
+                      <Crest team={team} size="md" />
+                      <div className="team-card-title">{team.name}</div>
                     </div>
                     {isAdmin && (
-                      <div style={{ display: 'flex', gap: 4, flexShrink: 0 }}>
-                        <button className="icon-btn" onClick={() => setModal(team.id)}><Pencil size={13} /></button>
-                        {confirmId !== team.id && <button className="icon-btn" onClick={() => setConfirmId(team.id)}><Trash2 size={13} /></button>}
+                      <div className="team-card-actions">
+                        <button className="icon-btn-subtle" onClick={() => setModal(team.id)}><Pencil size={14} /></button>
+                        {confirmId !== team.id && <button className="icon-btn-subtle danger" onClick={() => setConfirmId(team.id)}><Trash2 size={14} /></button>}
                       </div>
                     )}
                   </div>
-                  <div style={{ fontSize: 12, color: '#6B7280', marginTop: 10 }}>{playerCount} jugador{playerCount !== 1 ? 'es' : ''}</div>
-                  {row && (
-                    <div style={{ fontSize: 12, color: '#4A4F58', marginTop: 6, fontWeight: 600 }}>
-                      {row.pj} PJ · {row.pts} PTS · DIF {row.dg > 0 ? '+' + row.dg : row.dg}
+                  
+                  <div className="team-card-body">
+                    <div className="team-card-players">
+                      <Users size={14} /> {playerCount} jugador{playerCount !== 1 ? 'es' : ''}
                     </div>
-                  )}
+                    {row ? (
+                      <div className="team-card-stats">
+                        <span><strong>{row.pj}</strong> PJ</span>
+                        <span className="dot">•</span>
+                        <span><strong>{row.pts}</strong> PTS</span>
+                        <span className="dot">•</span>
+                        <span>DIF <strong>{row.dg}</strong></span>
+                      </div>
+                    ) : (
+                      <div className="team-card-stats">
+                        <span><strong>0</strong> PJ</span>
+                        <span className="dot">•</span>
+                        <span><strong>0</strong> PTS</span>
+                        <span className="dot">•</span>
+                        <span>DIF <strong>0</strong></span>
+                      </div>
+                    )}
+                  </div>
+                  
                   {isAdmin && confirmId === team.id && (
-                    <div style={{ marginTop: 10 }}>
-                      <ConfirmInline text="¿Eliminar equipo, jugadores y partidos?" onConfirm={() => { onDelete(team.id); setConfirmId(null); }} onCancel={() => setConfirmId(null)} />
+                    <div style={{ padding: '0 16px 16px' }}>
+                      <ConfirmInline text="¿Eliminar equipo?" onConfirm={() => { onDelete(team.id); setConfirmId(null); }} onCancel={() => setConfirmId(null)} />
                     </div>
                   )}
                 </div>
@@ -2092,20 +2132,20 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
-        <select className="input" style={{ width: 200 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <select className="input" style={{ width: 240 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
           <option value="all">Todos los equipos</option>
           {data.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
         {isAdmin && (
-          <div style={{ display: 'flex', gap: 8 }}>
-            <button className="btn btn-outline" disabled={data.teams.length === 0} onClick={() => setModal('bulk')}><FileText size={14} /> Pegar lista</button>
-            <button className="btn btn-primary" disabled={data.teams.length === 0} onClick={() => setModal('new')}><Plus size={14} /> Agregar jugador</button>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button className="btn btn-outline" disabled={data.teams.length === 0} onClick={() => setModal('bulk')}><FileText size={16} /> Pegar lista</button>
+            <button className="btn btn-primary" disabled={data.teams.length === 0} onClick={() => setModal('new')}><Plus size={16} /> Agregar jugador</button>
           </div>
         )}
       </div>
 
-      {data.teams.length === 0 && <div style={{ fontSize: 12, color: '#6B7280', marginBottom: 12 }}>Crea al menos un equipo antes de registrar jugadores.</div>}
+      {data.teams.length === 0 && <div style={{ fontSize: 14, color: '#64748B', marginBottom: 16 }}>Crea al menos un equipo antes de registrar jugadores.</div>}
 
       {filtered.length === 0
         ? <EmptyState Icon={User} title="Sin jugadores" text="Agrega jugadores y asígnalos a un equipo para llevar sus goles y tarjetas." />
@@ -2113,31 +2153,38 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
           <>
             <div className="card" style={{ overflowX: 'auto' }}>
               <table className="data-table">
-                <thead><tr style={{ borderBottom: '1px solid #E3E5E9' }}><th style={{ textAlign: 'left' }}>Jugador</th><th>#</th><th style={{ textAlign: 'left' }}>Equipo</th><th>Edad</th>{isAdmin && <th></th>}</tr></thead>
+                <thead><tr><th>Jugador</th><th style={{textAlign: 'center'}}>#</th><th>Equipo</th><th>Edad</th>{isAdmin && <th></th>}</tr></thead>
                 <tbody>
                   {filtered.map((p, idx) => {
                     const team = data.teams.find(t => t.id === p.teamId);
                     const ac = ageColor(p.age);
                     return (
-                      <tr key={p.id} className={idx % 2 === 1 ? 'row-alt' : ''} style={{ borderBottom: '1px solid #EEF0F2' }}>
+                      <tr key={p.id}>
                         <td className="team-name-cell">
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}><Avatar size={26} />{p.name}</span>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
+                            <Avatar size={32} />
+                            <span style={{fontWeight: 500, fontSize: 14.5}}>{p.name}</span>
+                          </span>
                         </td>
-                        <td>{p.number !== '' && p.number !== undefined ? <span style={{ fontWeight: 700, color: '#1B2A4D' }}>#{p.number}</span> : '—'}</td>
-                        <td style={{ textAlign: 'left' }}><TeamChip team={team} size="sm" /></td>
+                        <td style={{textAlign: 'center'}}>
+                          {p.number !== '' && p.number !== undefined 
+                            ? <span className="dorsal-text">#{p.number}</span> 
+                            : <span style={{color: '#94A3B8'}}>—</span>}
+                        </td>
+                        <td><TeamChip team={team} size="md" /></td>
                         <td>
                           {p.age !== '' && p.age !== undefined
-                            ? <span style={{ fontSize: 11.5, fontWeight: 700, padding: '2px 10px', borderRadius: 10, background: ac.bg, color: ac.fg }}>{p.age}</span>
-                            : <span style={{ color: '#C7CBD1' }}>—</span>}
+                            ? <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 12px', borderRadius: 12, background: ac.bg, color: ac.fg }}>{p.age}</span>
+                            : <span style={{ color: '#CBD5E1' }}>—</span>}
                         </td>
                         {isAdmin && (
                           <td>
                             {confirmId === p.id
                               ? <ConfirmInline text="¿Eliminar?" onConfirm={() => { onDelete(p.id); setConfirmId(null); }} onCancel={() => setConfirmId(null)} />
                               : (
-                                <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
-                                  <button className="icon-btn" onClick={() => setModal(p.id)}><Pencil size={13} /></button>
-                                  <button className="icon-btn" onClick={() => setConfirmId(p.id)}><Trash2 size={13} /></button>
+                                <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
+                                  <button className="icon-btn-subtle" onClick={() => setModal(p.id)}><Pencil size={14} /></button>
+                                  <button className="icon-btn-subtle danger" onClick={() => setConfirmId(p.id)}><Trash2 size={14} /></button>
                                 </div>
                               )}
                         </td>
@@ -2148,10 +2195,10 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
               </tbody>
             </table>
           </div>
-          <div style={{ display: 'flex', gap: 16, marginTop: 10, flexWrap: 'wrap', fontSize: 11, color: '#6B7280' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: '#E7F5EC' }} /> 39 o menos</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: '#FCF3D9' }} /> 40 a 49</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}><span style={{ width: 10, height: 10, borderRadius: 3, background: '#FCE9E7' }} /> 50 o más</span>
+          <div style={{ display: 'flex', gap: 20, marginTop: 16, flexWrap: 'wrap', fontSize: 12, color: '#64748B', fontWeight: 500 }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#ECFDF5' }} /> 39 o menos</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#FFFBEB' }} /> 40 a 49</span>
+            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#FEF2F2' }} /> 50 o más</span>
           </div>
           </>
         )}
@@ -2179,8 +2226,8 @@ function MatchList({ matches, teams, groupByJornada, clickable, onOpenResult }) 
   }
   const jornadas = [...new Set(matches.map(m => m.jornada))].sort((a, b) => a - b);
   return jornadas.map(j => (
-    <div key={j} style={{ marginBottom: 16 }}>
-      <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.03em' }}>Jornada {j}</div>
+    <div key={j} style={{ marginBottom: 24 }}>
+      <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Jornada {j}</div>
       <div className="card">
         {matches.filter(m => m.jornada === j).map((m, idx, arr) => <MatchRow key={m.id} m={m} teams={teams} clickable={clickable} onOpen={() => onOpenResult(m)} last={idx === arr.length - 1} />)}
       </div>
@@ -2194,22 +2241,24 @@ function MatchRow({ m, teams, onOpen, last, clickable }) {
   const isClickable = clickable !== false;
   return (
     <div onClick={isClickable ? onOpen : undefined}
-      style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', cursor: isClickable ? 'pointer' : 'default', borderBottom: last ? 'none' : '1px solid #EEF0F2' }}>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end', minWidth: 0 }}>
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamA ? teamA.name : 'Equipo eliminado'}</span>
-        <Crest team={teamA} size="sm" />
+      style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', cursor: isClickable ? 'pointer' : 'default', borderBottom: last ? 'none' : '1px solid #F1F5F9', transition: 'background 0.2s' }}
+      onMouseOver={e => isClickable && (e.currentTarget.style.background = '#F8FAFC')}
+      onMouseOut={e => isClickable && (e.currentTarget.style.background = 'transparent')}>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12, justifyContent: 'flex-end', minWidth: 0 }}>
+        <span style={{ fontSize: 14.5, fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamA ? teamA.name : 'Equipo eliminado'}</span>
+        <Crest team={teamA} size="md" />
       </div>
-      <div style={{ minWidth: 64, textAlign: 'center', flexShrink: 0 }}>
-        <div className="font-display" style={{ fontWeight: 800, fontSize: 14, color: m.played ? '#1B2A4D' : '#B9BEC6' }}>
+      <div style={{ minWidth: 80, textAlign: 'center', flexShrink: 0 }}>
+        <div className="font-display" style={{ fontWeight: 800, fontSize: 16, color: m.played ? '#0F172A' : '#94A3B8' }}>
           {m.played ? m.scoreA + ' - ' + m.scoreB : 'vs'}
         </div>
-        <span className={'status-pill ' + (m.played ? 'done' : 'pending')} style={{ marginTop: 2 }}>{m.played ? 'Finalizado' : 'Pendiente'}</span>
+        <span className={'status-pill ' + (m.played ? 'done' : 'pending')} style={{ marginTop: 4 }}>{m.played ? 'Finalizado' : 'Pendiente'}</span>
       </div>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-        <Crest team={teamB} size="sm" />
-        <span style={{ fontSize: 13, fontWeight: 600, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamB ? teamB.name : 'Equipo eliminado'}</span>
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+        <Crest team={teamB} size="md" />
+        <span style={{ fontSize: 14.5, fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamB ? teamB.name : 'Equipo eliminado'}</span>
       </div>
-      {m.date && <div style={{ fontSize: 11, color: '#9AA1AC', width: 96, textAlign: 'right', flexShrink: 0 }}>{formatDateTime(m.date, m.time)}</div>}
+      {m.date && <div style={{ fontSize: 12.5, color: '#64748B', width: 110, textAlign: 'right', flexShrink: 0 }}>{formatDateTime(m.date, m.time)}</div>}
     </div>
   );
 }
@@ -2224,31 +2273,31 @@ function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSched
   return (
     <div>
       {isAdmin && (
-        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
-          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
             {data.teams.length >= 2 && (
               confirmGenerate
                 ? <ConfirmInline text={data.matches.length > 0 ? 'Esto borra el fixture actual ¿continuar?' : (data.meta.idaYVuelta ? '¿Generar fixture ida y vuelta?' : '¿Generar fixture todos-contra-todos?')} onConfirm={() => { onGenerateFixture(); setConfirmGenerate(false); }} onCancel={() => setConfirmGenerate(false)} />
-                : <button className="btn btn-outline" onClick={() => setConfirmGenerate(true)}><Calendar size={14} /> {data.matches.length > 0 ? 'Regenerar fixture' : (data.meta.idaYVuelta ? 'Generar fixture (ida y vuelta)' : 'Generar fixture (todos vs todos)')}</button>
+                : <button className="btn btn-outline" onClick={() => setConfirmGenerate(true)}><Calendar size={16} /> {data.matches.length > 0 ? 'Regenerar fixture' : (data.meta.idaYVuelta ? 'Generar fixture (ida y vuelta)' : 'Generar fixture (todos vs todos)')}</button>
             )}
             {data.matches.length > 0 && (
               confirmSchedule
                 ? <ConfirmInline text="Esto reemplaza fecha y hora de todos los partidos ¿continuar?" onConfirm={() => { onAutoSchedule(); setConfirmSchedule(false); }} onCancel={() => setConfirmSchedule(false)} />
-                : <button className="btn btn-outline" onClick={() => setConfirmSchedule(true)}><Clock size={14} /> Asignar horarios automáticamente</button>
+                : <button className="btn btn-outline" onClick={() => setConfirmSchedule(true)}><Clock size={16} /> Asignar horarios automáticamente</button>
             )}
           </div>
-          <button className="btn btn-primary" disabled={data.teams.length < 2} onClick={() => setModal('new')}><Plus size={14} /> Agregar partido manual</button>
+          <button className="btn btn-primary" disabled={data.teams.length < 2} onClick={() => setModal('new')}><Plus size={16} /> Agregar partido manual</button>
         </div>
       )}
 
       {data.matches.length > 0 && (
-        <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 10 }}>
-          <button className="btn btn-outline btn-sm" onClick={() => window.print()}><FileText size={13} /> Imprimir / PDF</button>
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
+          <button className="btn btn-outline btn-sm" onClick={() => window.print()}><FileText size={14} /> Imprimir / PDF</button>
         </div>
       )}
 
       {isAdmin && data.matches.length > 0 && (
-        <div style={{ fontSize: 11.5, color: '#6B7280', marginBottom: 14 }}>
+        <div style={{ fontSize: 13, color: '#64748B', marginBottom: 20, lineHeight: 1.5 }}>
           Cancha: {data.meta.courtName || 'sin nombre (configúrala en Configuración)'} · cada jornada completa se juega en un solo día ({formatPlayDays(data.meta.playDays)}), empezando a las {data.meta.dailyStartTime}, {data.meta.matchDurationMinutes} min por partido + {data.meta.breakBetweenMatchesMinutes} min de descanso.
         </div>
       )}
@@ -2278,9 +2327,9 @@ function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSched
 }
 
 const BRACKET_ROUNDS = ['Cuartos de Final', 'Semifinal', 'Final'];
-const BRACKET_SLOT_BASE_HEIGHT = 62;
-const BRACKET_CARD_WIDTH = 216;
-const BRACKET_GAP_WIDTH = 44;
+const BRACKET_SLOT_BASE_HEIGHT = 70;
+const BRACKET_CARD_WIDTH = 230;
+const BRACKET_GAP_WIDTH = 48;
 
 function buildConnectorPath(count, slotHeight, gapWidth) {
   let d = '';
@@ -2298,12 +2347,12 @@ function BracketMatchCard({ m, teams, onOpen }) {
   const teamA = teams.find(t => t.id === m.teamAId);
   const teamB = teams.find(t => t.id === m.teamBId);
   return (
-    <button onClick={onOpen} className="card" style={{ width: BRACKET_CARD_WIDTH, padding: 0, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', display: 'block' }}>
+    <button onClick={onOpen} className="card" style={{ width: BRACKET_CARD_WIDTH, padding: 0, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', display: 'block', transition: 'box-shadow 0.2s', border: '1px solid #E2E8F0' }} onMouseOver={e => e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.1)'} onMouseOut={e => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'}>
       {[[teamA, m.scoreA], [teamB, m.scoreB]].map(([t, score], idx) => (
-        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 10px', borderBottom: idx === 0 ? '1px solid #EEF0F2' : 'none' }}>
+        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: idx === 0 ? '1px solid #F1F5F9' : 'none' }}>
           <Crest team={t} size="sm" />
-          <span style={{ flex: 1, fontSize: 12.5, fontWeight: 600, color: '#1B2A4D', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t ? t.name : 'Por definir'}</span>
-          <span style={{ fontSize: 13, fontWeight: 800, color: m.played ? '#1B2A4D' : '#C7CBD1', flexShrink: 0 }}>{m.played ? score : '–'}</span>
+          <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t ? t.name : 'Por definir'}</span>
+          <span style={{ fontSize: 14, fontWeight: 800, color: m.played ? '#0F172A' : '#94A3B8', flexShrink: 0 }}>{m.played ? score : '–'}</span>
         </div>
       ))}
     </button>
@@ -2329,12 +2378,12 @@ function PlayoffBracket({ data, onOpenMatch }) {
   if (!canRenderBracket(data)) return null;
 
   return (
-    <div style={{ marginBottom: 20 }}>
-      <div style={{ overflowX: 'auto', paddingBottom: 8 }}>
-        <div style={{ display: 'flex', width: 'fit-content', marginBottom: 8 }}>
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ overflowX: 'auto', paddingBottom: 16 }}>
+        <div style={{ display: 'flex', width: 'fit-content', marginBottom: 12 }}>
           {roundMatches.map((matches, ri) => (
             <Fragment key={ri}>
-              <div style={{ width: BRACKET_CARD_WIDTH, textAlign: 'center', fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.03em' }}>{presentRounds[ri]}</div>
+              <div style={{ width: BRACKET_CARD_WIDTH, textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{presentRounds[ri]}</div>
               {ri < roundMatches.length - 1 && <div style={{ width: BRACKET_GAP_WIDTH, flexShrink: 0 }} />}
             </Fragment>
           ))}
@@ -2353,7 +2402,7 @@ function PlayoffBracket({ data, onOpenMatch }) {
                 </div>
                 {ri < roundMatches.length - 1 && (
                   <svg width={BRACKET_GAP_WIDTH} height={matches.length * slotHeight} style={{ flexShrink: 0 }}>
-                    <path d={buildConnectorPath(matches.length, slotHeight, BRACKET_GAP_WIDTH)} stroke="#22C55E" strokeWidth="2" fill="none" />
+                    <path d={buildConnectorPath(matches.length, slotHeight, BRACKET_GAP_WIDTH)} stroke="#22C55E" strokeWidth="2.5" fill="none" opacity="0.6" />
                   </svg>
                 )}
               </Fragment>
@@ -2363,10 +2412,10 @@ function PlayoffBracket({ data, onOpenMatch }) {
       </div>
 
       {thirdPlace.length > 0 && (
-        <div style={{ marginTop: 20 }}>
-          <div style={{ fontSize: 12, fontWeight: 700, color: '#6B7280', textTransform: 'uppercase', letterSpacing: '.03em', marginBottom: 8 }}>Tercer Puesto</div>
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Tercer Puesto</div>
           {thirdPlace.map(m => (
-            <div key={m.id} style={{ marginBottom: 8 }}><BracketMatchCard m={m} teams={data.teams} onOpen={() => onOpenMatch(m.id)} /></div>
+            <div key={m.id} style={{ marginBottom: 12 }}><BracketMatchCard m={m} teams={data.teams} onOpen={() => onOpenMatch(m.id)} /></div>
           ))}
         </div>
       )}
@@ -2382,20 +2431,20 @@ function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, 
   return (
     <div>
       {isAdmin && (
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 10 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
           <div>
             {data.playoffMatches.length > 0 && (
               confirmSchedule
                 ? <ConfirmInline text="Esto reemplaza fecha y hora de todos los partidos de playoffs ¿continuar?" onConfirm={() => { onAutoSchedule(); setConfirmSchedule(false); }} onCancel={() => setConfirmSchedule(false)} />
-                : <button className="btn btn-outline" onClick={() => setConfirmSchedule(true)}><Clock size={14} /> Asignar horarios automáticamente</button>
+                : <button className="btn btn-outline" onClick={() => setConfirmSchedule(true)}><Clock size={16} /> Asignar horarios automáticamente</button>
             )}
           </div>
-          <button className="btn btn-primary" disabled={data.teams.length < 2} onClick={() => setModal('new')}><Plus size={14} /> Agregar partido de playoffs</button>
+          <button className="btn btn-primary" disabled={data.teams.length < 2} onClick={() => setModal('new')}><Plus size={16} /> Agregar partido de playoffs</button>
         </div>
       )}
 
       {isAdmin && data.playoffMatches.length > 0 && (
-        <div style={{ fontSize: 11.5, color: '#6B7280', marginBottom: 14 }}>
+        <div style={{ fontSize: 13, color: '#64748B', marginBottom: 20, lineHeight: 1.5 }}>
           Cada ronda se juega completa en un solo día ({formatPlayDays(data.meta.playDays)}): cuartos, luego semis, y tercer puesto + final juntos el último día. Empieza el día siguiente al último partido de liga programado.
         </div>
       )}
@@ -2412,7 +2461,7 @@ function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, 
       {data.playoffMatches.length > 0 && !canRenderBracket(data) && (
         <>
           {isAdmin && (
-            <div style={{ fontSize: 11.5, color: '#9AA1AC', marginBottom: 14 }}>
+            <div style={{ fontSize: 13, color: '#94A3B8', marginBottom: 20 }}>
               El cuadro visual aparece cuando cada ronda tiene exactamente la mitad de partidos que la anterior (ej. 4 cuartos → 2 semis → 1 final). Mientras tanto, se muestra como lista.
             </div>
           )}
@@ -2422,8 +2471,8 @@ function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, 
             const matches = data.playoffMatches.filter(m => m.round === round);
             if (matches.length === 0) return null;
             return (
-              <div key={round} style={{ marginBottom: 16 }}>
-                <div className="font-display" style={{ fontSize: 13, fontWeight: 700, color: '#6B7280', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.03em' }}>{round}</div>
+              <div key={round} style={{ marginBottom: 24 }}>
+                <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{round}</div>
                 <div className="card">
                   {matches.map((m, idx) => <MatchRow key={m.id} m={m} teams={data.teams} clickable onOpen={() => setModal(m.id)} last={idx === matches.length - 1} />)}
                 </div>
@@ -2455,27 +2504,27 @@ function SancionesTab({ data, isAdmin, onMarkServed }) {
 
   return (
     <div>
-      <div style={{ background: '#EAF7EE', border: '1px solid #D3EFDA', borderRadius: 10, padding: 14, fontSize: 12.5, color: '#2E6B3E', marginBottom: 20, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
-        <ShieldAlert size={16} style={{ flexShrink: 0, marginTop: 1 }} color="#22C55E" />
+      <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 12, padding: 16, fontSize: 13.5, color: '#065F46', marginBottom: 24, display: 'flex', gap: 12, alignItems: 'flex-start', lineHeight: 1.5 }}>
+        <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: 2 }} color="#059669" />
         <span>Un jugador queda suspendido automáticamente al acumular {data.meta.yellowLimit} amarillas (el conteo se reinicia después) o al recibir 1 tarjeta roja ({data.meta.redSuspensionMatches} partido{data.meta.redSuspensionMatches !== 1 ? 's' : ''} de sanción). Marca "cumplido" cuando el jugador ya se perdió ese encuentro.</span>
       </div>
 
-      <div className="font-display" style={{ fontSize: 15, fontWeight: 700, color: '#1B2A4D', marginBottom: 8 }}>Jugadores suspendidos</div>
+      <div className="font-display" style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>Jugadores suspendidos</div>
       {suspended.length === 0
-        ? <div style={{ fontSize: 13, color: '#9AA1AC', marginBottom: 24 }}>No hay jugadores suspendidos actualmente.</div>
+        ? <div style={{ fontSize: 14, color: '#94A3B8', marginBottom: 32 }}>No hay jugadores suspendidos actualmente.</div>
         : (
-          <div className="card" style={{ marginBottom: 24 }}>
+          <div className="card" style={{ marginBottom: 32 }}>
             {suspended.map(({ p, stats }, idx) => {
               const team = data.teams.find(t => t.id === p.teamId);
               return (
-                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', flexWrap: 'wrap', borderBottom: idx === suspended.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
-                  <Avatar size={30} />
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', flexWrap: 'wrap', borderBottom: idx === suspended.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
+                  <Avatar size={36} />
                   <div style={{ flex: 1, minWidth: 160 }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: '#1B2A4D' }}>{p.name}</div>
-                    <div style={{ fontSize: 11 }}><TeamChip team={team} size="sm" /></div>
+                    <div style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A' }}>{p.name}</div>
+                    <div style={{ fontSize: 12.5, marginTop: 2 }}><TeamChip team={team} size="sm" /></div>
                   </div>
                   <CardBadge yellow={stats.yellow} red={stats.red} />
-                  <div style={{ fontSize: 12, color: '#C4302B', fontWeight: 700, minWidth: 130, textAlign: 'center' }}>
+                  <div style={{ fontSize: 13.5, color: '#DC2626', fontWeight: 700, minWidth: 140, textAlign: 'center' }}>
                     {stats.pending} partido{stats.pending !== 1 ? 's' : ''} pendiente{stats.pending !== 1 ? 's' : ''}
                   </div>
                   {isAdmin && <button className="btn btn-outline btn-sm" onClick={() => onMarkServed(p.id)}>Marcar cumplido</button>}
@@ -2485,21 +2534,21 @@ function SancionesTab({ data, isAdmin, onMarkServed }) {
           </div>
         )}
 
-      <div className="font-display" style={{ fontSize: 15, fontWeight: 700, color: '#1B2A4D', marginBottom: 8 }}>A una amarilla de la sanción</div>
+      <div className="font-display" style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>A una amarilla de la sanción</div>
       {warning.length === 0
-        ? <div style={{ fontSize: 13, color: '#9AA1AC' }}>Nadie está en riesgo por acumulación de amarillas.</div>
+        ? <div style={{ fontSize: 14, color: '#94A3B8' }}>Nadie está en riesgo por acumulación de amarillas.</div>
         : (
           <div className="card">
             {warning.map(({ p, stats }, idx) => {
               const team = data.teams.find(t => t.id === p.teamId);
               return (
-                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 16px', borderBottom: idx === warning.length - 1 ? 'none' : '1px solid #EEF0F2' }}>
-                  <Avatar size={30} />
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', borderBottom: idx === warning.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
+                  <Avatar size={36} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 13, color: '#1B2A4D' }}>{p.name}</div>
-                    <div style={{ fontSize: 11 }}><TeamChip team={team} size="sm" /></div>
+                    <div style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A' }}>{p.name}</div>
+                    <div style={{ fontSize: 12.5, marginTop: 2 }}><TeamChip team={team} size="sm" /></div>
                   </div>
-                  <div style={{ fontSize: 12, color: '#B8860B', fontWeight: 700 }}>{stats.yellowSinceReset} / {stats.yellowLimit} amarillas</div>
+                  <div style={{ fontSize: 13.5, color: '#D97706', fontWeight: 700 }}>{stats.yellowSinceReset} / {stats.yellowLimit} amarillas</div>
                 </div>
               );
             })}
@@ -2519,20 +2568,20 @@ function StatsTab({ data, standings }) {
   const bestDefense = [...standings].filter(s => s.pj > 0).sort((a, b) => a.gc - b.gc)[0];
 
   const ranking = (list, valueKey, label, cardType) => (
-    <div className="card" style={{ padding: 16 }}>
-      <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#1B2A4D', marginBottom: 10 }}>{label}</div>
-      {list.length === 0 ? <div style={{ fontSize: 12, color: '#9AA1AC' }}>Sin datos todavía.</div> : list.map(({ p, stats }, i) => {
+    <div className="card" style={{ padding: 20 }}>
+      <div className="font-display" style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>{label}</div>
+      {list.length === 0 ? <div style={{ fontSize: 13, color: '#94A3B8' }}>Sin datos todavía.</div> : list.map(({ p, stats }, i) => {
         const team = data.teams.find(t => t.id === p.teamId);
         return (
-          <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '7px 0', borderBottom: '1px solid #EEF0F2' }}>
-            <span style={{ width: 16, fontSize: 12, color: '#9AA1AC', fontWeight: 700, flexShrink: 0 }}>{i + 1}</span>
-            <Avatar size={26} />
-            <span style={{ flex: 1, fontSize: 12.5, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              <span style={{ color: '#1B2A4D', fontWeight: 600 }}>{p.name}</span>{' '}
-              <span style={{ color: '#9AA1AC', fontSize: 11 }}>{team ? team.name : ''}</span>
+          <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F1F5F9' }}>
+            <span style={{ width: 20, fontSize: 13, color: '#64748B', fontWeight: 800, flexShrink: 0, textAlign: 'center' }}>{i + 1}</span>
+            <Avatar size={32} />
+            <span style={{ flex: 1, fontSize: 14, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+              <span style={{ color: '#0F172A', fontWeight: 600 }}>{p.name}</span>{' '}
+              <span style={{ color: '#64748B', fontSize: 12 }}>{team ? team.name : ''}</span>
             </span>
             {cardType && <CardBadge yellow={cardType === 'yellow' ? stats[valueKey] : 0} red={cardType === 'red' ? stats[valueKey] : 0} />}
-            <span style={{ fontWeight: 800, color: '#22C55E', fontSize: 13 }}>{stats[valueKey]}</span>
+            <span style={{ fontWeight: 800, color: '#22C55E', fontSize: 14.5 }}>{stats[valueKey]}</span>
           </div>
         );
       })}
@@ -2541,20 +2590,20 @@ function StatsTab({ data, standings }) {
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px,1fr))', gap: 12, marginBottom: 20 }}>
-        <div className="card" style={{ padding: 16, textAlign: 'center' }}>
-          <div style={{ fontSize: 10.5, color: '#6B7280', fontWeight: 700, textTransform: 'uppercase' }}>Mejor ataque</div>
-          <div className="font-display" style={{ fontSize: 16, fontWeight: 800, color: '#1B2A4D', marginTop: 4 }}>{bestAttack ? teamName(data.teams, bestAttack.teamId) : '—'}</div>
-          <div style={{ color: '#22C55E', fontWeight: 700, fontSize: 13 }}>{bestAttack ? bestAttack.gf + ' goles' : ''}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px,1fr))', gap: 16, marginBottom: 24 }}>
+        <div className="card" style={{ padding: 20, textAlign: 'center' }}>
+          <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mejor ataque</div>
+          <div className="font-display" style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginTop: 8 }}>{bestAttack ? teamName(data.teams, bestAttack.teamId) : '—'}</div>
+          <div style={{ color: '#22C55E', fontWeight: 700, fontSize: 14, marginTop: 4 }}>{bestAttack ? bestAttack.gf + ' goles' : ''}</div>
         </div>
-        <div className="card" style={{ padding: 16, textAlign: 'center' }}>
-          <div style={{ fontSize: 10.5, color: '#6B7280', fontWeight: 700, textTransform: 'uppercase' }}>Mejor defensa</div>
-          <div className="font-display" style={{ fontSize: 16, fontWeight: 800, color: '#1B2A4D', marginTop: 4 }}>{bestDefense ? teamName(data.teams, bestDefense.teamId) : '—'}</div>
-          <div style={{ color: '#22C55E', fontWeight: 700, fontSize: 13 }}>{bestDefense ? bestDefense.gc + ' recibidos' : ''}</div>
+        <div className="card" style={{ padding: 20, textAlign: 'center' }}>
+          <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mejor defensa</div>
+          <div className="font-display" style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginTop: 8 }}>{bestDefense ? teamName(data.teams, bestDefense.teamId) : '—'}</div>
+          <div style={{ color: '#22C55E', fontWeight: 700, fontSize: 14, marginTop: 4 }}>{bestDefense ? bestDefense.gc + ' recibidos' : ''}</div>
         </div>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px,1fr))', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px,1fr))', gap: 20 }}>
         {ranking(topScorers, 'goals', 'Goleadores')}
         {ranking(topYellow, 'yellow', 'Más amarillas', 'yellow')}
         {ranking(topRed, 'red', 'Más rojas', 'red')}

@@ -249,27 +249,16 @@ function GlobalStyles() {
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
       
-      .futbolito-app { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; }
+      .futbolito-app { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; width: 100vw; overflow-x: hidden; }
       .futbolito-app * { box-sizing: border-box; }
       .font-display { font-family: 'Poppins', sans-serif; }
-      .app-shell { display: flex; min-height: 100vh; }
+      .app-shell { display: flex; min-height: 100vh; width: 100%; }
       
       /* Sidebar Premium Refinado y Fijo (Sticky) */
       .sidebar { 
-        width: 260px; 
-        flex-shrink: 0; 
-        background: #0B1121; 
-        border-right: 1px solid rgba(255,255,255,0.05); 
-        display: flex; 
-        flex-direction: column; 
-        padding: 28px 20px; 
-        z-index: 10;
-        position: sticky;
-        top: 0;
-        height: 100vh;
-        overflow-y: auto;
+        width: 260px; flex-shrink: 0; background: #0B1121; border-right: 1px solid rgba(255,255,255,0.05); 
+        display: flex; flex-direction: column; padding: 28px 20px; z-index: 10; position: sticky; top: 0; height: 100vh; overflow-y: auto;
       }
-      /* Ocultar barra de desplazamiento del sidebar en webkit para un look más limpio */
       .sidebar::-webkit-scrollbar { width: 4px; }
       .sidebar::-webkit-scrollbar-track { background: transparent; }
       .sidebar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
@@ -285,22 +274,17 @@ function GlobalStyles() {
       .sidebar-footer { margin-top: 16px; display: flex; flex-direction: column; gap: 8px; }
       .sidebar-footer-link { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 10px; color: #94A3B8; font-size: 13px; font-weight: 500; cursor: pointer; background: transparent; border: none; text-align: left; width: 100%; transition: all 0.2s; }
       .sidebar-footer-link:hover { background: rgba(255,255,255,0.05); color: #F8FAFC; }
-      
-      /* Tarjeta de usuario en Sidebar */
       .sidebar-user-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
       .sidebar-footer-link.logout:hover { background: rgba(239, 68, 68, 0.1) !important; color: #FCA5A5 !important; }
       
-      /* Área Principal */
       .main-area { flex: 1; padding: 36px 48px; min-width: 0; }
       .page-header { margin-bottom: 32px; }
       .page-title { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 32px; color: #0F172A; letter-spacing: -0.02em; line-height: 1.15; }
       .page-subtitle { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 15px; color: #64748B; margin-top: 6px; }
       
-      /* Tarjetas Genéricas */
       .card { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); font-family: 'Inter', sans-serif; }
       .card-header-green { background: #22C55E; color: #fff; font-family: 'Poppins', sans-serif; font-weight: 700; font-size: 14px; padding: 16px 20px; border-radius: 15px 15px 0 0; }
       
-      /* Tarjetas de Equipo (EquiposTab) */
       .team-card { display: flex; flex-direction: column; position: relative; background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; overflow: hidden; box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02); transition: all 0.25s ease; height: 100%; }
       .team-card:hover { transform: translateY(-3px); box-shadow: 0 12px 20px -8px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04); border-color: #CBD5E1; }
       .team-card-accent { position: absolute; top: 0; left: 0; right: 0; height: 4px; opacity: 0.9; }
@@ -314,12 +298,10 @@ function GlobalStyles() {
       .team-card-stats strong { color: #0F172A; font-weight: 700; }
       .team-card-stats .dot { color: #CBD5E1; font-size: 10px; }
       
-      /* Botones sutiles (Editar/Borrar en cards) */
       .icon-btn-subtle { width: 32px; height: 32px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; background: transparent; border: 1px solid transparent; color: #94A3B8; cursor: pointer; transition: all 0.2s; }
       .icon-btn-subtle:hover { background: #F1F5F9; color: #334155; }
       .icon-btn-subtle.danger:hover { background: #FEF2F2; color: #DC2626; }
       
-      /* Botones y UI Base */
       .btn { font-family: 'Inter', sans-serif; font-weight: 600; padding: 10px 16px; border-radius: 10px; font-size: 13.5px; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; transition: all 0.2s; }
       .btn:active { transform: scale(0.97); }
       .btn-primary { background: #22C55E; color: #fff; box-shadow: 0 2px 4px rgba(34,197,94,0.2); }
@@ -334,21 +316,18 @@ function GlobalStyles() {
       .icon-btn { width: 34px; height: 34px; border-radius: 10px; display: inline-flex; align-items: center; justify-content: center; background: #FFFFFF; border: 1px solid #E2E8F0; color: #64748B; cursor: pointer; flex-shrink: 0; transition: all 0.2s; }
       .icon-btn:hover { border-color: #22C55E; color: #16A34A; }
       
-      /* Inputs */
       .input, textarea.textarea { background: #F8FAFC; border: 1px solid #CBD5E1; color: #1E293B; padding: 10px 14px; border-radius: 10px; font-family: 'Inter', sans-serif; font-size: 14px; width: 100%; transition: all 0.2s; }
       .input:focus, textarea.textarea:focus { background: #FFFFFF; border-color: #22C55E; box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.15); outline: none; }
       .input::placeholder, textarea.textarea::placeholder { color: #94A3B8; }
       textarea.textarea { resize: vertical; min-height: 80px; }
       label.field-label { font-size: 11.5px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; margin-bottom: 6px; display: block; font-weight: 700; }
       
-      /* Escudos y Chips */
       .crest { display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; color: #fff; font-family: 'Poppins', sans-serif; font-weight: 700; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
       .team-name-cell { font-family: 'Inter', sans-serif; font-weight: 600; text-align: left !important; color: #0F172A; }
       .card-chip { display: inline-block; width: 12px; height: 16px; border-radius: 3px; flex-shrink: 0; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
       .card-chip.yellow { background: #FACC15; }
       .card-chip.red { background: #EF4444; }
       
-      /* Tablas de Datos Refinadas */
       table.data-table { border-collapse: separate; border-spacing: 0; width: 100%; }
       table.data-table th { background: #FFFFFF; font-family: 'Inter', sans-serif; font-weight: 700; color: #64748B; font-size: 11px; text-align: center; padding: 16px 16px; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.05em; border-bottom: 2px solid #F1F5F9; }
       table.data-table th:first-child { text-align: left; border-top-left-radius: 16px; }
@@ -359,11 +338,14 @@ function GlobalStyles() {
       
       .dorsal-text { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 14px; color: #0F172A; }
       
-      /* Elementos visuales auxiliares */
       .avatar-circle { border-radius: 50%; background: #F1F5F9; border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: center; color: #94A3B8; flex-shrink: 0; }
       .status-pill { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-block; letter-spacing: 0.02em; }
       .status-pill.done { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
       .status-pill.pending { background: #F8FAFC; color: #64748B; border: 1px solid #E2E8F0; }
+      
+      .status-pill.live { background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; animation: pulse-red 2s infinite; }
+      @keyframes pulse-red { 0% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.4); } 70% { box-shadow: 0 0 0 6px rgba(220, 38, 38, 0); } 100% { box-shadow: 0 0 0 0 rgba(220, 38, 38, 0); } }
+
       .info-strip { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px 20px; display: flex; gap: 32px; flex-wrap: wrap; align-items: center; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); }
       .info-strip-item .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748B; font-weight: 700; }
       .info-strip-item .val { font-size: 14.5px; color: #0F172A; font-weight: 600; margin-top: 4px; }
@@ -378,13 +360,11 @@ function GlobalStyles() {
       .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
       .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
       
-      /* Scrollbar */
       .futbolito-app ::-webkit-scrollbar { width: 8px; height: 8px; }
       .futbolito-app ::-webkit-scrollbar-track { background: transparent; }
       .futbolito-app ::-webkit-scrollbar-thumb { background: #CBD5E1; border-radius: 4px; }
       .futbolito-app ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
       
-      /* Modales */
       .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); display: flex; align-items: flex-start; justify-content: center; z-index: 50; padding: 32px 16px; overflow-y: auto; animation: fadeIn 0.2s ease-out; }
       .modal-box { background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 20px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 640px; width: 100%; margin: auto; animation: slideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1); }
       
@@ -393,26 +373,22 @@ function GlobalStyles() {
       @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
       .spin { animation: spin 1s linear infinite; }
       
-      /* Responsive */
+      /* Mobile Fixes */
       @media (max-width: 820px) {
-        .app-shell { flex-direction: column; }
+        .futbolito-app { overflow-x: hidden; }
+        .app-shell { flex-direction: column; overflow-x: hidden; }
         .sidebar { 
-          width: 100%; 
-          height: auto; 
-          position: relative; 
-          flex-direction: column; 
-          align-items: stretch; 
-          padding: 16px; 
-          gap: 8px; 
-          border-right: none; 
-          border-bottom: 1px solid rgba(255,255,255,0.05); 
+          width: 100%; height: auto; position: relative; flex-direction: column; align-items: stretch; 
+          padding: 16px; gap: 8px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); 
         }
         .sidebar-logo-row { margin-bottom: 8px; }
-        .sidebar-nav { flex-direction: row; overflow-x: auto; flex: none; width: 100%; gap: 6px; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+        .sidebar-nav { flex-direction: row; overflow-x: auto; flex: none; width: 100%; gap: 6px; -webkit-overflow-scrolling: touch; padding-bottom: 8px; scrollbar-width: none; }
+        .sidebar-nav::-webkit-scrollbar { display: none; }
         .sidebar-nav-item { flex-shrink: 0; width: auto; white-space: nowrap; padding: 10px 16px; }
         .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px; padding-top: 12px; }
-        .main-area { padding: 24px 16px; }
-        .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
+        
+        .main-area { padding: 20px 16px; width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box; }
+        .grid-2, .grid-3, .two-col { grid-template-columns: 1fr !important; display: flex !important; flex-direction: column !important; gap: 20px; }
       }
       
       @media print {

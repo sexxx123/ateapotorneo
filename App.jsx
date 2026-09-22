@@ -375,21 +375,21 @@ function GlobalStyles() {
       
       /* Mobile Fixes */
       @media (max-width: 820px) {
-        /* ... otras reglas ... */
+        .futbolito-app { overflow-x: hidden; }
+        .app-shell { flex-direction: column; overflow-x: hidden; }
         .sidebar { 
-          width: 100%; 
-          height: auto; 
-          position: sticky; /* Ancla el menú a la pantalla */
-          top: 0; /* Lo mantiene en la parte superior */
-          z-index: 40; /* Asegura que el contenido pase por debajo, no por encima */
-          flex-direction: column; 
-          align-items: stretch; 
-          padding: 16px; 
-          gap: 8px; 
-          border-right: none; 
-          border-bottom: 1px solid rgba(255,255,255,0.05); 
-          background: #0B1121; /* Mantiene el fondo oscuro sólido */
+          width: 100%; height: auto; position: relative; flex-direction: column; align-items: stretch; 
+          padding: 16px; gap: 8px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); 
         }
+        .sidebar-logo-row { margin-bottom: 8px; }
+        .sidebar-nav { flex-direction: row; overflow-x: auto; flex: none; width: 100%; gap: 6px; -webkit-overflow-scrolling: touch; padding-bottom: 8px; scrollbar-width: none; }
+        .sidebar-nav::-webkit-scrollbar { display: none; }
+        .sidebar-nav-item { flex-shrink: 0; width: auto; white-space: nowrap; padding: 10px 16px; }
+        .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px; padding-top: 12px; }
+        
+        .main-area { padding: 20px 16px; width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box; }
+        .grid-2, .grid-3, .two-col { grid-template-columns: 1fr !important; display: flex !important; flex-direction: column !important; gap: 20px; }
+      }
       
       @media print {
         .no-print { display: none !important; }

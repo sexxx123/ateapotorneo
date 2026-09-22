@@ -227,18 +227,18 @@ function GlobalStyles() {
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
       
-      .futbolito-app { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; width: 100%; min-width: 0; }
+      .futbolito-app { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; width: 100%; min-width: 0; height: 100vh; overflow: hidden; }
       .futbolito-app * { box-sizing: border-box; }
       .futbolito-app img { max-width: 100%; }
       .futbolito-app h1, .futbolito-app h2, .futbolito-app h3, .futbolito-app p { overflow-wrap: anywhere; }
       .font-display { font-family: 'Poppins', sans-serif; }
-      .app-shell { display: flex; min-height: 100vh; width: 100%; }
+      .app-shell { display: flex; height: 100vh; width: 100%; overflow: hidden; }
       
-      /* SIDEBAR TOTALMENTE FIJO PARA COMPUTADORA */
+      /* SIDEBAR TOTALMENTE FIJO PARA COMPUTADORA (ya no usa position: fixed) */
       .sidebar { 
         width: 260px; height: 100vh; flex-shrink: 0; background: #0B1121; border-right: 1px solid rgba(255,255,255,0.05); 
         display: flex; flex-direction: column; padding: 28px 20px; z-index: 1000; 
-        position: fixed; top: 0; bottom: 0; left: 0; overflow-y: auto; overflow-x: hidden;
+        overflow-y: auto; overflow-x: hidden;
       }
       .sidebar::-webkit-scrollbar { width: 4px; }
       .sidebar::-webkit-scrollbar-track { background: transparent; }
@@ -258,8 +258,8 @@ function GlobalStyles() {
       .sidebar-user-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
       .sidebar-footer-link.logout:hover { background: rgba(239, 68, 68, 0.1) !important; color: #FCA5A5 !important; }
       
-      /* EL CONTENIDO RESPETA EL ANCHO DEL SIDEBAR EN COMPUTADORA */
-      .main-area { flex: 1; padding: 36px 48px; min-width: 0; margin-left: 260px; width: auto; }
+      /* EL CONTENIDO YA NO NECESITA MARGIN-LEFT: flexbox lo acomoda solo, y tiene su propio scroll */
+      .main-area { flex: 1; padding: 36px 48px; min-width: 0; width: auto; height: 100vh; overflow-y: auto; }
       .page-header { margin-bottom: 32px; }
       .page-title { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 32px; color: #0F172A; letter-spacing: -0.02em; line-height: 1.15; }
       .page-subtitle { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 15px; color: #64748B; margin-top: 6px; }
@@ -355,10 +355,10 @@ function GlobalStyles() {
       @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
       .spin { animation: spin 1s linear infinite; }
       
-      /* RESET PARA CELULARES */
+      /* RESET PARA CELULARES (aquí sí seguimos usando position: fixed para la barra superior) */
       @media (max-width: 820px) {
-        .futbolito-app { overflow-x: hidden; }
-        .app-shell { flex-direction: column; overflow-x: hidden; }
+        .futbolito-app { height: auto; overflow: visible; overflow-x: hidden; }
+        .app-shell { flex-direction: column; height: auto; overflow: visible; overflow-x: hidden; }
         
         .sidebar { 
           width: 100%; height: auto; position: fixed; top: 0; left: 0; right: 0; bottom: auto;
@@ -372,7 +372,7 @@ function GlobalStyles() {
         .sidebar-nav-item { flex-shrink: 0; width: auto; white-space: nowrap; padding: 10px 16px; }
         .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px; padding-top: 12px; }
         
-        .main-area { padding: 20px 16px; margin-left: 0; margin-top: 190px; width: 100%; max-width: 100vw; overflow-x: hidden; box-sizing: border-box; }
+        .main-area { padding: 20px 16px; margin-left: 0; margin-top: 190px; width: 100%; max-width: 100vw; height: auto; overflow: visible; overflow-x: hidden; box-sizing: border-box; }
         .grid-2, .grid-3, .two-col { grid-template-columns: 1fr !important; display: flex !important; flex-direction: column !important; gap: 20px; }
       }
       
@@ -387,6 +387,7 @@ function GlobalStyles() {
     `}</style>
   );
 }
+
 
 function Crest({ team, size }) {
   const s = size === 'sm' ? 24 : size === 'md' ? 36 : size === 'lg' ? 46 : size === 'flyer' ? 180 : 30;

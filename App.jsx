@@ -249,10 +249,8 @@ function GlobalStyles() {
     <style>{`
       @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
       
-      .futbolito-app { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; width: 100%; min-width: 0; }
+      .futbolito-app { font-family: 'Inter', sans-serif; background: #F8FAFC; color: #1E293B; }
       .futbolito-app * { box-sizing: border-box; }
-      .futbolito-app img { max-width: 100%; }
-      .futbolito-app h1, .futbolito-app h2, .futbolito-app h3, .futbolito-app p { overflow-wrap: anywhere; }
       .font-display { font-family: 'Poppins', sans-serif; }
       .app-shell { display: flex; min-height: 100vh; }
       
@@ -396,262 +394,25 @@ function GlobalStyles() {
       .spin { animation: spin 1s linear infinite; }
       
       /* Responsive */
-      .mobile-filter { min-width: 0; }
-      .player-main-fields { display: grid; grid-template-columns: minmax(0, 1fr) 90px; }
-      .match-scoreboard { min-width: 0; }
-      .match-row > div { min-width: 0; }
-      .table-scroll { width: 100%; max-width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-      .modal-actions { flex-wrap: wrap; }
-      .modal-actions > * { min-width: 0; }
-      .modal-action-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
-      .home-hero-content { min-width: 0; }
-      .home-hero-title { overflow-wrap: anywhere; }
-      .futbolito-app { width: 100%; min-width: 0; max-width: 100%; overflow-x: hidden; -webkit-text-size-adjust: 100%; }
-      .futbolito-app button,
-      .futbolito-app input,
-      .futbolito-app select,
-      .futbolito-app textarea { font: inherit; }
-
-      @media (max-width: 1024px) {
-        .main-area { padding: 28px 24px; }
-        .two-col { grid-template-columns: minmax(0, 1fr) !important; }
-      }
-
       @media (max-width: 820px) {
-        html, body, #root { width: 100%; min-width: 0; max-width: 100%; overflow-x: hidden; }
-        .app-shell { flex-direction: column; min-width: 0; }
-        .sidebar {
-          width: 100%;
-          height: auto;
-          min-width: 0;
-          position: relative;
-          flex-direction: column;
-          align-items: stretch;
-          padding: 14px 12px 10px;
-          gap: 8px;
-          border-right: none;
-          border-bottom: 1px solid rgba(255,255,255,0.05);
-          overflow: hidden;
+        .app-shell { flex-direction: column; }
+        .sidebar { 
+          width: 100%; 
+          height: auto; 
+          position: relative; 
+          flex-direction: column; 
+          align-items: stretch; 
+          padding: 16px; 
+          gap: 8px; 
+          border-right: none; 
+          border-bottom: 1px solid rgba(255,255,255,0.05); 
         }
-        .sidebar-logo-row {
-          margin-bottom: 4px;
-          padding: 0 4px;
-        }
-        .sidebar-logo-badge { width: 38px; height: 38px; }
-        .sidebar-title { font-size: 14px; }
-        .sidebar-nav {
-          flex-direction: row;
-          overflow-x: auto;
-          flex: none;
-          width: 100%;
-          max-width: 100%;
-          gap: 6px;
-          -webkit-overflow-scrolling: touch;
-          scrollbar-width: none;
-          padding: 2px 2px 8px;
-        }
-        .sidebar-nav::-webkit-scrollbar { display: none; }
-        .sidebar-nav-item {
-          flex: 0 0 auto;
-          width: auto;
-          max-width: none;
-          white-space: nowrap;
-          padding: 9px 13px;
-          font-size: 13px;
-        }
-        .sidebar-footer {
-          border-top: 1px solid rgba(255,255,255,0.05);
-          margin-top: 2px;
-          padding-top: 10px;
-          gap: 6px;
-        }
-        .sidebar-footer-link { padding: 9px 10px; }
-        .sidebar-user-card { padding: 10px; }
-
-        .main-area {
-          width: 100%;
-          min-width: 0;
-          padding: 20px 12px 28px;
-        }
-        .page-header { margin-bottom: 20px; }
-        .page-title {
-          font-size: clamp(24px, 6vw, 30px);
-          line-height: 1.15;
-          overflow-wrap: anywhere;
-        }
-        .page-subtitle { font-size: 13.5px; line-height: 1.45; }
-
-        .card { border-radius: 14px; }
-        .card-header-green { padding: 13px 14px; }
-        .team-card-header { padding: 16px 14px 10px; }
-        .team-card-body { padding: 0 14px 16px; }
-
-        .btn {
-          min-height: 42px;
-          padding: 10px 13px;
-          font-size: 13px;
-          white-space: normal;
-          justify-content: center;
-          text-align: center;
-        }
-        .btn-sm { min-height: 38px; padding: 8px 11px; font-size: 12px; }
-        .icon-btn, .icon-btn-subtle { flex-shrink: 0; }
-
-        .grid-2, .grid-3, .two-col { grid-template-columns: 1fr !important; }
-        .player-main-fields { grid-template-columns: 1fr !important; }
-
-        .info-strip {
-          padding: 13px 14px;
-          gap: 12px 16px;
-          align-items: flex-start;
-        }
-        .info-strip-item { min-width: 0; flex: 1 1 130px; }
-        .info-strip-item .val { font-size: 13.5px; overflow-wrap: anywhere; }
-        .home-info-strip > .btn { width: 100%; }
-
-        .home-hero { height: auto !important; min-height: 190px; }
-        .home-hero-content {
-          min-height: 190px;
-          height: auto !important;
-          flex-direction: column;
-          justify-content: center;
-          text-align: center;
-          gap: 12px !important;
-          padding: 24px 18px !important;
-        }
-        .home-hero-logo {
-          width: 84px !important;
-          height: 84px !important;
-          border-radius: 14px !important;
-        }
-        .home-hero-title {
-          max-width: 100% !important;
-          font-size: clamp(24px, 7vw, 32px) !important;
-          line-height: 1.12 !important;
-        }
-
-        .match-row {
-          gap: 8px !important;
-          padding: 12px 12px !important;
-          flex-wrap: wrap;
-        }
-        .match-row > div:first-child,
-        .match-row > div:nth-child(3) {
-          flex: 1 1 calc(50% - 44px) !important;
-        }
-        .match-row > div:nth-child(2) {
-          min-width: 64px !important;
-          width: 64px;
-        }
-        .match-row > div:last-child {
-          width: 100% !important;
-          flex-basis: 100% !important;
-          text-align: center !important;
-          font-size: 11.5px !important;
-        }
-        .mini-match-row {
-          flex-wrap: nowrap;
-        }
-        .mini-match-row > div:last-child { width: auto !important; flex-basis: auto !important; }
-
-        .match-scoreboard { padding: 14px !important; }
-        .match-scoreboard > div:first-child {
-          gap: 8px !important;
-        }
-        .match-scoreboard .team-name-cell { font-size: 13px; }
-
-        .table-scroll {
-          border-radius: 14px;
-        }
-        table.data-table th { padding: 12px 10px; font-size: 10px; }
-        table.data-table td { padding: 11px 10px; font-size: 13px; }
-
-        .modal-overlay {
-          padding: 8px;
-          align-items: flex-start;
-        }
-        .modal-box {
-          width: 100%;
-          max-width: none;
-          border-radius: 16px;
-          margin: 0 auto;
-        }
-        .modal-box > div:first-child { padding: 14px 16px !important; }
-        .modal-box > div:nth-child(2) { padding: 16px !important; }
-        .modal-actions {
-          flex-direction: column !important;
-          align-items: stretch !important;
-        }
-        .modal-actions > .btn,
-        .modal-actions > div {
-          width: 100%;
-        }
-        .modal-actions .btn { width: 100%; }
-        .modal-action-buttons { width: 100%; flex-direction: column; }
-        .modal-action-buttons .btn { width: 100%; }
-        .mobile-action-group {
-          width: 100%;
-          flex-direction: column !important;
-        }
-        .mobile-action-group > .btn { width: 100%; }
-        .mobile-filter { width: 100% !important; }
-
-        .player-stat-row {
-          gap: 8px !important;
-          flex-wrap: wrap;
-        }
-        .player-stat-row > div:first-child {
-          flex: 1 1 100% !important;
-        }
-        .player-stat-row .input {
-          width: 58px !important;
-        }
-
-        .status-pill { white-space: nowrap; }
-        .crest { flex-shrink: 0; }
-        .team-name-cell { overflow-wrap: anywhere; }
-        .confirm-inline { max-width: 100%; }
-      }
-
-      @media (max-width: 480px) {
-        .main-area { padding-left: 10px; padding-right: 10px; }
-        .sidebar { padding-left: 10px; padding-right: 10px; }
-        .page-title { font-size: 23px; }
-        .page-subtitle { font-size: 13px; }
-        .card { border-radius: 12px; }
-
-        .team-card-title { font-size: 14px; }
-        .team-card-stats { font-size: 12px; }
-
-        .home-hero-content { padding-left: 14px !important; padding-right: 14px !important; }
-        .home-hero-title { font-size: 23px !important; }
-
-        .match-row > div:first-child,
-        .match-row > div:nth-child(3) {
-          flex-basis: calc(50% - 40px) !important;
-        }
-
-        .match-scoreboard > div:first-child {
-          flex-wrap: wrap;
-        }
-        .match-scoreboard > div:first-child > div:first-child,
-        .match-scoreboard > div:first-child > div:last-child {
-          flex: 1 1 calc(50% - 8px) !important;
-          min-width: 120px;
-        }
-        .match-scoreboard > div:first-child > input,
-        .match-scoreboard > div:first-child > span {
-          width: auto;
-          flex: 0 0 auto;
-        }
-
-        .mobile-action-group > .btn,
-        .modal-actions .btn {
-          width: 100%;
-        }
-
-        .info-strip-item { flex-basis: 100%; }
-        .home-info-strip > .btn { margin-top: 2px; }
+        .sidebar-logo-row { margin-bottom: 8px; }
+        .sidebar-nav { flex-direction: row; overflow-x: auto; flex: none; width: 100%; gap: 6px; -webkit-overflow-scrolling: touch; padding-bottom: 8px; }
+        .sidebar-nav-item { flex-shrink: 0; width: auto; white-space: nowrap; padding: 10px 16px; }
+        .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px; padding-top: 12px; }
+        .main-area { padding: 24px 16px; }
+        .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
       }
       
       @media print {
@@ -834,7 +595,7 @@ function TeamFormModal({ initial, onClose, onSave }) {
         <LogoUploadField value={photoUrl} onChange={setPhotoUrl} label="Foto del equipo (opcional)" folder="equipos-fotos" />
         <div style={{ fontSize: 12, color: '#64748B', marginTop: 6 }}>La foto grupal de los integrantes. Se muestra en Inicio y en la ficha del equipo.</div>
       </div>
-      <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={!name.trim()} onClick={() => name.trim() && onSave({ name: name.trim(), color, logoUrl: logoUrl.trim(), photoUrl: photoUrl.trim() })}>
           {initial ? 'Guardar cambios' : 'Agregar equipo'}
@@ -852,7 +613,7 @@ function PlayerFormModal({ initial, teams, defaultTeamId, onClose, onSave }) {
   const preview = age !== '' ? ageColor(age) : null;
   return (
     <Modal title={initial ? 'Editar jugador' : 'Nuevo jugador'} onClose={onClose}>
-      <div className="player-main-fields" style={{ gap: 16, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 90px', gap: 16, marginBottom: 16 }}>
         <div>
           <label className="field-label">Nombre del jugador</label>
           <input className="input" value={name} onChange={e => setName(e.target.value)} placeholder="Ej: Juan Pérez" autoFocus />
@@ -878,7 +639,7 @@ function PlayerFormModal({ initial, teams, defaultTeamId, onClose, onSave }) {
           )}
         </div>
       </div>
-      <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={!name.trim() || !teamId}
           onClick={() => name.trim() && teamId && onSave({ name: name.trim(), number: number === '' ? '' : Number(number), age: age === '' ? '' : Number(age), teamId })}>
@@ -924,7 +685,7 @@ function BulkPlayersModal({ teams, defaultTeamId, onClose, onSave }) {
           ))}
         </div>
       )}
-      <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={!teamId || parsed.length === 0}
           onClick={() => teamId && parsed.length > 0 && onSave(teamId, parsed)}>
@@ -952,7 +713,7 @@ function NewsFormModal({ onClose, onSave }) {
       <div style={{ marginBottom: 24 }}>
         <LogoUploadField value={imageUrl} onChange={setImageUrl} label="Imagen (opcional)" folder="noticias" />
       </div>
-      <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={!title.trim()}
           onClick={() => title.trim() && onSave({ title: title.trim(), body: body.trim(), imageUrl: imageUrl.trim(), date: new Date().toISOString().slice(0, 10) })}>
@@ -1100,7 +861,7 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
           <input className="input" type="time" value={time} onChange={e => setTime(e.target.value)} />
         </div>
       </div>
-      <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={invalid} onClick={() => onSave({
           teamAId, teamBId, date, time,
@@ -1156,7 +917,7 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
   const renderPlayerRows = (list) => list.length === 0
     ? <div style={{ fontSize: 13, color: '#94A3B8', padding: '12px 0' }}>Sin jugadores registrados en este equipo.</div>
     : list.map(p => (
-      <div key={p.id} className="player-stat-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
         <div style={{ flex: 1, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
           {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700 }}>#{p.number}</span> : null} {p.name}
         </div>
@@ -1176,7 +937,7 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
 
   return (
     <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Resultado'} onClose={onClose}>
-      <div className="match-scoreboard" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
           <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', fontSize: 20, fontWeight: 800, padding: '10px' }} value={scoreA} onChange={e => setScoreA(Math.max(0, Number(e.target.value)))} />
@@ -1238,11 +999,11 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
         </div>
       </div>
 
-      <div className="modal-actions match-result-actions" style={{ borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, paddingTop: 16, flexWrap: 'wrap', gap: 10 }}>
+      <div style={{ borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, paddingTop: 16, flexWrap: 'wrap', gap: 10 }}>
         {confirmDelete
           ? <ConfirmInline text="¿Eliminar partido?" onConfirm={() => onDelete(match.id)} onCancel={() => setConfirmDelete(false)} />
           : <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(true)}><Trash2 size={14} /> Eliminar partido</button>}
-        <div className="modal-action-buttons" style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 10 }}>
           <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
           <button className="btn btn-outline" onClick={() => onSave({ date, time })}>Guardar horario</button>
           <button className="btn btn-primary" onClick={() => onSave({ date, time, scoreA: Number(scoreA), scoreB: Number(scoreB), played: true, playerStats: stats })}>
@@ -1284,7 +1045,7 @@ function MatchDetailModal({ match, teams, players, onClose }) {
 
   return (
     <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Alineación'} onClose={onClose}>
-      <div className="match-scoreboard" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
+      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
           <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
           {match.played
@@ -1507,7 +1268,7 @@ function SettingsModal({ meta, onClose, onSave, onReset, onExport, onImport }) {
           <div style={{ fontSize: 14, color: '#1E293B', marginBottom: 20, lineHeight: 1.6 }}>
             Vas a reemplazar TODOS los datos actuales (equipos, jugadores, partidos, configuración) con los del archivo que elegiste. Esto no se puede deshacer.
           </div>
-          <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
             <button className="btn btn-outline" onClick={() => setPendingImport(null)}>Cancelar</button>
             <button className="btn btn-danger" onClick={() => { onImport(pendingImport); setPendingImport(null); }}><Check size={16} /> Sí, reemplazar todo</button>
           </div>
@@ -1564,7 +1325,7 @@ function LoginModal({ onClose }) {
           onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} />
       </div>
       {error && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 16 }}>{error}</div>}
-      <div className="modal-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={sending} onClick={submit}>
           {sending ? <Loader2 size={16} className="spin" /> : <Send size={16} />} {sending ? 'Enviando…' : 'Enviar enlace de acceso'}
@@ -1591,7 +1352,7 @@ function MiniMatchRow({ m, teams }) {
   const teamA = teams.find(t => t.id === m.teamAId);
   const teamB = teams.find(t => t.id === m.teamBId);
   return (
-    <div className="match-row mini-match-row" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0' }}>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0' }}>
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 8, justifyContent: 'flex-end', minWidth: 0 }}>
         <span style={{ fontSize: 13, fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{teamA ? teamA.name : '—'}</span>
         <Crest team={teamA} size="sm" />
@@ -2142,7 +1903,7 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteN
   const news = data.news || [];
   return (
     <div>
-      <div className="info-strip home-info-strip" style={{ marginBottom: 24 }}>
+      <div className="info-strip" style={{ marginBottom: 24 }}>
         <div className="info-strip-item">
           <div className="lbl">Inicio</div>
           <div className="val">{formatDate(data.meta.startDate) || 'Por definir'}</div>
@@ -2159,16 +1920,16 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteN
         <button className="btn btn-outline btn-sm" onClick={() => setRulesOpen(true)}><FileText size={14} /> Reglas del campeonato</button>
       </div>
 
-      <div className="home-hero" style={{ position: 'relative', height: 220, borderRadius: 16, overflow: 'hidden', marginBottom: 24, background: '#0F172A', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
+      <div style={{ position: 'relative', height: 220, borderRadius: 16, overflow: 'hidden', marginBottom: 24, background: '#0F172A', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', clipPath: 'polygon(42% 0, 100% 0, 68% 100%, 0 100%)' }} />
         {!data.meta.logoUrl && <Trophy size={160} color="rgba(255,255,255,.05)" style={{ position: 'absolute', right: 24, bottom: -24 }} />}
-        <div className="home-hero-content" style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', alignItems: 'center', gap: 24, padding: '0 40px' }}>
+        <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', alignItems: 'center', gap: 24, padding: '0 40px' }}>
           {data.meta.logoUrl && (
-            <img className="home-hero-logo" src={data.meta.logoUrl} alt="" style={{ width: 140, height: 140, borderRadius: 16, objectFit: 'cover', background: 'rgba(255,255,255,.15)', flexShrink: 0, boxShadow: '0 10px 25px rgba(0,0,0,.2)' }}
+            <img src={data.meta.logoUrl} alt="" style={{ width: 140, height: 140, borderRadius: 16, objectFit: 'cover', background: 'rgba(255,255,255,.15)', flexShrink: 0, boxShadow: '0 10px 25px rgba(0,0,0,.2)' }}
               onError={e => { e.currentTarget.style.display = 'none'; }} />
           )}
           <div>
-            <div className="font-display home-hero-title" style={{ fontWeight: 800, fontSize: 36, color: '#fff', lineHeight: 1.1, maxWidth: 500, textShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>{data.meta.name}</div>
+            <div className="font-display" style={{ fontWeight: 800, fontSize: 36, color: '#fff', lineHeight: 1.1, maxWidth: 500, textShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>{data.meta.name}</div>
             <div style={{ fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,.9)', marginTop: 12, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{data.meta.category || 'Futbolito'}</div>
           </div>
         </div>
@@ -2296,7 +2057,7 @@ function TablaTab({ data, standings, onViewTeam }) {
       <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}>
         <button className="btn btn-outline btn-sm" onClick={() => window.print()}><FileText size={14} /> Imprimir / PDF</button>
       </div>
-      <div className="card table-scroll" style={{ overflowX: 'auto' }}>
+      <div className="card" style={{ overflowX: 'auto' }}>
         <table className="data-table">
           <thead>
             <tr>
@@ -2428,12 +2189,12 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-        <select className="input mobile-filter" style={{ width: 240 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
+        <select className="input" style={{ width: 240 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
           <option value="all">Todos los equipos</option>
           {data.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
         </select>
         {isAdmin && (
-          <div className="mobile-action-group" style={{ display: 'flex', gap: 10 }}>
+          <div style={{ display: 'flex', gap: 10 }}>
             <button className="btn btn-outline" disabled={data.teams.length === 0} onClick={() => setModal('bulk')}><FileText size={16} /> Pegar lista</button>
             <button className="btn btn-primary" disabled={data.teams.length === 0} onClick={() => setModal('new')}><Plus size={16} /> Agregar jugador</button>
           </div>
@@ -2446,7 +2207,7 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
         ? <EmptyState Icon={User} title="Sin jugadores" text="Agrega jugadores y asígnalos a un equipo para llevar sus goles y tarjetas." />
         : (
           <>
-            <div className="card table-scroll" style={{ overflowX: 'auto' }}>
+            <div className="card" style={{ overflowX: 'auto' }}>
               <table className="data-table">
                 <thead><tr><th>Jugador</th><th style={{textAlign: 'center'}}>#</th><th>Equipo</th><th>Edad</th>{isAdmin && <th></th>}</tr></thead>
                 <tbody>
@@ -2536,7 +2297,6 @@ function MatchRow({ m, teams, onOpen, last, clickable }) {
   const isClickable = clickable !== false;
   return (
     <div onClick={isClickable ? onOpen : undefined}
-      className="match-row"
       style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', cursor: isClickable ? 'pointer' : 'default', borderBottom: last ? 'none' : '1px solid #F1F5F9', transition: 'background 0.2s' }}
       onMouseOver={e => isClickable && (e.currentTarget.style.background = '#F8FAFC')}
       onMouseOut={e => isClickable && (e.currentTarget.style.background = 'transparent')}>
@@ -2793,214 +2553,6 @@ function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, 
   );
 }
 
-function validateAgeRule(teamPlayers) {
-  const over50 = teamPlayers.filter(p => p.age !== '' && p.age !== null && Number(p.age) >= 50).length;
-  const over40 = teamPlayers.filter(p => p.age !== '' && p.age !== null && Number(p.age) >= 40 && Number(p.age) < 50).length;
-  return {
-    valid: over50 >= 2 && over40 >= 1,
-    over50,
-    over40
-  };
-}
-
-function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, onDelete, onSwap }) {
-  const teamA = teams.find(t => t.id === match.teamAId);
-  const teamB = teams.find(t => t.id === match.teamBId);
-  const playersA = players.filter(p => p.teamId === match.teamAId);
-  const playersB = players.filter(p => p.teamId === match.teamBId);
-
-  const ruleA = validateAgeRule(playersA);
-  const ruleB = validateAgeRule(playersB);
-
-  const initStats = {};
-  [...playersA, ...playersB].forEach(p => {
-    const existing = match.playerStats && match.playerStats[p.id];
-    initStats[p.id] = { goals: existing ? existing.goals || 0 : 0, yellow: existing ? !!existing.yellow : false, red: existing ? !!existing.red : false };
-  });
-
-  const [scoreA, setScoreA] = useState(match.scoreA || 0);
-  const [scoreB, setScoreB] = useState(match.scoreB || 0);
-  const [stats, setStats] = useState(initStats);
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const [date, setDate] = useState(match.date || '');
-  const [time, setTime] = useState(match.time || '');
-
-  const conflict = (date && time && allMatches)
-    ? allMatches.find(m => m.id !== match.id && m.date === date && m.time === time)
-    : null;
-  const conflictTeamA = conflict ? teams.find(t => t.id === conflict.teamAId) : null;
-  const conflictTeamB = conflict ? teams.find(t => t.id === conflict.teamBId) : null;
-
-  const setPlayerField = (pid, field, value) => setStats(prev => ({ ...prev, [pid]: { ...prev[pid], [field]: value } }));
-  const sumGoals = (list) => list.reduce((acc, p) => acc + (Number(stats[p.id]?.goals) || 0), 0);
-
-  const renderPlayerRows = (list) => list.length === 0
-    ? <div style={{ fontSize: 13, color: '#94A3B8', padding: '12px 0' }}>Sin jugadores registrados en este equipo.</div>
-    : list.map(p => (
-      <div key={p.id} className="player-stat-row" style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
-        <div style={{ flex: 1, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
-          {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700 }}>#{p.number}</span> : null} {p.name}
-        </div>
-        <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', padding: '8px' }}
-          value={stats[p.id]?.goals ?? 0}
-          onChange={e => setPlayerField(p.id, 'goals', Math.max(0, Number(e.target.value)))} />
-        <label className="checkbox-row" title="Tarjeta amarilla">
-          <input type="checkbox" checked={!!stats[p.id]?.yellow} onChange={e => setPlayerField(p.id, 'yellow', e.target.checked)} />
-          <span className="card-chip yellow" />
-        </label>
-        <label className="checkbox-row" title="Tarjeta roja">
-          <input type="checkbox" checked={!!stats[p.id]?.red} onChange={e => setPlayerField(p.id, 'red', e.target.checked)} />
-          <span className="card-chip red" />
-        </label>
-      </div>
-    ));
-
-  return (
-    <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Resultado'} onClose={onClose}>
-      <div className="match-scoreboard" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
-          <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', fontSize: 20, fontWeight: 800, padding: '10px' }} value={scoreA} onChange={e => setScoreA(Math.max(0, Number(e.target.value)))} />
-          <span className="font-display" style={{ color: '#94A3B8', fontWeight: 700, fontSize: 16 }}>VS</span>
-          <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', fontSize: 20, fontWeight: 800, padding: '10px' }} value={scoreB} onChange={e => setScoreB(Math.max(0, Number(e.target.value)))} />
-          <div style={{ flex: 1 }}><TeamChip team={teamB} /></div>
-        </div>
-        <div style={{ textAlign: 'center', fontSize: 12, color: '#64748B', marginTop: 12 }}>
-          Suma de goleadores registrados: {sumGoals(playersA)} - {sumGoals(playersB)}
-        </div>
-      </div>
-
-      <div className="grid-2" style={{ marginBottom: conflict ? 10 : 24 }}>
-        <div>
-          <label className="field-label">Fecha</label>
-          <input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} />
-        </div>
-        <div>
-          <label className="field-label">Hora</label>
-          <input className="input" type="time" value={time} onChange={e => setTime(e.target.value)} />
-        </div>
-      </div>
-      {conflict && (
-        <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '12px 16px', marginBottom: 24, fontSize: 13, color: '#DC2626', flexWrap: 'wrap' }}>
-          <AlertTriangle size={16} style={{ flexShrink: 0, marginTop: 2 }} />
-          <span style={{ flex: 1, minWidth: 200, lineHeight: 1.5 }}>
-            Ya hay otro partido a esta misma fecha y hora: <strong>{conflictTeamA ? conflictTeamA.name : '—'} vs {conflictTeamB ? conflictTeamB.name : '—'}</strong>
-          </span>
-          <button type="button" className="btn btn-outline btn-sm" style={{ borderColor: '#FCA5A5', color: '#DC2626' }}
-            onClick={() => {
-              onSwap(conflict.phase, conflict.id, { date: match.date, time: match.time });
-              onSave({ date, time });
-            }}>
-            Intercambiar horarios
-          </button>
-        </div>
-      )}
-
-      <div className="grid-2" style={{ gap: 24 }}>
-        <div>
-          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamA} size="md" /></div>
-          {!ruleA.valid && (
-            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
-              <span>Plantilla incompleta: Tiene {ruleA.over50}/2 de 50+ y {ruleA.over40}/1 de 40-49.</span>
-            </div>
-          )}
-          {renderPlayerRows(playersA)}
-        </div>
-        <div>
-          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamB} size="md" /></div>
-          {!ruleB.valid && (
-            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
-              <span>Plantilla incompleta: Tiene {ruleB.over50}/2 de 50+ y {ruleB.over40}/1 de 40-49.</span>
-            </div>
-          )}
-          {renderPlayerRows(playersB)}
-        </div>
-      </div>
-
-      <div className="modal-actions match-result-actions" style={{ borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, paddingTop: 16, flexWrap: 'wrap', gap: 10 }}>
-        {confirmDelete
-          ? <ConfirmInline text="¿Eliminar partido?" onConfirm={() => onDelete(match.id)} onCancel={() => setConfirmDelete(false)} />
-          : <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(true)}><Trash2 size={14} /> Eliminar partido</button>}
-        <div className="modal-action-buttons" style={{ display: 'flex', gap: 10 }}>
-          <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
-          <button className="btn btn-outline" onClick={() => onSave({ date, time })}>Guardar horario</button>
-          <button className="btn btn-primary" onClick={() => onSave({ date, time, scoreA: Number(scoreA), scoreB: Number(scoreB), played: true, playerStats: stats })}>
-            <Check size={16} /> Guardar resultado
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-function MatchDetailModal({ match, teams, players, onClose }) {
-  const teamA = teams.find(t => t.id === match.teamAId);
-  const teamB = teams.find(t => t.id === match.teamBId);
-  const playersA = players.filter(p => p.teamId === match.teamAId);
-  const playersB = players.filter(p => p.teamId === match.teamBId);
-  
-  const ruleA = validateAgeRule(playersA);
-  const ruleB = validateAgeRule(playersB);
-  
-  const statFor = (pid) => (match.playerStats && match.playerStats[pid]) || { goals: 0, yellow: false, red: false };
-
-  const renderList = (list) => list.length === 0
-    ? <div style={{ fontSize: 13, color: '#94A3B8', padding: '12px 0' }}>Sin jugadores registrados en este equipo.</div>
-    : list.map(p => {
-      const s = statFor(p.id);
-      return (
-        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
-          <Avatar size={28} />
-          <div style={{ flex: 1, fontSize: 14, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700, marginRight: 8 }}>#{p.number}</span> : null}
-            {p.name}
-          </div>
-          {s.goals > 0 && <span style={{ fontSize: 13, color: '#22C55E', fontWeight: 800, flexShrink: 0 }}>⚽ {s.goals}</span>}
-          <CardBadge yellow={s.yellow ? 1 : 0} red={s.red ? 1 : 0} />
-        </div>
-      );
-    });
-
-  return (
-    <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Alineación'} onClose={onClose}>
-      <div className="match-scoreboard" style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
-          {match.played
-            ? <div className="font-display" style={{ fontSize: 24, fontWeight: 800, color: '#0F172A', border: '1px solid #E2E8F0', borderRadius: 10, padding: '6px 16px', background: '#fff' }}>{match.scoreA} : {match.scoreB}</div>
-            : <span className="status-pill pending" style={{ fontSize: 12, padding: '6px 14px' }}>Programado</span>}
-          <div style={{ flex: 1 }}><TeamChip team={teamB} /></div>
-        </div>
-        {match.date && <div style={{ textAlign: 'center', fontSize: 12.5, color: '#64748B', marginTop: 12 }}>{formatDateTime(match.date, match.time)}</div>}
-      </div>
-
-      <div className="grid-2" style={{ gap: 24 }}>
-        <div>
-          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamA} size="md" /></div>
-          {!ruleA.valid && (
-            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
-              <span>Plantilla incompleta: Tiene {ruleA.over50}/2 de 50+ y {ruleA.over40}/1 de 40-49.</span>
-            </div>
-          )}
-          {renderList(playersA)}
-        </div>
-        <div>
-          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamB} size="md" /></div>
-          {!ruleB.valid && (
-            <div style={{ background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '8px 12px', marginBottom: 12, fontSize: 12, color: '#DC2626', display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-              <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 2 }} />
-              <span>Plantilla incompleta: Tiene {ruleB.over50}/2 de 50+ y {ruleB.over40}/1 de 40-49.</span>
-            </div>
-          )}
-          {renderList(playersB)}
-        </div>
-      </div>
-    </Modal>
-  );
-}
 
 function SancionesTab({ data, isAdmin, onMarkServed }) {
   const withStats = data.players.map(p => ({ p, stats: getPlayerStats(p.id, data) }));

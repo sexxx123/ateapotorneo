@@ -259,7 +259,7 @@ function GlobalStyles() {
       .sidebar-footer-link.logout:hover { background: rgba(239, 68, 68, 0.1) !important; color: #FCA5A5 !important; }
       
       /* EL CONTENIDO RESPETA EL ANCHO DEL SIDEBAR EN COMPUTADORA */
-      .main-area { flex: 1; padding: 36px 48px; min-width: 0; margin-left: 260px; width: calc(100% - 260px); }
+      .main-area { flex: 1; padding: 36px 48px; min-width: 0; margin-left: 260px; width: auto; }
       .page-header { margin-bottom: 32px; }
       .page-title { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 32px; color: #0F172A; letter-spacing: -0.02em; line-height: 1.15; }
       .page-subtitle { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 15px; color: #64748B; margin-top: 6px; }

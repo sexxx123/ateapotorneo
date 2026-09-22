@@ -234,11 +234,21 @@ function GlobalStyles() {
       .font-display { font-family: 'Poppins', sans-serif; }
       .app-shell { display: flex; height: 100vh; width: 100%; overflow: hidden; }
       
-      /* SIDEBAR TOTALMENTE FIJO PARA COMPUTADORA (ya no usa position: fixed) */
+      /* SIDEBAR FIJO EN ESCRITORIO: no se mueve al hacer scroll */
       .sidebar { 
-        width: 260px; height: 100vh; flex-shrink: 0; background: #0B1121; border-right: 1px solid rgba(255,255,255,0.05); 
-        display: flex; flex-direction: column; padding: 28px 20px; z-index: 1000; 
-        overflow-y: auto; overflow-x: hidden;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 260px;
+        height: 100vh;
+        flex-shrink: 0;
+        background: #0B1121;
+        border-right: 1px solid rgba(255,255,255,0.05); 
+        display: flex;
+        flex-direction: column;
+        padding: 28px 20px;
+        z-index: 1000;
+        overflow: hidden;
       }
       .sidebar::-webkit-scrollbar { width: 4px; }
       .sidebar::-webkit-scrollbar-track { background: transparent; }
@@ -258,8 +268,17 @@ function GlobalStyles() {
       .sidebar-user-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
       .sidebar-footer-link.logout:hover { background: rgba(239, 68, 68, 0.1) !important; color: #FCA5A5 !important; }
       
-      /* EL CONTENIDO YA NO NECESITA MARGIN-LEFT: flexbox lo acomoda solo, y tiene su propio scroll */
-      .main-area { flex: 1; padding: 36px 48px; min-width: 0; width: auto; height: 100vh; overflow-y: auto; }
+      /* SOLO EL CONTENIDO DE LA DERECHA HACE SCROLL */
+      .main-area {
+        flex: 1;
+        margin-left: 260px;
+        padding: 36px 48px;
+        min-width: 0;
+        width: calc(100% - 260px);
+        height: 100vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
       .page-header { margin-bottom: 32px; }
       .page-title { font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 32px; color: #0F172A; letter-spacing: -0.02em; line-height: 1.15; }
       .page-subtitle { font-family: 'Inter', sans-serif; font-weight: 500; font-size: 15px; color: #64748B; margin-top: 6px; }
@@ -1204,7 +1223,530 @@ function Sidebar({ tab, setTab, isAdmin, sessionEmail, onOpenSettings, onLogout,
     </div>
   );
 }
+/* ---------- Tabs Faltantes ---------- */
 
+function QuickStat({ label, value, isText, onClick }) {
+  return (
+    <button onClick={onClick} className="card" style={{ padding: '20px', textAlign: 'left', cursor: 'pointer', width: '100%', border: 'none' }}>
+      <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
+      <div className="font-display" style={{ fontSize: isText ? 16 : 28, fontWeight: 800, color: '#0F172A', marginTop: 6 }}>{value}</div>
+    </button>
+  );
+}
+
+function PremiosSection({ data }) {
+  const withStats = data.players.map(p => ({ p, stats: getPlayerStats(p.id, data) }));
+  const topScorer = [...withStats].filter(x => x.stats.goals > 0).sort((a, b) => b.stats.goals - a.stats.goals)[0];
+  const hasChampion = !!data.meta.championText;
+  const hasRunnerUp = !!data.meta.runnerUpText;
+  if (!hasChampion && !hasRunnerUp && !topScorer) return null;
+
+  return (
+    <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+      <div className="font-display" style={{ fontWeight: 700, fontSize: 18, color: '#0F172A', marginBottom: 20 }}>Premios</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 20 }}>
+        {hasChampion && (
+          <div style={{ textAlign: 'center' }}>
+            <Trophy size={36} color="#EAB308" style={{ margin: '0 auto 12px' }} />
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Campeón</div>
+            <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#0F172A', marginTop: 6 }}>{data.meta.championText}</div>
+          </div>
+        )}
+        {hasRunnerUp && (
+          <div style={{ textAlign: 'center' }}>
+            <Award size={36} color="#94A3B8" style={{ margin: '0 auto 12px' }} />
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>2° Puesto</div>
+            <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#0F172A', marginTop: 6 }}>{data.meta.runnerUpText}</div>
+          </div>
+        )}
+        {topScorer && (
+          <div style={{ textAlign: 'center' }}>
+            <BarChart3 size={36} color="#22C55E" style={{ margin: '0 auto 12px' }} />
+            <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Máximo goleador</div>
+            <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#0F172A', marginTop: 6 }}>{topScorer.p.name} ({topScorer.stats.goals})</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteNews }) {
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [newsModalOpen, setNewsModalOpen] = useState(false);
+  const [confirmDeleteNewsId, setConfirmDeleteNewsId] = useState(null);
+  const news = data.news || [];
+  return (
+    <div>
+      <div className="info-strip home-info-strip" style={{ marginBottom: 24 }}>
+        <div className="info-strip-item"><div className="lbl">Inicio</div><div className="val">{formatDate(data.meta.startDate) || 'Por definir'}</div></div>
+        <div className="info-strip-item"><div className="lbl">Finalización</div><div className="val">{formatDate(data.meta.endDate) || 'Por definir'}</div></div>
+        <div className="info-strip-item"><div className="lbl">Organizador</div><div className="val">{data.meta.organizerName || 'Por definir'}</div></div>
+        <div style={{ flex: 1 }} />
+        <button className="btn btn-outline btn-sm" onClick={() => setRulesOpen(true)}><FileText size={14} /> Reglas del campeonato</button>
+      </div>
+
+      <div className="home-hero" style={{ position: 'relative', height: 220, borderRadius: 16, overflow: 'hidden', marginBottom: 24, background: '#0F172A', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
+        <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', clipPath: 'polygon(42% 0, 100% 0, 68% 100%, 0 100%)' }} />
+        {!data.meta.logoUrl && <Trophy size={160} color="rgba(255,255,255,.05)" style={{ position: 'absolute', right: 24, bottom: -24 }} />}
+        <div className="home-hero-content" style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', alignItems: 'center', gap: 24, padding: '0 40px' }}>
+          {data.meta.logoUrl && (
+            <img className="home-hero-logo" src={data.meta.logoUrl} alt="" style={{ width: 140, height: 140, borderRadius: 16, objectFit: 'cover', background: 'rgba(255,255,255,.15)', flexShrink: 0, boxShadow: '0 10px 25px rgba(0,0,0,.2)' }}
+              onError={e => { e.currentTarget.style.display = 'none'; }} />
+          )}
+          <div>
+            <div className="font-display home-hero-title" style={{ fontWeight: 800, fontSize: 36, color: '#fff', lineHeight: 1.1, maxWidth: 500, textShadow: '0 4px 10px rgba(0,0,0,0.2)' }}>{data.meta.name}</div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: 'rgba(255,255,255,.9)', marginTop: 12, textTransform: 'uppercase', letterSpacing: '0.1em' }}>{data.meta.category || 'Futbolito'}</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+        <div className="font-display" style={{ fontWeight: 700, fontSize: 18, color: '#0F172A', marginBottom: 12 }}>Acerca de</div>
+        <div style={{ fontSize: 14.5, color: '#475569', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{data.meta.description || 'Todavía no hay una descripción del torneo.'}</div>
+      </div>
+
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 16, marginBottom: 24 }}>
+        <QuickStat label="Equipos" value={data.teams.length} onClick={() => onNavigate('equipos')} />
+        <QuickStat label="Jugadores" value={data.players.length} onClick={() => onNavigate('jugadores')} />
+        <QuickStat label="Partidos" value={data.matches.length + data.playoffMatches.length} onClick={() => onNavigate('partidos')} />
+        <QuickStat label="Clasificación" value="Ver tabla" isText onClick={() => onNavigate('tabla')} />
+      </div>
+
+      <PremiosSection data={data} />
+
+      <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: news.length > 0 ? 20 : 12 }}>
+          <div className="font-display" style={{ fontWeight: 700, fontSize: 18, color: '#0F172A' }}>Noticias</div>
+          {isAdmin && <button className="btn btn-outline btn-sm" onClick={() => setNewsModalOpen(true)}><Plus size={14} /> Agregar</button>}
+        </div>
+        {news.length === 0 ? <div style={{ fontSize: 13.5, color: '#94A3B8' }}>Todavía no hay noticias publicadas.</div> : news.map((n, idx) => (
+          <div key={n.id} style={{ display: 'flex', gap: 16, padding: '16px 0', borderTop: idx === 0 ? 'none' : '1px solid #F1F5F9' }}>
+            {n.imageUrl && <img src={n.imageUrl} alt="" style={{ width: 100, height: 100, borderRadius: 10, objectFit: 'cover', flexShrink: 0, border: '1px solid #E2E8F0' }} onError={e => { e.currentTarget.style.display = 'none'; }} />}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#0F172A' }}>{n.title}</div>
+                {isAdmin && (confirmDeleteNewsId === n.id ? <ConfirmInline text="¿Eliminar?" onConfirm={() => { onDeleteNews(n.id); setConfirmDeleteNewsId(null); }} onCancel={() => setConfirmDeleteNewsId(null)} /> : <button className="icon-btn-subtle" style={{ flexShrink: 0 }} onClick={() => setConfirmDeleteNewsId(n.id)}><Trash2 size={14} /></button>)}
+              </div>
+              <div style={{ fontSize: 12, color: '#64748B', margin: '4px 0 10px' }}>{formatDate(n.date)}</div>
+              {n.body && <div style={{ fontSize: 14, color: '#475569', lineHeight: 1.6, whiteSpace: 'pre-wrap' }}>{n.body}</div>}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {data.teams.length > 0 && (
+        <div className="card" style={{ padding: 24, marginBottom: 24 }}>
+          <div className="font-display" style={{ fontWeight: 700, fontSize: 18, color: '#0F172A', marginBottom: 20 }}>Equipos</div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: 20 }}>
+            {data.teams.map(t => (
+              <button key={t.id} onClick={() => onViewTeam(t.id)} style={{ display: 'flex', flexDirection: 'column', gap: 10, background: 'transparent', border: 'none', cursor: 'pointer', padding: 0, textAlign: 'left', transition: 'transform 0.2s' }}>
+                <div style={{ position: 'relative', width: '100%', aspectRatio: '1', borderRadius: 12, overflow: 'hidden', background: t.color + '15', border: '1px solid #E2E8F0', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                  {t.photoUrl ? <img src={t.photoUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover' }} onError={e => { e.currentTarget.style.display = 'none'; }} /> : <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Users size={36} color={t.color} style={{ opacity: .4 }} /></div>}
+                  <div style={{ position: 'absolute', left: 10, bottom: 10, filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }}><Crest team={t} size="sm" /></div>
+                </div>
+                <div style={{ fontSize: 13.5, fontWeight: 600, color: '#0F172A', textAlign: 'center', lineHeight: 1.3 }}>{t.name}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {data.meta.venueAddress && (
+        <div className="card" style={{ padding: 24, marginBottom: 24, overflow: 'hidden' }}>
+          <div className="font-display" style={{ fontWeight: 700, fontSize: 18, color: '#0F172A', marginBottom: 10, display: 'flex', alignItems: 'center', gap: 10 }}><MapPin size={18} color="#22C55E" /> Sitio</div>
+          <div style={{ fontSize: 14.5, color: '#475569', marginBottom: 16 }}>{data.meta.venueAddress}</div>
+          <div style={{ borderRadius: 12, overflow: 'hidden', border: '1px solid #E2E8F0' }}>
+            <iframe title="Mapa del sitio" width="100%" height="280" style={{ border: 0, display: 'block' }} loading="lazy" src={`https://maps.google.com/maps?q=${encodeURIComponent(data.meta.venueAddress)}&output=embed`} />
+          </div>
+        </div>
+      )}
+
+      {rulesOpen && (
+        <Modal title="Reglas del campeonato" onClose={() => setRulesOpen(false)}>
+          {data.meta.rulesPdfUrl && <a href={data.meta.rulesPdfUrl} target="_blank" rel="noreferrer" className="btn btn-primary" style={{ marginBottom: data.meta.rules ? 20 : 0 }}><FileText size={16} /> Ver / descargar PDF</a>}
+          {data.meta.rules ? <div style={{ fontSize: 14.5, color: '#1E293B', lineHeight: 1.7, whiteSpace: 'pre-wrap' }}>{data.meta.rules}</div> : (!data.meta.rulesPdfUrl && <div style={{ fontSize: 14, color: '#64748B' }}>Todavía no hay reglas publicadas.</div>)}
+        </Modal>
+      )}
+      {isAdmin && newsModalOpen && <NewsFormModal onClose={() => setNewsModalOpen(false)} onSave={(item) => { onAddNews(item); setNewsModalOpen(false); }} />}
+    </div>
+  );
+}
+
+function TablaTab({ data, standings, onViewTeam }) {
+  if (data.teams.length === 0) return <EmptyState Icon={Table2} title="Todavía no hay tabla" text="Agrega equipos en la pestaña Equipos para que la tabla empiece a calcularse automáticamente." />;
+  const relegation = data.meta.relegationSpots || 0;
+  const n = standings.length;
+  return (
+    <div>
+      <div className="no-print" style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 16 }}><button className="btn btn-outline btn-sm" onClick={() => window.print()}><FileText size={14} /> Imprimir / PDF</button></div>
+      <div className="card table-scroll" style={{ overflowX: 'auto' }}>
+        <table className="data-table">
+          <thead><tr><th>#</th><th>Equipo</th><th>Pts</th><th>PJ</th><th>PG</th><th>PE</th><th>PP</th><th>GF</th><th>GC</th><th>DIF</th></tr></thead>
+          <tbody>
+            {standings.map((row, i) => {
+              const team = data.teams.find(t => t.id === row.teamId);
+              const qualifies = i < (data.meta.playoffSpots || 0);
+              const relegated = relegation > 0 && i >= n - relegation;
+              return (
+                <tr key={row.teamId} className={(i % 2 === 1 ? 'row-alt ' : '') + (qualifies ? 'zone-top' : relegated ? 'zone-bottom' : '')}>
+                  <td>{i + 1}</td><td className="team-name-cell"><TeamChip team={team} size="sm" onClick={team ? () => onViewTeam(team.id) : undefined} /></td>
+                  <td style={{ color: '#22C55E', fontWeight: 800 }}>{row.pts}</td><td>{row.pj}</td><td>{row.pg}</td><td>{row.pe}</td><td>{row.pp}</td><td>{row.gf}</td><td>{row.gc}</td><td>{row.dg > 0 ? '+' + row.dg : row.dg}</td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div style={{ display: 'flex', gap: 20, marginTop: 12, flexWrap: 'wrap' }}>
+        {data.meta.playoffSpots > 0 && <div style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}><span style={{ width: 12, height: 12, background: '#22C55E', borderRadius: 4 }} /> Clasifica a playoffs</div>}
+        {relegation > 0 && <div style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}><span style={{ width: 12, height: 12, background: '#EF4444', borderRadius: 4 }} /> Zona de alerta</div>}
+      </div>
+    </div>
+  );
+}
+
+function EquiposTab({ data, isAdmin, onAdd, onEdit, onDelete, standings, onViewTeam }) {
+  const [modal, setModal] = useState(null);
+  const [confirmId, setConfirmId] = useState(null);
+  return (
+    <div>
+      {isAdmin && <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}><button className="btn btn-primary" onClick={() => setModal('new')}><Plus size={16} /> Agregar equipo</button></div>}
+      {data.teams.length === 0 ? <EmptyState Icon={Users} title="Sin equipos todavía" text="Agrega el primer equipo del campeonato." /> : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
+          {data.teams.map(team => {
+            const row = standings.find(s => s.teamId === team.id);
+            const playerCount = data.players.filter(p => p.teamId === team.id).length;
+            return (
+              <div key={team.id} className="team-card">
+                <div className="team-card-accent" style={{ background: team.color }} />
+                <div className="team-card-header">
+                  <div className="team-card-title-group" onClick={() => onViewTeam(team.id)}><Crest team={team} size="md" /><div className="team-card-title">{team.name}</div></div>
+                  {isAdmin && <div className="team-card-actions"><button className="icon-btn-subtle" onClick={() => setModal(team.id)}><Pencil size={14} /></button>{confirmId !== team.id && <button className="icon-btn-subtle danger" onClick={() => setConfirmId(team.id)}><Trash2 size={14} /></button>}</div>}
+                </div>
+                <div className="team-card-body">
+                  <div className="team-card-players"><Users size={14} /> {playerCount} jugador{playerCount !== 1 ? 'es' : ''}</div>
+                  <div className="team-card-stats"><span><strong>{row ? row.pj : 0}</strong> PJ</span><span className="dot">•</span><span><strong>{row ? row.pts : 0}</strong> PTS</span><span className="dot">•</span><span>DIF <strong>{row ? row.dg : 0}</strong></span></div>
+                </div>
+                {isAdmin && confirmId === team.id && <div style={{ padding: '0 16px 16px' }}><ConfirmInline text="¿Eliminar equipo?" onConfirm={() => { onDelete(team.id); setConfirmId(null); }} onCancel={() => setConfirmId(null)} /></div>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {isAdmin && modal === 'new' && <TeamFormModal onClose={() => setModal(null)} onSave={(p) => { onAdd(p); setModal(null); }} />}
+      {isAdmin && modal && modal !== 'new' && <TeamFormModal initial={data.teams.find(t => t.id === modal)} onClose={() => setModal(null)} onSave={(p) => { onEdit(modal, p); setModal(null); }} />}
+    </div>
+  );
+}
+
+function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
+  const [modal, setModal] = useState(null);
+  const [filterTeam, setFilterTeam] = useState('all');
+  const [confirmId, setConfirmId] = useState(null);
+  const filtered = data.players.filter(p => filterTeam === 'all' || p.teamId === filterTeam);
+
+  return (
+    <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+        <select className="input mobile-filter" style={{ width: 240 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
+          <option value="all">Todos los equipos</option>
+          {data.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+        </select>
+        {isAdmin && (
+          <div className="mobile-action-group" style={{ display: 'flex', gap: 10 }}>
+            <button className="btn btn-outline" disabled={data.teams.length === 0} onClick={() => setModal('bulk')}><FileText size={16} /> Pegar lista</button>
+            <button className="btn btn-primary" disabled={data.teams.length === 0} onClick={() => setModal('new')}><Plus size={16} /> Agregar jugador</button>
+          </div>
+        )}
+      </div>
+
+      {filtered.length === 0 ? <EmptyState Icon={User} title="Sin jugadores" text="Agrega jugadores y asígnalos a un equipo." /> : (
+        <>
+          <div className="card table-scroll" style={{ overflowX: 'auto' }}>
+            <table className="data-table">
+              <thead><tr><th>Jugador</th><th style={{textAlign: 'center'}}>#</th><th>Equipo</th><th>Edad</th>{isAdmin && <th></th>}</tr></thead>
+              <tbody>
+                {filtered.map((p) => {
+                  const team = data.teams.find(t => t.id === p.teamId);
+                  const ac = ageColor(p.age);
+                  return (
+                    <tr key={p.id}>
+                      <td className="team-name-cell"><span style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}><Avatar size={32} /><span style={{fontWeight: 500, fontSize: 14.5}}>{p.name}</span></span></td>
+                      <td style={{textAlign: 'center'}}>{p.number !== '' && p.number !== undefined ? <span className="dorsal-text">#{p.number}</span> : <span style={{color: '#94A3B8'}}>—</span>}</td>
+                      <td><TeamChip team={team} size="md" /></td>
+                      <td>{p.age !== '' && p.age !== undefined ? <span style={{ fontSize: 12.5, fontWeight: 700, padding: '4px 12px', borderRadius: 8, background: ac.bg, color: ac.fg }}>{p.age}</span> : <span style={{ color: '#CBD5E1' }}>—</span>}</td>
+                      {isAdmin && <td>{confirmId === p.id ? <ConfirmInline text="¿Eliminar?" onConfirm={() => { onDelete(p.id); setConfirmId(null); }} onCancel={() => setConfirmId(null)} /> : <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}><button className="icon-btn-subtle" onClick={() => setModal(p.id)}><Pencil size={14} /></button><button className="icon-btn-subtle danger" onClick={() => setConfirmId(p.id)}><Trash2 size={14} /></button></div>}</td>}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </>
+      )}
+      {isAdmin && modal === 'new' && <PlayerFormModal teams={data.teams} defaultTeamId={filterTeam !== 'all' ? filterTeam : undefined} onClose={() => setModal(null)} onSave={(p) => { onAdd(p); setModal(null); }} />}
+      {isAdmin && modal === 'bulk' && <BulkPlayersModal teams={data.teams} defaultTeamId={filterTeam !== 'all' ? filterTeam : undefined} onClose={() => setModal(null)} onSave={(teamId, players) => { onBulkAdd(teamId, players); setModal(null); }} />}
+      {isAdmin && modal && modal !== 'new' && modal !== 'bulk' && <PlayerFormModal teams={data.teams} initial={data.players.find(p => p.id === modal)} onClose={() => setModal(null)} onSave={(p) => { onEdit(modal, p); setModal(null); }} />}
+    </div>
+  );
+}
+
+function MatchList({ matches, teams, groupByJornada, clickable, onOpenResult }) {
+  if (matches.length === 0) return null;
+  if (!groupByJornada) {
+    return <div className="card">{matches.map((m, idx) => <MatchRow key={m.id} m={m} teams={teams} clickable={clickable} onOpen={() => onOpenResult(m)} last={idx === matches.length - 1} />)}</div>;
+  }
+  const jornadas = [...new Set(matches.map(m => m.jornada))].sort((a, b) => a - b);
+  return jornadas.map(j => (
+    <div key={j} style={{ marginBottom: 24 }}>
+      <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Jornada {j}</div>
+      <div className="card">{matches.filter(m => m.jornada === j).map((m, idx, arr) => <MatchRow key={m.id} m={m} teams={teams} clickable={clickable} onOpen={() => onOpenResult(m)} last={idx === arr.length - 1} />)}</div>
+    </div>
+  ));
+}
+
+function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch }) {
+  const [modal, setModal] = useState(null);
+  const [confirmGenerate, setConfirmGenerate] = useState(false);
+  const [confirmSchedule, setConfirmSchedule] = useState(false);
+  const openMatch = data.matches.find(m => m.id === modal);
+  const maxJornada = data.matches.reduce((mx, m) => Math.max(mx, m.jornada || 0), 0);
+
+  return (
+    <div>
+      {isAdmin && (
+        <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            {data.teams.length >= 2 && (confirmGenerate ? <ConfirmInline text="¿Generar fixture y sobreescribir actual?" onConfirm={() => { onGenerateFixture(); setConfirmGenerate(false); }} onCancel={() => setConfirmGenerate(false)} /> : <button className="btn btn-outline" onClick={() => setConfirmGenerate(true)}><Calendar size={16} /> Generar fixture automático</button>)}
+            {data.matches.length > 0 && (confirmSchedule ? <ConfirmInline text="¿Reemplazar horarios automáticos?" onConfirm={() => { onAutoSchedule(); setConfirmSchedule(false); }} onCancel={() => setConfirmSchedule(false)} /> : <button className="btn btn-outline" onClick={() => setConfirmSchedule(true)}><Clock size={16} /> Asignar horarios</button>)}
+          </div>
+          <button className="btn btn-primary" disabled={data.teams.length < 2} onClick={() => setModal('new')}><Plus size={16} /> Agregar partido</button>
+        </div>
+      )}
+
+      {data.teams.length < 2 && <EmptyState Icon={Calendar} title="Faltan equipos" text="Necesitas al menos dos equipos." />}
+      {data.teams.length >= 2 && data.matches.length === 0 && <EmptyState Icon={Calendar} title="Sin partidos" text="Genera el fixture automático." />}
+      {data.matches.length > 0 && <MatchList matches={data.matches} teams={data.teams} groupByJornada clickable onOpenResult={(m) => setModal(m.id)} />}
+
+      {isAdmin && modal === 'new' && <MatchFormModal teams={data.teams} phase="liga" suggestedJornada={maxJornada + 1 || 1} onClose={() => setModal(null)} onSave={(p) => { onAddMatch(p); setModal(null); }} />}
+      {openMatch && (
+        isAdmin ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players} allMatches={[...data.matches, ...data.playoffMatches]} data={data} onSwap={onSaveAnyMatch} onClose={() => setModal(null)} onSave={(payload) => { onSaveResult(openMatch.id, payload); setModal(null); }} onDelete={(id) => { onDeleteMatch(id); setModal(null); }} /> : <MatchDetailModal match={openMatch} teams={data.teams} players={data.players} data={data} onClose={() => setModal(null)} />
+      )}
+    </div>
+  );
+}
+
+const BRACKET_ROUNDS = ['Cuartos de Final', 'Semifinal', 'Final'];
+const BRACKET_SLOT_BASE_HEIGHT = 70;
+const BRACKET_CARD_WIDTH = 230;
+const BRACKET_GAP_WIDTH = 48;
+
+function buildConnectorPath(count, slotHeight, gapWidth) {
+  let d = ''; const midX = gapWidth / 2;
+  for (let i = 0; i < count; i += 2) { const y1 = i * slotHeight + slotHeight / 2; const y2 = (i + 1) * slotHeight + slotHeight / 2; const ymid = (y1 + y2) / 2; d += `M0,${y1} H${midX} M0,${y2} H${midX} M${midX},${y1} V${y2} M${midX},${ymid} H${gapWidth} `; }
+  return d;
+}
+
+function BracketMatchCard({ m, teams, onOpen }) {
+  const teamA = teams.find(t => t.id === m.teamAId);
+  const teamB = teams.find(t => t.id === m.teamBId);
+  return (
+    <button onClick={onOpen} className="card" style={{ width: BRACKET_CARD_WIDTH, padding: 0, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', display: 'block', border: '1px solid #E2E8F0' }}>
+      {[[teamA, m.scoreA], [teamB, m.scoreB]].map(([t, score], idx) => (
+        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: idx === 0 ? '1px solid #F1F5F9' : 'none' }}>
+          <Crest team={t} size="sm" />
+          <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t ? t.name : 'Por definir'}</span>
+          <span style={{ fontSize: 14, fontWeight: 800, color: m.played ? '#0F172A' : '#94A3B8' }}>{m.played ? score : '–'}</span>
+        </div>
+      ))}
+    </button>
+  );
+}
+
+function canRenderBracket(data) {
+  const presentRounds = BRACKET_ROUNDS.filter(r => data.playoffMatches.some(m => m.round === r));
+  if (presentRounds.length === 0) return false;
+  const roundMatches = presentRounds.map(r => data.playoffMatches.filter(m => m.round === r));
+  if (roundMatches[0].length < 2) return false;
+  for (let i = 1; i < roundMatches.length; i++) { if (roundMatches[i - 1].length !== roundMatches[i].length * 2) return false; }
+  return true;
+}
+
+function PlayoffBracket({ data, onOpenMatch }) {
+  const presentRounds = BRACKET_ROUNDS.filter(r => data.playoffMatches.some(m => m.round === r));
+  const roundMatches = presentRounds.map(r => data.playoffMatches.filter(m => m.round === r));
+  const thirdPlace = data.playoffMatches.filter(m => m.round === 'Tercer Puesto');
+
+  if (!canRenderBracket(data)) return null;
+
+  return (
+    <div style={{ marginBottom: 24 }}>
+      <div style={{ overflowX: 'auto', paddingBottom: 16 }}>
+        <div style={{ display: 'flex', width: 'fit-content', marginBottom: 12 }}>
+          {roundMatches.map((matches, ri) => (
+            <Fragment key={ri}>
+              <div style={{ width: BRACKET_CARD_WIDTH, textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{presentRounds[ri]}</div>
+              {ri < roundMatches.length - 1 && <div style={{ width: BRACKET_GAP_WIDTH, flexShrink: 0 }} />}
+            </Fragment>
+          ))}
+        </div>
+        <div style={{ display: 'flex', width: 'fit-content' }}>
+          {roundMatches.map((matches, ri) => {
+            const slotHeight = BRACKET_SLOT_BASE_HEIGHT * Math.pow(2, ri);
+            return (
+              <Fragment key={ri}>
+                <div style={{ width: BRACKET_CARD_WIDTH, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
+                  {matches.map(m => (
+                    <div key={m.id} style={{ height: slotHeight, display: 'flex', alignItems: 'center' }}>
+                      <BracketMatchCard m={m} teams={data.teams} onOpen={() => onOpenMatch(m.id)} />
+                    </div>
+                  ))}
+                </div>
+                {ri < roundMatches.length - 1 && (
+                  <svg width={BRACKET_GAP_WIDTH} height={matches.length * slotHeight} style={{ flexShrink: 0 }}>
+                    <path d={buildConnectorPath(matches.length, slotHeight, BRACKET_GAP_WIDTH)} stroke="#22C55E" strokeWidth="2.5" fill="none" opacity="0.6" />
+                  </svg>
+                )}
+              </Fragment>
+            );
+          })}
+        </div>
+      </div>
+      {thirdPlace.length > 0 && (
+        <div style={{ marginTop: 24 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Tercer Puesto</div>
+          {thirdPlace.map(m => <div key={m.id} style={{ marginBottom: 12 }}><BracketMatchCard m={m} teams={data.teams} onOpen={() => onOpenMatch(m.id)} /></div>)}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch }) {
+  const [modal, setModal] = useState(null);
+  const [confirmSchedule, setConfirmSchedule] = useState(false);
+  const openMatch = data.playoffMatches.find(m => m.id === modal);
+
+  return (
+    <div>
+      {isAdmin && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+          <div>{data.playoffMatches.length > 0 && (confirmSchedule ? <ConfirmInline text="¿Reemplazar fecha/hora de todo?" onConfirm={() => { onAutoSchedule(); setConfirmSchedule(false); }} onCancel={() => setConfirmSchedule(false)} /> : <button className="btn btn-outline" onClick={() => setConfirmSchedule(true)}><Clock size={16} /> Asignar horarios</button>)}</div>
+          <button className="btn btn-primary" disabled={data.teams.length < 2} onClick={() => setModal('new')}><Plus size={16} /> Agregar partido</button>
+        </div>
+      )}
+      {data.teams.length < 2 && <EmptyState Icon={Award} title="Faltan equipos" text="Registra equipos primero." />}
+      {data.teams.length >= 2 && data.playoffMatches.length === 0 && <EmptyState Icon={Award} title="Sin playoffs" text="Agrega los partidos aquí cuando acabe la liga." />}
+      {data.playoffMatches.length > 0 && canRenderBracket(data) && <PlayoffBracket data={data} onOpenMatch={(id) => setModal(id)} />}
+      {data.playoffMatches.length > 0 && !canRenderBracket(data) && (
+        <>
+          {['Cuartos de Final', 'Semifinal', 'Tercer Puesto', 'Final'].concat([...new Set(data.playoffMatches.map(m => m.round))].filter(r => !['Cuartos de Final', 'Semifinal', 'Tercer Puesto', 'Final'].includes(r))).map(round => {
+            const matches = data.playoffMatches.filter(m => m.round === round);
+            if (matches.length === 0) return null;
+            return (
+              <div key={round} style={{ marginBottom: 24 }}>
+                <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#64748B', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{round}</div>
+                <div className="card">{matches.map((m, idx) => <MatchRow key={m.id} m={m} teams={data.teams} clickable onOpen={() => setModal(m.id)} last={idx === matches.length - 1} />)}</div>
+              </div>
+            );
+          })}
+        </>
+      )}
+      {isAdmin && modal === 'new' && <MatchFormModal teams={data.teams} phase="playoff" onClose={() => setModal(null)} onSave={(p) => { onAddMatch(p); setModal(null); }} />}
+      {openMatch && (isAdmin ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players} allMatches={[...data.matches, ...data.playoffMatches]} data={data} onSwap={onSaveAnyMatch} onClose={() => setModal(null)} onSave={(payload) => { onSaveResult(openMatch.id, payload); setModal(null); }} onDelete={(id) => { onDeleteMatch(id); setModal(null); }} /> : <MatchDetailModal match={openMatch} teams={data.teams} players={data.players} data={data} onClose={() => setModal(null)} />)}
+    </div>
+  );
+}
+
+function SancionesTab({ data, isAdmin, onMarkServed }) {
+  const withStats = data.players.map(p => ({ p, stats: getPlayerStats(p.id, data) }));
+  const suspended = withStats.filter(x => x.stats.pending > 0).sort((a, b) => b.stats.pending - a.stats.pending);
+  const warning = withStats.filter(x => x.stats.pending === 0 && x.stats.yellowSinceReset === x.stats.yellowLimit - 1 && x.stats.yellowLimit > 1);
+
+  return (
+    <div>
+      <div style={{ background: '#ECFDF5', border: '1px solid #A7F3D0', borderRadius: 12, padding: 16, fontSize: 13.5, color: '#065F46', marginBottom: 24, display: 'flex', gap: 12 }}>
+        <ShieldAlert size={18} style={{ flexShrink: 0, marginTop: 2 }} color="#059669" />
+        <span>Un jugador se suspende automáticamente al acumular {data.meta.yellowLimit} amarillas o 1 roja ({data.meta.redSuspensionMatches} partido de sanción).</span>
+      </div>
+
+      <div className="font-display" style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>Jugadores suspendidos</div>
+      {suspended.length === 0 ? <div style={{ fontSize: 14, color: '#94A3B8', marginBottom: 32 }}>No hay jugadores suspendidos actualmente.</div> : (
+        <div className="card" style={{ marginBottom: 32 }}>
+          {suspended.map(({ p, stats }, idx) => {
+            const team = data.teams.find(t => t.id === p.teamId);
+            return (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', flexWrap: 'wrap', borderBottom: idx === suspended.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
+                <Avatar size={36} />
+                <div style={{ flex: 1, minWidth: 160 }}><div style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A' }}>{p.name}</div><div style={{ fontSize: 12.5, marginTop: 2 }}><TeamChip team={team} size="sm" /></div></div>
+                <CardBadge yellow={stats.yellow} red={stats.red} />
+                <div style={{ fontSize: 13.5, color: '#DC2626', fontWeight: 700, minWidth: 140, textAlign: 'center' }}>{stats.pending} partido pendiente</div>
+                {isAdmin && <button className="btn btn-outline btn-sm" onClick={() => onMarkServed(p.id)}>Marcar cumplido</button>}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      <div className="font-display" style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>A una amarilla de la sanción</div>
+      {warning.length === 0 ? <div style={{ fontSize: 14, color: '#94A3B8' }}>Nadie está en riesgo por amarillas.</div> : (
+        <div className="card">
+          {warning.map(({ p, stats }, idx) => {
+            const team = data.teams.find(t => t.id === p.teamId);
+            return (
+              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', borderBottom: idx === warning.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
+                <Avatar size={36} />
+                <div style={{ flex: 1 }}><div style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A' }}>{p.name}</div><div style={{ fontSize: 12.5, marginTop: 2 }}><TeamChip team={team} size="sm" /></div></div>
+                <div style={{ fontSize: 13.5, color: '#D97706', fontWeight: 700 }}>{stats.yellowSinceReset} / {stats.yellowLimit} amarillas</div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function StatsTab({ data, standings }) {
+  const withStats = data.players.map(p => ({ p, stats: getPlayerStats(p.id, data) }));
+  const topScorers = [...withStats].filter(x => x.stats.goals > 0).sort((a, b) => b.stats.goals - a.stats.goals).slice(0, 10);
+  const topYellow = [...withStats].filter(x => x.stats.yellow > 0).sort((a, b) => b.stats.yellow - a.stats.yellow).slice(0, 10);
+  const topRed = [...withStats].filter(x => x.stats.red > 0).sort((a, b) => b.stats.red - a.stats.red).slice(0, 10);
+
+  const bestAttack = [...standings].sort((a, b) => b.gf - a.gf)[0];
+  const bestDefense = [...standings].filter(s => s.pj > 0).sort((a, b) => a.gc - b.gc)[0];
+
+  const ranking = (list, valueKey, label, cardType) => (
+    <div className="card" style={{ padding: 20 }}>
+      <div className="font-display" style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>{label}</div>
+      {list.length === 0 ? <div style={{ fontSize: 13, color: '#94A3B8' }}>Sin datos todavía.</div> : list.map(({ p, stats }, i) => {
+        const team = data.teams.find(t => t.id === p.teamId);
+        return (
+          <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F1F5F9' }}>
+            <span style={{ width: 20, fontSize: 13, color: '#64748B', fontWeight: 800, flexShrink: 0, textAlign: 'center' }}>{i + 1}</span>
+            <Avatar size={32} />
+            <span style={{ flex: 1, fontSize: 14, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}><span style={{ color: '#0F172A', fontWeight: 600 }}>{p.name}</span> <span style={{ color: '#64748B', fontSize: 12 }}>{team ? team.name : ''}</span></span>
+            {cardType && <CardBadge yellow={cardType === 'yellow' ? stats[valueKey] : 0} red={cardType === 'red' ? stats[valueKey] : 0} />}
+            <span style={{ fontWeight: 800, color: '#22C55E', fontSize: 14.5 }}>{stats[valueKey]}</span>
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px,1fr))', gap: 16, marginBottom: 24 }}>
+        <div className="card" style={{ padding: 20, textAlign: 'center' }}><div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mejor ataque</div><div className="font-display" style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginTop: 8 }}>{bestAttack ? teamName(data.teams, bestAttack.teamId) : '—'}</div><div style={{ color: '#22C55E', fontWeight: 700, fontSize: 14, marginTop: 4 }}>{bestAttack ? bestAttack.gf + ' goles' : ''}</div></div>
+        <div className="card" style={{ padding: 20, textAlign: 'center' }}><div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mejor defensa</div><div className="font-display" style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginTop: 8 }}>{bestDefense ? teamName(data.teams, bestDefense.teamId) : '—'}</div><div style={{ color: '#22C55E', fontWeight: 700, fontSize: 14, marginTop: 4 }}>{bestDefense ? bestDefense.gc + ' recibidos' : ''}</div></div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px,1fr))', gap: 20 }}>
+        {ranking(topScorers, 'goals', 'Goleadores')}{ranking(topYellow, 'yellow', 'Más amarillas', 'yellow')}{ranking(topRed, 'red', 'Más rojas', 'red')}
+      </div>
+    </div>
+  );
+}
 export default function FutbolitoApp() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);

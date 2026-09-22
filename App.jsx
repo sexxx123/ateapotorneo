@@ -234,21 +234,25 @@ function GlobalStyles() {
       .font-display { font-family: 'Poppins', sans-serif; }
       .app-shell { display: flex; height: 100vh; width: 100%; overflow: hidden; }
       
-      /* SIDEBAR FIJO EN ESCRITORIO: no se mueve al hacer scroll */
-      .sidebar { 
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 260px;
-        height: 100vh;
-        flex-shrink: 0;
+      /* SIDEBAR FIJO EN ESCRITORIO: NO SE MUEVE AL HACER SCROLL */
+      .sidebar {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        bottom: 0 !important;
+        width: 260px !important;
+        height: 100vh !important;
+        min-height: 100vh !important;
+        flex: none !important;
+        flex-shrink: 0 !important;
         background: #0B1121;
-        border-right: 1px solid rgba(255,255,255,0.05); 
+        border-right: 1px solid rgba(255,255,255,0.05);
         display: flex;
         flex-direction: column;
         padding: 28px 20px;
         z-index: 1000;
-        overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
       }
       .sidebar::-webkit-scrollbar { width: 4px; }
       .sidebar::-webkit-scrollbar-track { background: transparent; }
@@ -268,14 +272,13 @@ function GlobalStyles() {
       .sidebar-user-card { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 12px; padding: 12px; display: flex; flex-direction: column; gap: 8px; }
       .sidebar-footer-link.logout:hover { background: rgba(239, 68, 68, 0.1) !important; color: #FCA5A5 !important; }
       
-      /* SOLO EL CONTENIDO DE LA DERECHA HACE SCROLL */
+      /* SOLO EL CONTENIDO DE LA DERECHA TIENE SCROLL */
       .main-area {
-        flex: 1;
         margin-left: 260px;
-        padding: 36px 48px;
-        min-width: 0;
         width: calc(100% - 260px);
+        min-width: 0;
         height: 100vh;
+        padding: 36px 48px;
         overflow-y: auto;
         overflow-x: hidden;
       }
@@ -379,8 +382,15 @@ function GlobalStyles() {
         .futbolito-app { height: auto; overflow: visible; overflow-x: hidden; }
         .app-shell { flex-direction: column; height: auto; overflow: visible; overflow-x: hidden; }
         
-        .sidebar { 
-          width: 100%; height: auto; position: fixed; top: 0; left: 0; right: 0; bottom: auto;
+        .sidebar {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: auto !important;
+          width: 100% !important;
+          height: auto !important;
+          min-height: 0 !important;
           flex-direction: column; align-items: stretch; 
           padding: 16px; gap: 8px; border-right: none; border-bottom: 1px solid rgba(255,255,255,0.05); 
           z-index: 1000; overflow-x: auto; overflow-y: hidden;
@@ -391,7 +401,17 @@ function GlobalStyles() {
         .sidebar-nav-item { flex-shrink: 0; width: auto; white-space: nowrap; padding: 10px 16px; }
         .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px; padding-top: 12px; }
         
-        .main-area { padding: 20px 16px; margin-left: 0; margin-top: 190px; width: 100%; max-width: 100vw; height: auto; overflow: visible; overflow-x: hidden; box-sizing: border-box; }
+        .main-area {
+          padding: 20px 16px;
+          margin-left: 0 !important;
+          margin-top: 190px;
+          width: 100% !important;
+          max-width: 100vw;
+          height: auto;
+          overflow: visible;
+          overflow-x: hidden;
+          box-sizing: border-box;
+        }
         .grid-2, .grid-3, .two-col { grid-template-columns: 1fr !important; display: flex !important; flex-direction: column !important; gap: 20px; }
       }
       

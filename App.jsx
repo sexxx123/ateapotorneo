@@ -404,7 +404,7 @@ function GlobalStyles() {
       @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
       .spin { animation: spin 1s linear infinite; }
       
-      /* Responsive */
+      /* Responsive: solo cambia en pantallas pequeñas; escritorio queda igual */
       @media (max-width: 820px) {
         .app-shell { flex-direction: column; }
         .sidebar { 
@@ -424,6 +424,51 @@ function GlobalStyles() {
         .sidebar-footer { border-top: 1px solid rgba(255,255,255,0.05); margin-top: 8px; padding-top: 12px; }
         .main-area { padding: 24px 16px; }
         .grid-2, .grid-3 { grid-template-columns: 1fr !important; }
+
+        /* En móvil la columna secundaria baja debajo del contenido principal */
+        .two-col {
+          grid-template-columns: 1fr !important;
+          gap: 16px !important;
+          min-width: 0;
+        }
+        .two-col > * { min-width: 0; }
+
+        /* Clasificación: ocupa el ancho disponible y evita tener que alejar el zoom */
+        .two-col .data-table-wrap { min-width: 0; }
+        table.data-table { width: 100%; min-width: 0; }
+        table.data-table th { font-size: 9px; padding: 10px 3px; letter-spacing: 0.02em; }
+        table.data-table td { font-size: 11px; padding: 9px 3px; }
+        table.data-table th:first-child,
+        table.data-table td:first-child { width: 25px; }
+        table.data-table th:nth-child(2),
+        table.data-table td:nth-child(2) { width: 105px; max-width: 105px; }
+        table.data-table th:nth-child(n+3),
+        table.data-table td:nth-child(n+3) { width: auto; }
+        table.data-table td.team-name-cell { overflow: hidden; }
+        table.data-table td.team-name-cell .team-name-cell {
+          display: inline-block;
+          max-width: 68px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          vertical-align: middle;
+        }
+        table.data-table td.team-name-cell > span { gap: 5px !important; max-width: 100%; min-width: 0; }
+
+        /* Menos espacio visual en móvil */
+        .page-header { margin-bottom: 20px; }
+        .page-title { font-size: 23px; }
+        .page-subtitle { font-size: 13px; }
+
+        /* Modales más compactos en celular */
+        .modal-overlay { padding: 12px 10px; }
+        .modal-box { max-width: 380px; border-radius: 16px; }
+        .modal-box > div:first-child { padding: 14px 16px !important; }
+        .modal-box > div:nth-child(2) { padding: 16px !important; }
+        .modal-box h3 { font-size: 16px !important; }
+        .login-form-copy { font-size: 13px !important; line-height: 1.4 !important; margin-bottom: 12px !important; }
+        .login-form-row { margin-bottom: 12px !important; }
+        .login-actions { gap: 8px !important; flex-wrap: wrap; }
+        .login-actions .btn { padding: 9px 11px; font-size: 12px; }
       }
       
       @media print {
@@ -1286,16 +1331,16 @@ function LoginModal({ onClose }) {
 
   return (
     <Modal title="Hacer login" onClose={onClose}>
-      <div style={{ fontSize: 14, color: '#64748B', marginBottom: 16, lineHeight: 1.5 }}>
+      <div className="login-form-copy" style={{ fontSize: 14, color: '#64748B', marginBottom: 16, lineHeight: 1.5 }}>
         Escribe tu correo y te enviamos un enlace de acceso — no necesitas contraseña. Quien inicie sesión con el correo registrado como organizador podrá editar los datos del torneo; el resto solo podrá ver.
       </div>
-      <div style={{ marginBottom: 16 }}>
+      <div className="login-form-row" style={{ marginBottom: 16 }}>
         <label className="field-label">Correo</label>
         <input className="input" type="email" value={email} autoFocus placeholder="tucorreo@ejemplo.com"
           onChange={e => setEmail(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} />
       </div>
       {error && <div style={{ fontSize: 13, color: '#DC2626', marginBottom: 16 }}>{error}</div>}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
+      <div className="login-actions" style={{ display: 'flex', justifyContent: 'flex-end', gap: 10 }}>
         <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
         <button className="btn btn-primary" disabled={sending} onClick={submit}>
           {sending ? <Loader2 size={16} className="spin" /> : <Send size={16} />} {sending ? 'Enviando…' : 'Enviar enlace de acceso'}

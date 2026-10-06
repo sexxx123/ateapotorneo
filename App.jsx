@@ -187,44 +187,8 @@ function computeStandings(data) {
   });
   table.forEach(t => t.dg = t.gf - t.gc);
 
-  // Orden base por puntos, y dentro de cada grupo empatado en puntos, desempate
-  // por lo que pasó ENTRE ELLOS (enfrentamientos directos): puntos, diferencia y goles
-  // a favor solo de esos partidos. Si sigue empatado, cae a diferencia/goles generales
-  // y por último orden alfabético (para que el orden no cambie sin motivo).
-  const sorted = [...table].sort((a, b) => b.pts - a.pts);
-  const groups = [];
-  let i = 0;
-  while (i < sorted.length) {
-    let j = i + 1;
-    while (j < sorted.length && sorted[j].pts === sorted[i].pts) j++;
-    groups.push(sorted.slice(i, j));
-    i = j;
-  }
-
-  const resolveGroup = (group) => {
-    if (group.length <= 1) return group;
-    const ids = new Set(group.map(t => t.teamId));
-    const h2h = Object.fromEntries(group.map(t => [t.teamId, { pts: 0, gf: 0, gc: 0 }]));
-    played.filter(m => ids.has(m.teamAId) && ids.has(m.teamBId)).forEach(m => {
-      h2h[m.teamAId].gf += m.scoreA; h2h[m.teamAId].gc += m.scoreB;
-      h2h[m.teamBId].gf += m.scoreB; h2h[m.teamBId].gc += m.scoreA;
-      if (m.scoreA > m.scoreB) { h2h[m.teamAId].pts += data.meta.pointsWin; h2h[m.teamBId].pts += data.meta.pointsLoss; }
-      else if (m.scoreA < m.scoreB) { h2h[m.teamBId].pts += data.meta.pointsWin; h2h[m.teamAId].pts += data.meta.pointsLoss; }
-      else { h2h[m.teamAId].pts += data.meta.pointsDraw; h2h[m.teamBId].pts += data.meta.pointsDraw; }
-    });
-    return [...group].sort((a, b) => {
-      const ha = h2h[a.teamId], hb = h2h[b.teamId];
-      if (hb.pts !== ha.pts) return hb.pts - ha.pts;
-      const hDgA = ha.gf - ha.gc, hDgB = hb.gf - hb.gc;
-      if (hDgB !== hDgA) return hDgB - hDgA;
-      if (hb.gf !== ha.gf) return hb.gf - ha.gf;
-      if (b.dg !== a.dg) return b.dg - a.dg;
-      if (b.gf !== a.gf) return b.gf - a.gf;
-      return a.name.localeCompare(b.name);
-    });
-  };
-
-  return groups.flatMap(resolveGroup);
+  // Desempate: puntos, diferencia de gol y goles a favor.
+  return table.sort((a, b) => b.pts - a.pts || b.dg - a.dg || b.gf - a.gf);
 }
 
 function getPlayerStats(playerId, data) {
@@ -954,8 +918,15 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
   const conflictTeamA = conflict ? teams.find(t => t.id === conflict.teamAId) : null;
   const conflictTeamB = conflict ? teams.find(t => t.id === conflict.teamBId) : null;
 
-  const setPlayerField = (pid, field, value) => setStats(prev => ({ ...prev, [pid]: { ...prev[pid], [field]: value } }));
-  const sumGoals = (list) => list.reduce((acc, p) => acc + (Number(stats[p.id]?.goals) || 0), 0);
+  const setPlayerField = (pid, field, value) => {
+    const nextStats = { ...stats, [pid]: { ...stats[pid], [field]: value } };
+    setStats(nextStats);
+    if (field === 'goals') {
+      if (playersA.some(p => p.id === pid)) setScoreA(sumGoals(playersA, nextStats));
+      if (playersB.some(p => p.id === pid)) setScoreB(sumGoals(playersB, nextStats));
+    }
+  };
+  const sumGoals = (list, playerStats = stats) => list.reduce((acc, p) => acc + (Number(playerStats[p.id]?.goals) || 0), 0);
 
   const renderPlayerRows = (list) => list.length === 0
     ? <div style={{ fontSize: 13, color: '#94A3B8', padding: '12px 0' }}>Sin jugadores registrados en este equipo.</div>
@@ -2114,7 +2085,7 @@ function TablaTab({ data, standings, onViewTeam }) {
         )}
       </div>
       <div style={{ fontSize: 11.5, color: '#94A3B8', marginTop: 12 }}>
-        Desempate: puntos → resultado entre ellos → diferencia de gol → goles a favor.
+        Desempate: puntos → diferencia de gol → goles a favor.
       </div>
     </div>
   );

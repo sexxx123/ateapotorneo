@@ -64,6 +64,76 @@ function shuffleArray(arr) {
   return a;
 }
 
+// Añade la vuelta de las jornadas 1–5 sin cambiar ningún partido existente.
+function createReturnLeg(data) {
+  if (data.matches.some(m => Number(m.jornada) >= 6 && Number(m.jornada) <= 10)) {
+    return { error: 'Ya hay partidos en las fechas 6 a 10. Se conservaron todos los datos y no se creó otra vuelta.' };
+  }
+
+  const groups = [1, 2, 3, 4, 5].map(jornada =>
+    data.matches.filter(m => Number(m.jornada) === jornada)
+      .slice().sort((a, b) => (a.time || '').localeCompare(b.time || ''))
+  );
+  if (groups.some(group => group.length === 0)) {
+    return { error: 'Primero deben estar registradas las cinco primeras fechas.' };
+  }
+  for (const group of groups) {
+    if (group.some(m => !/^([01]\d|2[0-3]):[0-5]\d$/.test(m.time || '')) ||
+        new Set(group.map(m => m.time)).size !== group.length) {
+      return { error: 'Revisa los horarios de las cinco primeras fechas: cada partido necesita una hora válida y distinta dentro de su fecha.' };
+    }
+  }
+
+  const firstLegDates = groups.flat().map(m => m.date).filter(Boolean).sort();
+  const lastDate = firstLegDates[firstLegDates.length - 1];
+  if (!lastDate || !/^\d{4}-\d{2}-\d{2}$/.test(lastDate)) {
+    return { error: 'Registra el día de las primeras cinco fechas para poder programar la vuelta.' };
+  }
+  let currentDate = new Date(lastDate + 'T00:00:00');
+  if (isNaN(currentDate.getTime())) {
+    return { error: 'Revisa el día registrado en las primeras cinco fechas.' };
+  }
+  const configuredDays = Array.isArray(data.meta.playDays)
+    ? data.meta.playDays.filter(day => Number.isInteger(day) && day >= 0 && day <= 6)
+    : [];
+  const playDays = configuredDays.length > 0 ? configuredDays : [0, 1, 2, 3, 4, 5, 6];
+  const occupiedSlots = new Set([...data.matches, ...data.playoffMatches].map(m => m.date + '|' + m.time));
+  const newMatches = [];
+
+  for (let index = 0; index < groups.length; index++) {
+    do {
+      currentDate.setDate(currentDate.getDate() + 1);
+    } while (!playDays.includes(currentDate.getDay()));
+    const date = currentDate.getFullYear() + '-' +
+      String(currentDate.getMonth() + 1).padStart(2, '0') + '-' +
+      String(currentDate.getDate()).padStart(2, '0');
+    const group = groups[index];
+    let shuffled = shuffleArray(group);
+    // Repite el sorteo si salió exactamente el mismo orden de la ida.
+    for (let attempt = 0; attempt < 10 && group.length > 1 &&
+      shuffled.every((m, slot) => m.id === group[slot].id); attempt++) {
+      shuffled = shuffleArray(group);
+    }
+    if (group.length > 1 && shuffled.every((m, slot) => m.id === group[slot].id)) {
+      shuffled.push(shuffled.shift());
+    }
+
+    for (let slot = 0; slot < shuffled.length; slot++) {
+      const time = group[slot].time;
+      if (occupiedSlots.has(date + '|' + time)) {
+        return { error: 'Ya hay un partido programado el ' + formatDateTime(date, time) + '. Se conservaron todos los datos y no se creó la vuelta.' };
+      }
+      occupiedSlots.add(date + '|' + time);
+      newMatches.push({
+        id: uid('match'), phase: 'liga', jornada: index + 6,
+        teamAId: shuffled[slot].teamAId, teamBId: shuffled[slot].teamBId,
+        date, time, played: false, scoreA: 0, scoreB: 0, playerStats: {},
+      });
+    }
+  }
+  return { matches: newMatches, firstDate: newMatches[0].date };
+}
+
 // Asigna fecha y hora a una lista de partidos (en el orden dado), uno detrás de otro,
 // sin cruces, respetando una sola cancha: cada partido empieza cuando termina el
 // descanso del anterior, y si no cabe antes de la hora de cierre, pasa al día siguiente.
@@ -1715,6 +1785,17 @@ export default function FutbolitoApp() {
     return { ...d, matches: fixture };
   });
 
+  const generateReturnLeg = () => {
+    const result = createReturnLeg(data);
+    if (result.error) return result;
+    update(d => {
+      // También protege frente a un segundo clic antes de actualizar la pantalla.
+      if (d.matches.some(m => Number(m.jornada) >= 6 && Number(m.jornada) <= 10)) return d;
+      return { ...d, matches: [...d.matches, ...result.matches] };
+    });
+    return result;
+  };
+
   const autoScheduleMatches = () => update(d => {
     const jornadas = [...new Set(d.matches.map(m => m.jornada))].sort((a, b) => a - b);
     const dayGroups = jornadas.map(j => d.matches.filter(m => m.jornada === j));
@@ -1811,6 +1892,7 @@ export default function FutbolitoApp() {
           {tab === 'equipos' && <EquiposTab data={data} isAdmin={isAdmin} onAdd={addTeam} onEdit={editTeam} onDelete={deleteTeam} standings={standings} onViewTeam={setViewTeamId} />}
           {tab === 'jugadores' && <JugadoresTab data={data} isAdmin={isAdmin} onAdd={addPlayer} onEdit={editPlayer} onDelete={deletePlayer} onBulkAdd={bulkAddPlayers} />}
           {tab === 'partidos' && <PartidosTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('liga', p)} onGenerateFixture={generateFixture}
+            onGenerateReturnLeg={generateReturnLeg}
             onAutoSchedule={autoScheduleMatches}
             onSaveResult={(id, payload) => saveMatchResult('liga', id, payload)} onDeleteMatch={(id) => deleteMatch('liga', id)}
             onSaveAnyMatch={saveMatchResult} />}
@@ -2308,18 +2390,28 @@ function MatchRow({ m, teams, onOpen, last, clickable }) {
   );
 }
 
-function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch }) {
+function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onGenerateReturnLeg, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch }) {
   const [modal, setModal] = useState(null);
   const [confirmGenerate, setConfirmGenerate] = useState(false);
   const [confirmSchedule, setConfirmSchedule] = useState(false);
+  const [returnLegMessage, setReturnLegMessage] = useState(null);
   const openMatch = data.matches.find(m => m.id === modal);
   const maxJornada = data.matches.reduce((mx, m) => Math.max(mx, m.jornada || 0), 0);
+  const returnLegExists = data.matches.some(m => Number(m.jornada) >= 6 && Number(m.jornada) <= 10);
 
   return (
     <div>
       {isAdmin && (
         <div className="no-print" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
           <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
+            {data.matches.length > 0 && (
+              <button className="btn btn-outline" disabled={returnLegExists} onClick={() => {
+                const result = onGenerateReturnLeg();
+                setReturnLegMessage(result.error
+                  ? { error: true, text: result.error }
+                  : { error: false, text: 'Se añadieron ' + result.matches.length + ' partidos en las fechas 6 a 10, desde el ' + formatDate(result.firstDate) + ', con horarios sorteados. Los partidos anteriores se conservaron.' });
+              }}><Calendar size={16} /> {returnLegExists ? 'Vuelta ya registrada (6–10)' : 'Crear vuelta (fechas 6–10)'}</button>
+            )}
             {data.teams.length >= 2 && (
               confirmGenerate
                 ? <ConfirmInline text={data.matches.length > 0 ? 'Esto borra el fixture actual ¿continuar?' : (data.meta.idaYVuelta ? '¿Generar fixture ida y vuelta?' : '¿Generar fixture todos-contra-todos?')} onConfirm={() => { onGenerateFixture(); setConfirmGenerate(false); }} onCancel={() => setConfirmGenerate(false)} />
@@ -2332,6 +2424,12 @@ function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onAutoSched
             )}
           </div>
           <button className="btn btn-primary" disabled={data.teams.length < 2} onClick={() => setModal('new')}><Plus size={16} /> Agregar partido manual</button>
+        </div>
+      )}
+
+      {isAdmin && returnLegMessage && (
+        <div role={returnLegMessage.error ? 'alert' : 'status'} style={{ fontSize: 13, color: returnLegMessage.error ? '#DC2626' : '#15803D', marginBottom: 16, lineHeight: 1.5 }}>
+          {returnLegMessage.text}
         </div>
       )}
 

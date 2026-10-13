@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, Fragment } from 'react';
+import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 import {
   Trophy, Users, User, Calendar, ShieldAlert, BarChart3, Settings,
   Plus, Trash2, X, AlertTriangle, Check, Pencil, Table2, Award, Loader2,
@@ -282,6 +282,44 @@ function getPlayerStats(playerId, data) {
   return { goals, yellow, red, triggered, served, pending, yellowSinceReset, yellowLimit, matchesPlayed };
 }
 
+// La ficha solo lee estadísticas guardadas de encuentros finalizados.
+function getPlayerProfile(playerId, data) {
+  const goalsOf = (stats) => {
+    const goals = Number(stats?.goals);
+    return Number.isFinite(goals) ? Math.max(0, goals) : 0;
+  };
+  const allMatches = [
+    ...data.matches.map(m => ({ ...m, phase: 'liga' })),
+    ...data.playoffMatches.map(m => ({ ...m, phase: 'playoff' })),
+  ];
+  const history = allMatches.filter(m => m.played && m.playerStats?.[playerId]).map(m => ({
+    id: m.id, phase: m.phase, jornada: m.jornada, round: m.round,
+    label: m.phase === 'liga' ? 'Fecha ' + m.jornada : (m.round || 'Playoffs'),
+    date: m.date || '', time: m.time || '',
+    teamAId: m.teamAId, teamBId: m.teamBId, scoreA: m.scoreA, scoreB: m.scoreB,
+    goals: goalsOf(m.playerStats[playerId]),
+    yellow: m.playerStats[playerId].yellow ? 1 : 0,
+    red: m.playerStats[playerId].red ? 1 : 0,
+  })).sort((a, b) => ((a.date || '9999-99-99') + ' ' + a.time)
+    .localeCompare((b.date || '9999-99-99') + ' ' + b.time) ||
+    (Number(a.jornada) || 0) - (Number(b.jornada) || 0));
+  const goals = history.reduce((sum, m) => sum + m.goals, 0);
+  const scoringMatches = history.filter(m => m.goals > 0);
+  const rank = goals > 0 ? 1 + data.players.filter(p => p.id !== playerId &&
+    allMatches.reduce((sum, m) => sum + (m.played ? goalsOf(m.playerStats?.[p.id]) : 0), 0) > goals
+  ).length : null;
+  return {
+    goals, history, scoringMatches, rank,
+    matchesRecorded: history.length,
+    average: history.length ? goals / history.length : 0,
+    yellow: history.reduce((sum, m) => sum + m.yellow, 0),
+    red: history.reduce((sum, m) => sum + m.red, 0),
+    bestGoals: history.reduce((max, m) => Math.max(max, m.goals), 0),
+    doubles: history.filter(m => m.goals === 2).length,
+    threePlus: history.filter(m => m.goals >= 3).length,
+  };
+}
+
 function teamName(teams, id) {
   const t = teams.find(t => t.id === id);
   return t ? t.name : 'Equipo eliminado';
@@ -406,6 +444,49 @@ function GlobalStyles() {
       
       /* Elementos visuales auxiliares */
       .avatar-circle { border-radius: 50%; background: #F1F5F9; border: 1px solid #E2E8F0; display: flex; align-items: center; justify-content: center; color: #94A3B8; flex-shrink: 0; }
+      .player-profile-trigger { font: inherit; color: inherit; text-align: left; background: transparent; border: 0; border-radius: 8px; cursor: pointer; }
+      .player-profile-trigger:hover { background: #F0FDF4 !important; color: #15803D; }
+      .player-profile-trigger:focus-visible { outline: 2px solid #16A34A; outline-offset: 3px; }
+      .player-profile-layer > .modal-overlay { z-index: 70; }
+      .player-profile-layer .modal-box h3 { min-width: 0; overflow-wrap: anywhere; }
+      .player-profile-layer .modal-box > div:first-child > button { flex-shrink: 0; }
+      .player-profile-hero { background: linear-gradient(135deg, #0B1121, #183B32); border-radius: 16px; color: #fff; padding: 22px; display: flex; align-items: center; gap: 16px; margin-bottom: 16px; }
+      .player-profile-initials { width: 64px; height: 64px; flex-shrink: 0; border-radius: 18px; display: flex; align-items: center; justify-content: center; background: #22C55E; color: #052E16; font-size: 22px; font-weight: 800; }
+      .player-profile-identity { min-width: 0; flex: 1; }
+      .player-profile-name { font-size: 22px; font-weight: 800; line-height: 1.3; overflow-wrap: anywhere; }
+      .player-profile-team { display: flex; align-items: center; gap: 8px; margin-top: 7px; font-size: 12.5px; color: #D1FAE5; }
+      .player-profile-meta { font-size: 12px; color: #CBD5E1; margin-top: 10px; line-height: 1.5; }
+      .player-profile-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+      .player-profile-stat { border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px 16px; background: #F8FAFC; }
+      .player-profile-stat.primary { background: #ECFDF5; border-color: #BBF7D0; }
+      .player-profile-stat-label { display: flex; gap: 7px; align-items: center; font-size: 11px; color: #64748B; font-weight: 700; }
+      .player-profile-stat-value { font-size: 28px; font-weight: 800; color: #0F172A; line-height: 1.2; margin-top: 8px; }
+      .player-profile-stat.primary .player-profile-stat-value { color: #15803D; }
+      .player-profile-stat small { display: block; color: #64748B; font-size: 10.5px; margin-top: 4px; line-height: 1.4; }
+      .player-profile-extras { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+      .player-profile-chip { display: inline-flex; gap: 6px; align-items: center; padding: 7px 10px; border-radius: 8px; font-size: 11px; font-weight: 600; background: #F1F5F9; color: #475569; }
+      .player-profile-chart { border: 1px solid #E2E8F0; border-radius: 12px; padding: 16px; margin-bottom: 20px; }
+      .player-profile-heading { font-weight: 700; font-size: 14px; color: #0F172A; margin-bottom: 12px; }
+      .player-profile-bars { display: flex; align-items: flex-end; gap: 12px; overflow-x: auto; padding: 3px 2px 8px; }
+      .player-profile-bar-item { flex: 1 0 36px; min-width: 36px; text-align: center; }
+      .player-profile-bar-track { height: 82px; display: flex; align-items: flex-end; justify-content: center; }
+      .player-profile-bar { width: 22px; border-radius: 5px 5px 0 0; background: linear-gradient(#4ADE80, #16A34A); }
+      .player-profile-bar-count { font-size: 12px; font-weight: 800; color: #15803D; margin-bottom: 5px; }
+      .player-profile-bar-label { font-size: 10px; color: #64748B; font-weight: 600; margin-top: 7px; }
+      .player-profile-tabs { display: flex; gap: 6px; background: #F1F5F9; padding: 5px; border-radius: 10px; margin-bottom: 14px; }
+      .player-profile-tabs button { flex: 1; border: 0; border-radius: 7px; padding: 10px 6px; font: inherit; font-size: 11.5px; font-weight: 700; cursor: pointer; background: transparent; color: #64748B; }
+      .player-profile-tabs button[aria-pressed="true"] { background: #fff; color: #15803D; box-shadow: 0 1px 3px rgba(15,23,42,.08); }
+      .player-profile-tabs button:focus-visible { outline: 2px solid #16A34A; }
+      .player-profile-history { display: grid; gap: 10px; }
+      .player-profile-match { border: 1px solid #E2E8F0; border-radius: 12px; padding: 14px; }
+      .player-profile-match-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 10px; font-size: 10.5px; color: #64748B; }
+      .player-profile-match-teams { display: flex; align-items: center; gap: 9px; }
+      .player-profile-match-team { flex: 1; min-width: 0; display: flex; gap: 6px; align-items: center; font-size: 12px; font-weight: 600; color: #0F172A; overflow-wrap: anywhere; }
+      .player-profile-score { flex-shrink: 0; padding: 5px 8px; border-radius: 7px; background: #F1F5F9; color: #0F172A; font-size: 14px; font-weight: 800; }
+      .player-profile-match-bottom { display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: wrap; border-top: 1px solid #F1F5F9; margin-top: 12px; padding-top: 10px; }
+      .player-profile-goals { font-size: 12px; font-weight: 800; color: #15803D; }
+      .player-profile-record { font-size: 10px; font-weight: 700; border-radius: 5px; padding: 3px 6px; background: #ECFDF5; color: #15803D; }
+      .player-profile-note { font-size: 11px; line-height: 1.6; color: #64748B; margin: 16px 0 0; }
       .status-pill { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-block; letter-spacing: 0.02em; }
       .status-pill.done { background: #EFF6FF; color: #2563EB; border: 1px solid #BFDBFE; }
       .status-pill.pending { background: #F8FAFC; color: #64748B; border: 1px solid #E2E8F0; }
@@ -438,8 +519,286 @@ function GlobalStyles() {
       @keyframes spin { from { transform: rotate(0deg) } to { transform: rotate(360deg) } }
       .spin { animation: spin 1s linear infinite; }
       
+      /* ==========================================================================
+         MEJORAS VISUALES v2 · Tema "Estadio" (solo CSS, aditivo: no cambia nada
+         de la lógica; si quieres quitarlo, borra desde aquí hasta "FIN MEJORAS")
+         ========================================================================== */
+
+      @property --ft-angle { syntax: '<angle>'; initial-value: 0deg; inherits: false; }
+
+      .futbolito-app {
+        --ft-green: #059669; --ft-teal: #0D9488; --ft-cyan: #0891B2; --ft-lime: #A3E635; --ft-gold: #FBBF24;
+        --ft-grad: linear-gradient(135deg, #059669 0%, #0D9488 50%, #0891B2 100%);
+        --ft-grad-soft: linear-gradient(135deg, #ECFDF5 0%, #ECFEFF 100%);
+        --ft-glow: 0 10px 26px -8px rgba(5, 150, 105, 0.55);
+        --ft-ease: cubic-bezier(0.22, 1, 0.36, 1);
+        --ft-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+        background:
+          radial-gradient(900px 520px at 100% -8%, rgba(16, 185, 129, 0.12), transparent 60%),
+          radial-gradient(760px 520px at -10% 108%, rgba(6, 182, 212, 0.12), transparent 60%),
+          #F4F7FB;
+        background-attachment: fixed;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+      }
+      .futbolito-app ::selection { background: rgba(16, 185, 129, 0.28); color: #052E16; }
+      .futbolito-app button { -webkit-tap-highlight-color: transparent; }
+      .futbolito-app table.data-table td,
+      .futbolito-app .stat-circle,
+      .futbolito-app .font-display { font-variant-numeric: tabular-nums; }
+
+      /* ---------- Animaciones base ---------- */
+      @keyframes ftPageIn { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+      @keyframes ftPop { 0% { opacity: 0; transform: scale(0.82) translateY(8px); } 100% { opacity: 1; transform: scale(1) translateY(0); } }
+      @keyframes ftFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+      @keyframes ftGlow { 0%, 100% { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.18); } 50% { box-shadow: 0 6px 22px rgba(6, 182, 212, 0.42); } }
+      @keyframes ftBreathe { 0%, 100% { box-shadow: 0 4px 12px -2px rgba(5, 150, 105, 0.35); } 50% { box-shadow: 0 8px 22px -2px rgba(8, 145, 178, 0.55); } }
+      @keyframes ftSweep { 0% { transform: translateX(-130%); } 60%, 100% { transform: translateX(130%); } }
+      @keyframes ftShift { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+      @keyframes ftRow { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+      @keyframes ftBar { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+      @keyframes ftDot { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(1.6); opacity: 0.45; } }
+      @keyframes ftRing { to { --ft-angle: 360deg; } }
+      @keyframes ftModal { from { opacity: 0; transform: translateY(26px) scale(0.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
+      @keyframes ftSheet { from { transform: translateY(100%); } to { transform: translateY(0); } }
+      @keyframes ftWiggle { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(-12deg) scale(1.1); } 75% { transform: rotate(10deg) scale(1.1); } }
+
+      /* Entrada escalonada al cambiar de pestaña (no afecta a los modales) */
+      .main-area > div > *:not(.modal-overlay):not(.player-profile-layer) { animation: ftPageIn 0.55s var(--ft-ease) backwards; }
+      .main-area > div > *:nth-child(2) { animation-delay: 0.05s; }
+      .main-area > div > *:nth-child(3) { animation-delay: 0.1s; }
+      .main-area > div > *:nth-child(4) { animation-delay: 0.15s; }
+      .main-area > div > *:nth-child(5) { animation-delay: 0.2s; }
+      .main-area > div > *:nth-child(6) { animation-delay: 0.25s; }
+      .main-area > div > *:nth-child(n+7) { animation-delay: 0.3s; }
+      .page-header { animation: ftPageIn 0.5s var(--ft-ease) backwards; }
+
+      /* ---------- Título de página ---------- */
+      .page-title {
+        position: relative; padding-bottom: 14px;
+        background: linear-gradient(90deg, #0F172A 0%, #064E3B 55%, #0E7490 100%);
+        -webkit-background-clip: text; background-clip: text;
+        -webkit-text-fill-color: transparent; color: transparent;
+      }
+      .page-title::after { content: ''; position: absolute; left: 0; bottom: 0; width: 56px; height: 4px; border-radius: 4px; background: var(--ft-grad); transition: width 0.5s var(--ft-ease); }
+      .page-header:hover .page-title::after { width: 120px; }
+      .page-subtitle { letter-spacing: 0.02em; }
+
+      /* ---------- Barra lateral ---------- */
+      .sidebar { background: radial-gradient(420px 260px at 0% 0%, rgba(16, 185, 129, 0.2), transparent 70%), linear-gradient(180deg, #070C1A 0%, #0B1730 100%); }
+      .sidebar-logo-badge { background: var(--ft-grad); border: none; box-shadow: var(--ft-glow); animation: ftGlow 3.2s ease-in-out infinite; transition: transform 0.4s var(--ft-spring); overflow: hidden; }
+      .sidebar-logo-badge:hover { transform: rotate(-8deg) scale(1.08); }
+      .sidebar-nav-item { position: relative; overflow: hidden; transition: background 0.25s, color 0.25s, transform 0.25s var(--ft-spring), box-shadow 0.25s; }
+      .sidebar-nav-item svg { transition: transform 0.35s var(--ft-spring); }
+      .sidebar-nav-item.active { background: var(--ft-grad); box-shadow: 0 8px 20px -6px rgba(8, 145, 178, 0.6); }
+      .sidebar-nav-item.active::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%); animation: ftSweep 3.6s ease-in-out infinite; pointer-events: none; }
+      .sidebar-nav-item.active svg { animation: ftFloat 2.4s ease-in-out infinite; }
+      .sidebar-nav-item:active { transform: scale(0.96); }
+      .sidebar-footer-link { transition: background 0.25s, color 0.25s, transform 0.25s var(--ft-spring); }
+      .sidebar-footer-link svg { transition: transform 0.3s var(--ft-spring); }
+      .sidebar-footer-link:active { transform: scale(0.96); }
+      .sidebar-user-card { backdrop-filter: blur(6px); }
+
+      /* ---------- Tarjetas ---------- */
+      .card { border-color: #E3EAF3; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 14px -6px rgba(15, 23, 42, 0.08); transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s var(--ft-ease); }
+      .card-header-green { background: var(--ft-grad); background-size: 200% 200%; animation: ftShift 9s ease infinite; letter-spacing: 0.02em; position: relative; }
+      .info-strip { position: relative; overflow: hidden; background: linear-gradient(135deg, #FFFFFF 0%, #F0FDFA 100%); border-color: #CCFBF1; }
+      .info-strip::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--ft-grad); }
+      .info-strip-item { transition: transform 0.3s var(--ft-spring); }
+      .info-strip-item .val { background: linear-gradient(90deg, #0F172A, #065F46); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+      /* Stats rápidas del Inicio (Equipos / Jugadores / Partidos / Clasificación) */
+      button.card.quick-stat { position: relative; overflow: hidden; background: linear-gradient(150deg, #FFFFFF 0%, #F0FDF4 100%); border: 1px solid #D1FAE5 !important; animation: ftPop 0.6s var(--ft-spring) backwards; transition: transform 0.3s var(--ft-spring), box-shadow 0.3s, border-color 0.3s; }
+      button.card.quick-stat::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 4px; background: var(--ft-grad); }
+      button.card.quick-stat::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(16, 185, 129, 0.16) 50%, transparent 70%); transform: translateX(-130%); transition: transform 0.7s var(--ft-ease); pointer-events: none; }
+      button.card.quick-stat .font-display { background: var(--ft-grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent !important; display: inline-block; transition: transform 0.35s var(--ft-spring); transform-origin: left center; }
+      button.card.quick-stat:nth-child(2) { animation-delay: 0.08s; }
+      button.card.quick-stat:nth-child(3) { animation-delay: 0.16s; }
+      button.card.quick-stat:nth-child(4) { animation-delay: 0.24s; }
+      button.card.quick-stat:active { transform: scale(0.96); }
+
+      /* Círculos de estadísticas (Partidos / Goles) con anillo giratorio */
+      .stat-circle {
+        border: 3px solid transparent;
+        background: linear-gradient(#FFFFFF, #FFFFFF) padding-box, conic-gradient(from var(--ft-angle, 0deg), #10B981, #06B6D4, #A3E635, #10B981) border-box;
+        animation: ftPop 0.7s var(--ft-spring) backwards, ftRing 5s linear infinite, ftGlow 3.4s ease-in-out infinite;
+        transition: transform 0.35s var(--ft-spring);
+        cursor: default;
+      }
+      .stat-circle { background-clip: padding-box, border-box; }
+
+      /* Tarjetas de equipo */
+      .team-card { transition: transform 0.35s var(--ft-spring), box-shadow 0.35s, border-color 0.35s; animation: ftPop 0.55s var(--ft-spring) backwards; }
+      .team-card:nth-child(2) { animation-delay: 0.05s; } .team-card:nth-child(3) { animation-delay: 0.1s; }
+      .team-card:nth-child(4) { animation-delay: 0.15s; } .team-card:nth-child(5) { animation-delay: 0.2s; }
+      .team-card:nth-child(n+6) { animation-delay: 0.25s; }
+      .team-card-accent { height: 5px; overflow: hidden; }
+      .team-card-accent::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.75), transparent); animation: ftSweep 3.2s ease-in-out infinite; }
+      .team-card .crest, .team-card img { transition: transform 0.4s var(--ft-spring); }
+      .team-card:active { transform: scale(0.98); }
+
+      /* ---------- Botones: brillo, rebote de iconos y feedback ---------- */
+      .btn {
+        position: relative; overflow: hidden; isolation: isolate;
+        transition: transform 0.25s var(--ft-spring), box-shadow 0.3s, background-position 0.6s var(--ft-ease), background-color 0.2s, border-color 0.2s, color 0.2s;
+      }
+      .btn::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.38) 50%, transparent 70%); transform: translateX(-130%); transition: transform 0.65s var(--ft-ease); pointer-events: none; }
+      .btn svg { transition: transform 0.35s var(--ft-spring); }
+      .btn:active { transform: scale(0.94); }
+      .btn-primary { background: linear-gradient(120deg, #059669 0%, #0D9488 50%, #0891B2 100%); background-size: 200% 100%; box-shadow: 0 6px 16px -6px rgba(5, 150, 105, 0.6); }
+      .btn-primary:not(:disabled) { animation: ftBreathe 3.2s ease-in-out infinite; }
+      .btn-primary:disabled { animation: none; }
+      .btn-outline::before { background: linear-gradient(110deg, transparent 30%, rgba(16, 185, 129, 0.2) 50%, transparent 70%); }
+      .btn-danger::before { background: linear-gradient(110deg, transparent 30%, rgba(239, 68, 68, 0.22) 50%, transparent 70%); }
+      .btn:disabled { cursor: not-allowed; }
+
+      .icon-btn, .icon-btn-subtle { transition: transform 0.3s var(--ft-spring), background 0.2s, border-color 0.2s, color 0.2s, box-shadow 0.2s; }
+      .icon-btn:active, .icon-btn-subtle:active { transform: scale(0.88); }
+      .swatch { transition: transform 0.25s var(--ft-spring), box-shadow 0.2s; }
+      .swatch:hover { transform: scale(1.25) rotate(8deg); }
+
+      .btn:focus-visible, .icon-btn:focus-visible, .icon-btn-subtle:focus-visible,
+      .sidebar-nav-item:focus-visible, .sidebar-footer-link:focus-visible, button.card:focus-visible {
+        outline: 3px solid rgba(6, 182, 212, 0.55); outline-offset: 2px;
+      }
+
+      /* ---------- Formularios ---------- */
+      .input, textarea.textarea { border-color: #CFD8E3; transition: border-color 0.25s, box-shadow 0.25s, background 0.25s, transform 0.2s; }
+      .input:hover, textarea.textarea:hover { border-color: #94A3B8; }
+      .input:focus, textarea.textarea:focus { border-color: #0D9488; box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.16); }
+      div:focus-within > label.field-label { color: #0D9488; }
+      label.field-label { transition: color 0.2s; }
+      select.input { appearance: none; -webkit-appearance: none; padding-right: 38px; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%230D9488' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center; }
+      input[type='color'] { width: 34px; height: 34px; padding: 2px; border: 1px solid #CFD8E3; border-radius: 8px; background: #FFFFFF; cursor: pointer; transition: transform 0.25s var(--ft-spring); }
+      input[type='color']:hover { transform: scale(1.12); }
+      .checkbox-row input { accent-color: #0D9488; transition: transform 0.2s var(--ft-spring); }
+      .checkbox-row:active input { transform: scale(0.8); }
+
+      /* Selectores del widget "Juegos" sobre la cabecera de color */
+      .widget-select { appearance: none; -webkit-appearance: none; background: rgba(255, 255, 255, 0.18) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") no-repeat right 10px center; color: #FFFFFF; border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 8px; padding: 6px 30px 6px 12px; font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background-color 0.2s, border-color 0.2s, transform 0.2s var(--ft-spring); }
+      .widget-select:hover { background-color: rgba(255, 255, 255, 0.3); }
+      .widget-select:active { transform: scale(0.96); }
+      .widget-select:focus { outline: none; border-color: #FFFFFF; box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.28); }
+      .widget-select option { color: #0F172A; background: #FFFFFF; }
+
+      /* ---------- Tablas ---------- */
+      table.data-table th { background: linear-gradient(180deg, #FFFFFF 0%, #F1F8F6 100%); color: #475569; border-bottom: 2px solid #CCFBF1; }
+      table.data-table tbody tr { animation: ftRow 0.45s var(--ft-ease) backwards; }
+      table.data-table tbody tr:nth-child(1) { animation-delay: 0.03s; } table.data-table tbody tr:nth-child(2) { animation-delay: 0.07s; }
+      table.data-table tbody tr:nth-child(3) { animation-delay: 0.11s; } table.data-table tbody tr:nth-child(4) { animation-delay: 0.15s; }
+      table.data-table tbody tr:nth-child(5) { animation-delay: 0.19s; } table.data-table tbody tr:nth-child(6) { animation-delay: 0.23s; }
+      table.data-table tbody tr:nth-child(7) { animation-delay: 0.27s; } table.data-table tbody tr:nth-child(8) { animation-delay: 0.31s; }
+      table.data-table tbody tr:nth-child(n+9) { animation-delay: 0.35s; }
+      table.data-table tbody tr:last-child td { border-bottom: none; }
+      table.data-table td { transition: background 0.2s, box-shadow 0.2s; }
+      table.data-table tbody tr.row-alt td { background: #FAFCFE; }
+      table.data-table tbody tr.zone-top td { background: #F0FDF4; }
+      table.data-table tbody tr.zone-top td:first-child { box-shadow: inset 5px 0 0 #10B981; font-weight: 800; color: #047857; }
+      table.data-table tbody tr.zone-bottom td { background: #FFF1F2; }
+      table.data-table tbody tr.zone-bottom td:first-child { box-shadow: inset 5px 0 0 #F43F5E; font-weight: 800; color: #BE123C; }
+      table.data-table tbody tr:hover td { background: #ECFDF5; }
+      table.data-table tbody tr.zone-bottom:hover td { background: #FFE4E6; }
+      table.data-table tbody tr:hover td:first-child { box-shadow: inset 5px 0 0 #0D9488; }
+
+      /* ---------- Escudos, avatares y chips ---------- */
+      .crest { box-shadow: 0 3px 8px rgba(15, 23, 42, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.3); transition: transform 0.35s var(--ft-spring); }
+      .avatar-circle { background: linear-gradient(135deg, #F0FDFA 0%, #E0F2FE 100%); border-color: #CCFBF1; color: #0D9488; transition: transform 0.3s var(--ft-spring); }
+      .card-chip { transition: transform 0.25s var(--ft-spring); }
+      .card-chip:hover { transform: rotate(-12deg) scale(1.25); }
+      .status-pill { display: inline-flex; align-items: center; gap: 6px; }
+      .status-pill::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: ftDot 1.8s ease-in-out infinite; }
+      .status-pill.done { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+      .status-pill.done::before { animation: none; }
+      .status-pill.pending { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+
+      .player-profile-trigger { transition: background 0.2s, color 0.2s, transform 0.25s var(--ft-spring); }
+
+      /* ---------- Perfil del jugador ---------- */
+      .player-profile-hero { position: relative; overflow: hidden; background: linear-gradient(135deg, #0B1121, #0F3D33 45%, #0B4A5C, #0B1121); background-size: 220% 220%; animation: ftShift 10s ease infinite; box-shadow: 0 14px 30px -14px rgba(8, 145, 178, 0.6); }
+      .player-profile-hero::before { content: ''; position: absolute; width: 220px; height: 220px; right: -60px; top: -80px; border-radius: 50%; background: radial-gradient(circle, rgba(163, 230, 53, 0.35), transparent 65%); }
+      .player-profile-hero > * { position: relative; z-index: 1; }
+      .player-profile-initials { background: linear-gradient(135deg, #A3E635, #10B981); box-shadow: 0 8px 20px -4px rgba(163, 230, 53, 0.55); animation: ftPop 0.7s var(--ft-spring) backwards 0.1s; transition: transform 0.35s var(--ft-spring); }
+      .player-profile-initials:hover { transform: rotate(-6deg) scale(1.08); }
+      .player-profile-stat { background: linear-gradient(150deg, #FFFFFF, #F8FAFC); animation: ftPop 0.55s var(--ft-spring) backwards; transition: transform 0.3s var(--ft-spring), box-shadow 0.3s, border-color 0.3s; }
+      .player-profile-stat:nth-child(1) { animation-delay: 0.1s; } .player-profile-stat:nth-child(2) { animation-delay: 0.18s; }
+      .player-profile-stat:nth-child(3) { animation-delay: 0.26s; } .player-profile-stat:nth-child(4) { animation-delay: 0.34s; }
+      .player-profile-stat.primary { background: linear-gradient(150deg, #ECFDF5, #CFFAFE); border-color: #99F6E4; }
+      .player-profile-stat.primary .player-profile-stat-value { background: var(--ft-grad); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+      .player-profile-chip { transition: transform 0.25s var(--ft-spring), background 0.2s; }
+      .player-profile-chip:hover { transform: translateY(-2px); background: #CCFBF1; }
+      .player-profile-bar { transform-origin: bottom center; background: linear-gradient(#A3E635, #10B981 55%, #0891B2); animation: ftBar 0.9s var(--ft-ease) backwards; transition: filter 0.2s; }
+      .player-profile-bar-item:nth-child(1) .player-profile-bar { animation-delay: 0.1s; } .player-profile-bar-item:nth-child(2) .player-profile-bar { animation-delay: 0.16s; }
+      .player-profile-bar-item:nth-child(3) .player-profile-bar { animation-delay: 0.22s; } .player-profile-bar-item:nth-child(4) .player-profile-bar { animation-delay: 0.28s; }
+      .player-profile-bar-item:nth-child(5) .player-profile-bar { animation-delay: 0.34s; } .player-profile-bar-item:nth-child(n+6) .player-profile-bar { animation-delay: 0.4s; }
+      .player-profile-bar-item:hover .player-profile-bar { filter: brightness(1.15) saturate(1.2); }
+      .player-profile-tabs button { transition: background 0.25s, color 0.25s, box-shadow 0.25s, transform 0.2s var(--ft-spring); }
+      .player-profile-tabs button:active { transform: scale(0.94); }
+      .player-profile-tabs button[aria-pressed="true"] { color: #0F766E; box-shadow: 0 4px 12px -4px rgba(13, 148, 136, 0.4); }
+      .player-profile-match { transition: transform 0.3s var(--ft-spring), box-shadow 0.3s, border-color 0.3s; animation: ftPop 0.45s var(--ft-spring) backwards; }
+
+      /* ---------- Modales ---------- */
+      .modal-overlay { backdrop-filter: blur(7px) saturate(130%); background: rgba(6, 12, 28, 0.62); }
+      .modal-box { border: none; overflow: hidden; box-shadow: 0 34px 70px -18px rgba(2, 6, 23, 0.55), 0 0 0 1px rgba(15, 23, 42, 0.06); animation: ftModal 0.4s var(--ft-spring); }
+      .modal-box::before { content: ''; display: block; height: 5px; background: var(--ft-grad); background-size: 200% 100%; animation: ftShift 6s ease infinite; }
+      .modal-box > div:first-child { background: linear-gradient(135deg, #F0FDF4 0%, #ECFEFF 60%, #FFFFFF 100%); border-bottom-color: #CCFBF1 !important; }
+      .modal-box h3 { background: linear-gradient(90deg, #0F172A, #065F46); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+      .modal-box .icon-btn-subtle:hover { transform: rotate(90deg); background: #FEE2E2; color: #DC2626; }
+
+      .empty-state-anim { animation: ftFloat 3s ease-in-out infinite; }
+      .spin { animation: spin 0.9s linear infinite; }
+
+      /* ---------- Scrollbar con color ---------- */
+      .futbolito-app ::-webkit-scrollbar-thumb { background: linear-gradient(180deg, #6EE7B7, #22D3EE); border-radius: 6px; }
+      .futbolito-app ::-webkit-scrollbar-thumb:hover { background: linear-gradient(180deg, #34D399, #06B6D4); }
+
+      /* ---------- Efectos de mouse (solo equipos con puntero; en celular no se "pegan") ---------- */
+      @media (hover: hover) and (pointer: fine) {
+        .card:hover { box-shadow: 0 2px 4px rgba(15, 23, 42, 0.04), 0 18px 34px -14px rgba(8, 145, 178, 0.28); border-color: #BAE6FD; }
+        button.card.quick-stat:hover { transform: translateY(-6px) scale(1.03); box-shadow: 0 18px 34px -12px rgba(5, 150, 105, 0.5); border-color: #6EE7B7 !important; }
+        button.card.quick-stat:hover::after { transform: translateX(130%); }
+        button.card.quick-stat:hover .font-display { transform: scale(1.12); }
+        button.card:not(.quick-stat):hover { transform: translateY(-2px); }
+        .stat-circle:hover { transform: scale(1.14) rotate(-5deg); }
+        .info-strip-item:hover { transform: translateY(-2px); }
+        .team-card:hover { transform: translateY(-6px) scale(1.01); box-shadow: 0 22px 36px -14px rgba(8, 145, 178, 0.35); border-color: #99F6E4; }
+        .team-card:hover .crest, .team-card:hover img { transform: rotate(-6deg) scale(1.12); }
+        .btn:hover:not(:disabled) { transform: translateY(-2px); }
+        .btn:hover:not(:disabled)::before { transform: translateX(130%); }
+        .btn:hover:not(:disabled) svg:not(.spin) { transform: scale(1.18) rotate(-8deg); }
+        .btn-primary:hover:not(:disabled) { background-position: 100% 0; box-shadow: 0 12px 24px -8px rgba(8, 145, 178, 0.7); }
+        .btn-outline:hover:not(:disabled) { border-color: #0D9488; color: #0F766E; background: #F0FDFA; box-shadow: 0 8px 18px -8px rgba(13, 148, 136, 0.4); }
+        .btn-danger:hover:not(:disabled) { box-shadow: 0 8px 18px -6px rgba(220, 38, 38, 0.5); }
+        .icon-btn:hover { transform: translateY(-2px) rotate(-6deg); border-color: #0D9488; color: #0F766E; box-shadow: 0 8px 16px -8px rgba(13, 148, 136, 0.5); }
+        .icon-btn-subtle:hover { transform: scale(1.12); }
+        .sidebar-nav-item:hover { transform: translateX(4px); }
+        .sidebar-nav-item:hover svg { transform: scale(1.2) rotate(-8deg); }
+        .sidebar-footer-link:hover svg { transform: scale(1.2) rotate(-8deg); }
+        .sidebar-footer-link:hover { transform: translateX(3px); }
+        .avatar-circle:hover { transform: scale(1.12); }
+        .crest:hover { transform: rotate(-8deg) scale(1.15); }
+        .player-profile-stat:hover { transform: translateY(-4px); box-shadow: 0 14px 24px -12px rgba(8, 145, 178, 0.4); border-color: #67E8F9; }
+        .player-profile-match:hover { transform: translateY(-3px); box-shadow: 0 12px 22px -12px rgba(15, 23, 42, 0.25); border-color: #99F6E4; }
+        .player-profile-trigger:hover { transform: translateX(3px); }
+      }
+
+      /* Menú lateral: indicador a la izquierda (solo escritorio) */
+      @media (min-width: 821px) {
+        .sidebar-nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 5px; height: 24px; border-radius: 0 5px 5px 0; background: var(--ft-lime); box-shadow: 0 0 12px var(--ft-lime); }
+      }
+
+      /* ==================== FIN MEJORAS (parte general) ==================== */
+
       /* Responsive: solo cambia en pantallas pequeñas; escritorio queda igual */
       @media (max-width: 820px) {
+        .player-profile-hero { padding: 16px; gap: 12px; }
+        .player-profile-initials { width: 48px; height: 48px; border-radius: 13px; font-size: 18px; }
+        .player-profile-name { font-size: 18px; }
+        .player-profile-stat { padding: 12px; }
+        .player-profile-stat-value { font-size: 25px; }
+        .player-profile-match-top { flex-wrap: wrap; }
+        .player-profile-match-team { font-size: 11px; }
+        .player-profile-match-team .crest { display: none; }
         .app-shell { flex-direction: column; }
         .sidebar { 
           width: 100%; 
@@ -505,6 +864,106 @@ function GlobalStyles() {
         .login-actions .btn { padding: 9px 11px; font-size: 12px; }
       }
       
+      /* ==========================================================================
+         MEJORAS VISUALES v2 · CELULAR Y TABLET (se aplica encima del responsive anterior)
+         ========================================================================== */
+      @media (max-width: 820px) {
+        .futbolito-app { background-attachment: scroll; }
+
+        /* Barra superior: fichas deslizables con el dedo */
+        .sidebar { padding: max(14px, env(safe-area-inset-top)) 14px 12px; border-radius: 0 0 22px 22px; box-shadow: 0 14px 30px -14px rgba(2, 6, 23, 0.7); gap: 6px; }
+        .sidebar-logo-row { margin-bottom: 2px; }
+        .sidebar-title { font-size: 14px; }
+        .sidebar-nav { scroll-snap-type: x proximity; scrollbar-width: none; -ms-overflow-style: none; padding: 2px 2px 8px; overscroll-behavior-x: contain; -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
+        .sidebar-nav::-webkit-scrollbar { display: none; }
+        .sidebar-nav-item { scroll-snap-align: start; padding: 10px 15px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); font-size: 13px; gap: 8px; }
+        .sidebar-nav-item.active { background: var(--ft-grad); }
+        .sidebar-nav-item svg { width: 16px; height: 16px; }
+        .sidebar-footer { margin-top: 4px; padding-top: 10px; }
+
+        /* Contenido */
+        .main-area { padding: 18px 14px calc(30px + env(safe-area-inset-bottom)); }
+        .page-title { padding-bottom: 12px; }
+        .page-title::after { width: 44px; height: 3px; }
+        .card { border-radius: 14px; }
+        .card-header-green { padding: 14px 16px; border-radius: 13px 13px 0 0; }
+        .info-strip { gap: 14px 22px; padding: 14px 16px 14px 20px; border-radius: 14px; }
+        .info-strip .btn { width: 100%; justify-content: center; }
+        .stat-circle { width: 56px; height: 56px; font-size: 19px; }
+
+        /* Banner del torneo (Inicio) */
+        .hero-banner { height: auto !important; min-height: 170px; border-radius: 14px !important; margin-bottom: 18px !important; }
+        .hero-content { height: auto !important; min-height: 170px; padding: 22px 18px !important; gap: 14px !important; }
+        .hero-content > img { width: 76px !important; height: 76px !important; border-radius: 14px !important; }
+        .hero-content .font-display { font-size: 24px !important; line-height: 1.15 !important; }
+        .hero-content > div > div:last-child { font-size: 11px !important; margin-top: 8px !important; }
+
+        /* Filas de partidos: nombres arriba, fecha abajo, todo cabe sin zoom */
+        .match-row { flex-wrap: wrap; gap: 8px 10px !important; padding: 14px 12px !important; }
+        .match-row > div:nth-child(1), .match-row > div:nth-child(3) { gap: 8px !important; }
+        .match-row > div:nth-child(2) { min-width: 66px !important; }
+        .match-row span:not(.status-pill) { font-size: 13px !important; }
+        .match-row .crest, .match-row > div > img { width: 30px !important; height: 30px !important; font-size: 11px !important; }
+        .match-row > div:nth-child(4) { flex: 0 0 100%; width: 100% !important; text-align: center !important; padding-top: 8px; border-top: 1px dashed #D1FAE5; color: #0F766E !important; font-weight: 600; }
+
+        /* Selectores y botones a todo el ancho cuando hace falta */
+        .main-area select.input { width: 100% !important; }
+        .btn-sm { min-height: 38px; }
+
+        /* Tablas: desplazamiento táctil suave */
+        .card { -webkit-overflow-scrolling: touch; }
+        table.data-table tbody tr.zone-top td:first-child, table.data-table tbody tr.zone-bottom td:first-child { box-shadow: inset 4px 0 0 currentColor; }
+        table.data-table tbody tr:hover td:first-child { box-shadow: none; }
+
+        /* Perfil del jugador */
+        .player-profile-grid { gap: 8px; }
+        .player-profile-bars { gap: 8px; }
+        .player-profile-tabs { gap: 4px; padding: 4px; }
+        .player-profile-tabs button { padding: 10px 4px; font-size: 11px; }
+
+        /* Modales como "hoja inferior": se deslizan desde abajo y se alcanzan con el pulgar */
+        .modal-overlay { padding: 0 !important; }
+        .modal-box { max-width: 100% !important; width: 100%; margin: auto 0 0 !important; border-radius: 22px 22px 0 0 !important; padding-bottom: env(safe-area-inset-bottom); animation: ftSheet 0.45s var(--ft-ease); }
+        .player-profile-layer .modal-box { max-width: 100% !important; }
+      }
+
+      /* Pantallas táctiles: objetivos de toque cómodos, sin zoom de iOS y respuesta al tocar */
+      @media (hover: none) and (pointer: coarse) {
+        .btn { min-height: 44px; }
+        .btn-sm { min-height: 40px; }
+        .icon-btn { width: 40px; height: 40px; }
+        .icon-btn-subtle { width: 40px; height: 40px; }
+        .sidebar-nav-item, .sidebar-footer-link { min-height: 44px; }
+        .input, textarea.textarea, select.input { font-size: 16px; min-height: 44px; }
+        .checkbox-row input { width: 20px; height: 20px; }
+        .swatch { width: 30px; height: 30px; }
+        .btn:active, .icon-btn:active, .icon-btn-subtle:active { transform: scale(0.92); }
+        button.card:active, .team-card:active, .stat-circle:active { transform: scale(0.95); }
+        .match-row:active { background: #ECFDF5 !important; }
+        .btn::before { display: none; }
+      }
+
+      /* Teléfonos pequeños */
+      @media (max-width: 400px) {
+        .page-title { font-size: 21px; }
+        .hero-content .font-display { font-size: 21px !important; }
+        .hero-content > img { width: 62px !important; height: 62px !important; }
+        .match-row span:not(.status-pill) { font-size: 12px !important; }
+        .sidebar-nav-item { padding: 9px 13px; font-size: 12.5px; }
+      }
+
+      /* Menos movimiento si el sistema lo pide */
+      @media (prefers-reduced-motion: reduce) {
+        .futbolito-app *, .futbolito-app *::before, .futbolito-app *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+      }
+
+      /* Impresión: sin animaciones ni textos con degradado */
+      @media print {
+        .futbolito-app *, .futbolito-app *::before, .futbolito-app *::after { animation: none !important; }
+        .page-title, .modal-box h3, .info-strip-item .val, button.card.quick-stat .font-display { background: none !important; -webkit-text-fill-color: #0F172A !important; color: #0F172A !important; }
+        table.data-table tbody tr { animation: none !important; }
+      }
+
       @media print {
         .no-print { display: none !important; }
         .sidebar { display: none !important; }
@@ -576,6 +1035,146 @@ function Modal({ title, onClose, children }) {
         </div>
         <div style={{ padding: 24 }}>{children}</div>
       </div>
+    </div>
+  );
+}
+
+function PlayerDetailModal({ player, data, onClose }) {
+  const [showAll, setShowAll] = useState(false);
+  const layerRef = useRef(null);
+  const profile = getPlayerProfile(player.id, data);
+  const team = data.teams.find(t => t.id === player.teamId);
+  const recent = profile.history.slice(-10);
+  const chartMax = Math.max(1, ...recent.map(m => m.goals));
+  const visibleMatches = [...(showAll ? profile.history : profile.scoringMatches)].reverse();
+  const matchLabel = m => m.phase === 'liga' ? 'F' + m.jornada :
+    ({ 'Cuartos de Final': 'CF', 'Semifinal': 'SF', 'Tercer Puesto': '3.º', 'Final': 'FIN' }[m.round] || 'PO');
+
+  useEffect(() => {
+    const previousFocus = document.activeElement;
+    const layer = layerRef.current;
+    layer?.querySelector('button[aria-label="Cerrar"]')?.focus();
+    const handleKey = e => {
+      if (e.key === 'Escape') { e.preventDefault(); onClose(); return; }
+      if (e.key !== 'Tab') return;
+      const buttons = layer?.querySelectorAll('button:not([disabled])');
+      if (!buttons?.length) return;
+      const first = buttons[0], last = buttons[buttons.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    };
+    document.addEventListener('keydown', handleKey);
+    return () => {
+      document.removeEventListener('keydown', handleKey);
+      if (previousFocus?.isConnected) previousFocus.focus();
+    };
+  }, [onClose]);
+
+  return (
+    <div className="player-profile-layer" ref={layerRef} role="dialog" aria-modal="true" aria-label={'Estadísticas de ' + player.name}>
+      <Modal title="Estadísticas del jugador" onClose={onClose}>
+        <div className="player-profile-hero">
+          <div className="player-profile-initials font-display">{initials(player.name)}</div>
+          <div className="player-profile-identity">
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: '#86EFAC', marginBottom: 5 }}>
+              {profile.rank ? '#' + profile.rank + ' EN GOLEADORES' : 'FICHA DEL JUGADOR'}
+            </div>
+            <div className="player-profile-name font-display">{player.name}</div>
+            <div className="player-profile-team"><Crest team={team} size="sm" /> {team ? team.name : 'Sin equipo'}</div>
+            <div className="player-profile-meta">
+              {[
+                player.number !== '' && player.number != null ? 'Dorsal #' + player.number : null,
+                player.position || null,
+                player.age !== '' && player.age != null ? player.age + ' años' : null,
+              ].filter(Boolean).join(' · ')}
+            </div>
+          </div>
+        </div>
+
+        <div className="player-profile-grid">
+          <div className="player-profile-stat primary">
+            <div className="player-profile-stat-label"><Trophy size={14} /> GOLES TOTALES</div>
+            <div className="player-profile-stat-value font-display">{profile.goals}</div>
+            <small>Liga y playoffs</small>
+          </div>
+          <div className="player-profile-stat">
+            <div className="player-profile-stat-label"><Calendar size={14} /> ENCUENTROS CON REGISTRO</div>
+            <div className="player-profile-stat-value font-display">{profile.matchesRecorded}</div>
+            <small>Con estadísticas guardadas</small>
+          </div>
+          <div className="player-profile-stat">
+            <div className="player-profile-stat-label"><Check size={14} /> PARTIDOS CON GOL</div>
+            <div className="player-profile-stat-value font-display">{profile.scoringMatches.length}</div>
+            <small>Marcó al menos una vez</small>
+          </div>
+          <div className="player-profile-stat">
+            <div className="player-profile-stat-label"><BarChart3 size={14} /> PROMEDIO DE GOL</div>
+            <div className="player-profile-stat-value font-display">{profile.average.toLocaleString('es-EC', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</div>
+            <small>Por encuentro con registro</small>
+          </div>
+        </div>
+
+        <div className="player-profile-extras">
+          <span className="player-profile-chip"><span className="card-chip yellow" /> {profile.yellow} amarillas</span>
+          <span className="player-profile-chip"><span className="card-chip red" /> {profile.red} rojas</span>
+          <span className="player-profile-chip"><Award size={13} /> Mejor marca: {profile.bestGoals} goles</span>
+          <span className="player-profile-chip">Dobletes: {profile.doubles}</span>
+          <span className="player-profile-chip">Partidos con 3+ goles: {profile.threePlus}</span>
+        </div>
+
+        {recent.length > 0 && (
+          <div className="player-profile-chart">
+            <div className="player-profile-heading font-display">Goles por encuentro</div>
+            <div className="player-profile-bars" role="img" aria-label={recent.map(m => m.label + ': ' + m.goals + ' goles').join('; ')}>
+              {recent.map(m => (
+                <div className="player-profile-bar-item" key={m.phase + '-' + m.id} title={m.label + ' · ' + teamName(data.teams, m.teamAId) + ' vs ' + teamName(data.teams, m.teamBId) + ' · ' + m.goals + ' goles'}>
+                  <div className="player-profile-bar-count">{m.goals}</div>
+                  <div className="player-profile-bar-track">
+                    <div className="player-profile-bar" style={{ height: Math.max(3, m.goals / chartMax * 82), background: m.goals ? undefined : '#CBD5E1' }} />
+                  </div>
+                  <div className="player-profile-bar-label">{matchLabel(m)}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 10.5, color: '#64748B', marginTop: 6 }}>Últimos {recent.length} encuentros con registro, del más antiguo al más reciente.</div>
+          </div>
+        )}
+
+        <div className="player-profile-tabs" aria-label="Historial del jugador">
+          <button type="button" aria-pressed={!showAll} onClick={() => setShowAll(false)}>Partidos con gol ({profile.scoringMatches.length})</button>
+          <button type="button" aria-pressed={showAll} onClick={() => setShowAll(true)}>Todos los registros ({profile.matchesRecorded})</button>
+        </div>
+        {visibleMatches.length === 0 ? (
+          <div style={{ padding: '24px 12px', textAlign: 'center', fontSize: 13, color: '#64748B', background: '#F8FAFC', borderRadius: 12 }}>
+            {showAll ? 'Todavía no hay estadísticas registradas para este jugador.' : 'Todavía no tiene goles registrados en encuentros finalizados.'}
+          </div>
+        ) : (
+          <div className="player-profile-history">
+            {visibleMatches.map(m => (
+              <div className="player-profile-match" key={m.phase + '-' + m.id}>
+                <div className="player-profile-match-top">
+                  <span style={{ fontWeight: 700 }}>{m.label} · {m.phase === 'liga' ? 'Liga' : 'Playoffs'}</span>
+                  <span>{formatDateTime(m.date, m.time) || 'Sin fecha registrada'}</span>
+                </div>
+                <div className="player-profile-match-teams">
+                  <div className="player-profile-match-team"><Crest team={data.teams.find(t => t.id === m.teamAId)} size="sm" /> {teamName(data.teams, m.teamAId)}</div>
+                  <div className="player-profile-score font-display">{m.scoreA ?? '—'} - {m.scoreB ?? '—'}</div>
+                  <div className="player-profile-match-team"><Crest team={data.teams.find(t => t.id === m.teamBId)} size="sm" /> {teamName(data.teams, m.teamBId)}</div>
+                </div>
+                <div className="player-profile-match-bottom">
+                  <span className="player-profile-goals">⚽ {m.goals} {m.goals === 1 ? 'gol' : 'goles'}</span>
+                  {m.goals > 0 && m.goals === profile.bestGoals && <span className="player-profile-record">Mejor marca</span>}
+                  <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', fontSize: 10.5, color: '#64748B' }}>
+                    {m.yellow > 0 && <span><span className="card-chip yellow" /> Amarilla</span>}
+                    {m.red > 0 && <span><span className="card-chip red" /> Roja</span>}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+        <p className="player-profile-note">Las estadísticas incluyen únicamente encuentros finalizados con registros guardados para este jugador.</p>
+      </Modal>
     </div>
   );
 }
@@ -814,7 +1413,7 @@ function NewsFormModal({ onClose, onSave }) {
   );
 }
 
-function TeamDetailModal({ team, data, onClose }) {
+function TeamDetailModal({ team, data, onClose, onViewPlayer }) {
   const players = data.players.filter(p => p.teamId === team.id);
   const allMatches = [
     ...data.matches.map(m => ({ ...m, _label: 'Jornada ' + m.jornada })),
@@ -849,7 +1448,7 @@ function TeamDetailModal({ team, data, onClose }) {
             {players.map((p, idx) => {
               const ac = ageColor(p.age);
               return (
-                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: idx === players.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
+                <button type="button" key={p.id} className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 16px', borderBottom: idx === players.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
                   <Avatar size={28} />
                   <div style={{ flex: 1, fontSize: 14 }}>
                     {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700, marginRight: 8 }}>#{p.number}</span> : null}
@@ -858,7 +1457,7 @@ function TeamDetailModal({ team, data, onClose }) {
                   {p.age !== '' && p.age !== undefined && (
                     <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 8, background: ac.bg, color: ac.fg, boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>{p.age} años</span>
                   )}
-                </div>
+                </button>
               );
             })}
           </div>
@@ -963,7 +1562,7 @@ function MatchFormModal({ teams, phase, onClose, onSave, suggestedJornada }) {
   );
 }
 
-function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, onDelete, onSwap }) {
+function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, onDelete, onSwap, onViewPlayer }) {
   const teamA = teams.find(t => t.id === match.teamAId);
   const teamB = teams.find(t => t.id === match.teamBId);
   const playersA = players.filter(p => p.teamId === match.teamAId);
@@ -1002,9 +1601,9 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
     ? <div style={{ fontSize: 13, color: '#94A3B8', padding: '12px 0' }}>Sin jugadores registrados en este equipo.</div>
     : list.map(p => (
       <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
-        <div style={{ flex: 1, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8 }}>
+        <button type="button" className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ flex: 1, minWidth: 0, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, padding: 0 }}>
           {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700 }}>#{p.number}</span> : null} {p.name}
-        </div>
+        </button>
         <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', padding: '8px' }}
           value={stats[p.id]?.goals ?? 0}
           onChange={e => setPlayerField(p.id, 'goals', Math.max(0, Number(e.target.value)))} />
@@ -1087,7 +1686,7 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
   );
 }
 
-function MatchDetailModal({ match, teams, players, onClose }) {
+function MatchDetailModal({ match, teams, players, onClose, onViewPlayer }) {
   const teamA = teams.find(t => t.id === match.teamAId);
   const teamB = teams.find(t => t.id === match.teamBId);
   const playersA = players.filter(p => p.teamId === match.teamAId);
@@ -1099,7 +1698,7 @@ function MatchDetailModal({ match, teams, players, onClose }) {
     : list.map(p => {
       const s = statFor(p.id);
       return (
-        <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+        <button type="button" key={p.id} className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
           <Avatar size={28} />
           <div style={{ flex: 1, fontSize: 14, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
             {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700, marginRight: 8 }}>#{p.number}</span> : null}
@@ -1107,7 +1706,7 @@ function MatchDetailModal({ match, teams, players, onClose }) {
           </div>
           {s.goals > 0 && <span style={{ fontSize: 13, color: '#22C55E', fontWeight: 800, flexShrink: 0 }}>⚽ {s.goals}</span>}
           <CardBadge yellow={s.yellow ? 1 : 0} red={s.red ? 1 : 0} />
-        </div>
+        </button>
       );
     });
 
@@ -1536,7 +2135,7 @@ function MatchWidgetCard({ data }) {
   );
 }
 
-function StatsWidgetCard({ data }) {
+function StatsWidgetCard({ data, onViewPlayer }) {
   const allPlayed = [...data.matches, ...data.playoffMatches].filter(m => m.played);
   const totalGoals = allPlayed.reduce((a, m) => a + m.scoreA + m.scoreB, 0);
   const withStats = data.players.map(p => ({ p, stats: getPlayerStats(p.id, data) }));
@@ -1561,14 +2160,14 @@ function StatsWidgetCard({ data }) {
           : top3.map(({ p, stats }) => {
             const team = data.teams.find(t => t.id === p.teamId);
             return (
-              <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
+              <button type="button" key={p.id} className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
                 <Avatar size={28} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ fontSize: 13.5, fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
                   <div style={{ fontSize: 11.5, color: '#64748B' }}>{team ? team.name : ''}</div>
                 </div>
                 <div style={{ fontSize: 14, fontWeight: 800, color: '#22C55E' }}>{stats.goals}</div>
-              </div>
+              </button>
             );
           })}
       </div>
@@ -1576,11 +2175,11 @@ function StatsWidgetCard({ data }) {
   );
 }
 
-function RightColumn({ data }) {
+function RightColumn({ data, onViewPlayer }) {
   return (
     <div>
       <MatchWidgetCard data={data} />
-      <StatsWidgetCard data={data} />
+      <StatsWidgetCard data={data} onViewPlayer={onViewPlayer} />
     </div>
   );
 }
@@ -1654,6 +2253,8 @@ export default function FutbolitoApp() {
   const [session, setSession] = useState(null);
   const [loginOpen, setLoginOpen] = useState(false);
   const [viewTeamId, setViewTeamId] = useState(null);
+  const [viewPlayerId, setViewPlayerId] = useState(null);
+  const closePlayerProfile = useCallback(() => setViewPlayerId(null), []);
 
   // Carga inicial de datos + sesión, y suscripción a cambios en vivo.
   useEffect(() => {
@@ -1880,31 +2481,32 @@ export default function FutbolitoApp() {
             </div>
           )}
 
-          {tab === 'inicio' && <InicioTab data={data} isAdmin={isAdmin} onNavigate={setTab} onViewTeam={setViewTeamId} onAddNews={addNews} onDeleteNews={deleteNews} />}
+          {tab === 'inicio' && <InicioTab data={data} isAdmin={isAdmin} onNavigate={setTab} onViewTeam={setViewTeamId} onViewPlayer={setViewPlayerId} onAddNews={addNews} onDeleteNews={deleteNews} />}
 
           {tab === 'tabla' && (
             <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
               <TablaTab data={data} standings={standings} onViewTeam={setViewTeamId} />
-              <RightColumn data={data} />
+              <RightColumn data={data} onViewPlayer={setViewPlayerId} />
             </div>
           )}
 
           {tab === 'equipos' && <EquiposTab data={data} isAdmin={isAdmin} onAdd={addTeam} onEdit={editTeam} onDelete={deleteTeam} standings={standings} onViewTeam={setViewTeamId} />}
-          {tab === 'jugadores' && <JugadoresTab data={data} isAdmin={isAdmin} onAdd={addPlayer} onEdit={editPlayer} onDelete={deletePlayer} onBulkAdd={bulkAddPlayers} />}
+          {tab === 'jugadores' && <JugadoresTab data={data} isAdmin={isAdmin} onAdd={addPlayer} onEdit={editPlayer} onDelete={deletePlayer} onBulkAdd={bulkAddPlayers} onViewPlayer={setViewPlayerId} />}
           {tab === 'partidos' && <PartidosTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('liga', p)} onGenerateFixture={generateFixture}
             onGenerateReturnLeg={generateReturnLeg}
+            onViewPlayer={setViewPlayerId}
             onAutoSchedule={autoScheduleMatches}
             onSaveResult={(id, payload) => saveMatchResult('liga', id, payload)} onDeleteMatch={(id) => deleteMatch('liga', id)}
             onSaveAnyMatch={saveMatchResult} />}
-          {tab === 'playoffs' && <PlayoffsTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('playoff', p)} onAutoSchedule={autoSchedulePlayoffs}
+          {tab === 'playoffs' && <PlayoffsTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('playoff', p)} onAutoSchedule={autoSchedulePlayoffs} onViewPlayer={setViewPlayerId}
             onSaveResult={(id, payload) => saveMatchResult('playoff', id, payload)} onDeleteMatch={(id) => deleteMatch('playoff', id)}
             onSaveAnyMatch={saveMatchResult} />}
-          {tab === 'sanciones' && <SancionesTab data={data} isAdmin={isAdmin} onMarkServed={markSuspensionServed} />}
+          {tab === 'sanciones' && <SancionesTab data={data} isAdmin={isAdmin} onMarkServed={markSuspensionServed} onViewPlayer={setViewPlayerId} />}
 
           {tab === 'stats' && (
             <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
-              <StatsTab data={data} standings={standings} />
-              <RightColumn data={data} />
+              <StatsTab data={data} standings={standings} onViewPlayer={setViewPlayerId} />
+              <RightColumn data={data} onViewPlayer={setViewPlayerId} />
             </div>
           )}
         </div>
@@ -1913,7 +2515,10 @@ export default function FutbolitoApp() {
       {settingsOpen && isAdmin && <SettingsModal meta={data.meta} onClose={() => setSettingsOpen(false)} onSave={saveSettings} onReset={resetAll} onExport={exportData} onImport={importData} />}
       {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
       {viewTeamId && data.teams.find(t => t.id === viewTeamId) && (
-        <TeamDetailModal team={data.teams.find(t => t.id === viewTeamId)} data={data} onClose={() => setViewTeamId(null)} />
+        <TeamDetailModal team={data.teams.find(t => t.id === viewTeamId)} data={data} onClose={() => setViewTeamId(null)} onViewPlayer={setViewPlayerId} />
+      )}
+      {viewPlayerId && data.players.find(p => p.id === viewPlayerId) && (
+        <PlayerDetailModal key={viewPlayerId} player={data.players.find(p => p.id === viewPlayerId)} data={data} onClose={closePlayerProfile} />
       )}
     </div>
   );
@@ -1923,14 +2528,14 @@ export default function FutbolitoApp() {
 
 function QuickStat({ label, value, isText, onClick }) {
   return (
-    <button onClick={onClick} className="card" style={{ padding: '20px', textAlign: 'left', cursor: 'pointer', width: '100%', border: 'none' }}>
+    <button onClick={onClick} className="card quick-stat" style={{ padding: '20px', textAlign: 'left', cursor: 'pointer', width: '100%', border: 'none' }}>
       <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</div>
       <div className="font-display" style={{ fontSize: isText ? 16 : 28, fontWeight: 800, color: '#0F172A', marginTop: 6 }}>{value}</div>
     </button>
   );
 }
 
-function PremiosSection({ data }) {
+function PremiosSection({ data, onViewPlayer }) {
   const withStats = data.players.map(p => ({ p, stats: getPlayerStats(p.id, data) }));
   const topScorer = [...withStats].filter(x => x.stats.goals > 0).sort((a, b) => b.stats.goals - a.stats.goals)[0];
   const hasChampion = !!data.meta.championText;
@@ -1959,7 +2564,7 @@ function PremiosSection({ data }) {
           <div style={{ textAlign: 'center' }}>
             <BarChart3 size={36} color="#22C55E" style={{ margin: '0 auto 12px' }} />
             <div style={{ fontSize: 11, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Máximo goleador</div>
-            <div className="font-display" style={{ fontWeight: 700, fontSize: 16, color: '#0F172A', marginTop: 6 }}>{topScorer.p.name} ({topScorer.stats.goals})</div>
+            <button type="button" className="font-display player-profile-trigger" aria-label={'Ver estadísticas de ' + topScorer.p.name} onClick={() => onViewPlayer(topScorer.p.id)} style={{ fontWeight: 700, fontSize: 16, color: '#0F172A', marginTop: 6, padding: 0 }}>{topScorer.p.name} ({topScorer.stats.goals})</button>
           </div>
         )}
       </div>
@@ -1967,7 +2572,7 @@ function PremiosSection({ data }) {
   );
 }
 
-function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteNews }) {
+function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onViewPlayer, onAddNews, onDeleteNews }) {
   const [rulesOpen, setRulesOpen] = useState(false);
   const [newsModalOpen, setNewsModalOpen] = useState(false);
   const [confirmDeleteNewsId, setConfirmDeleteNewsId] = useState(null);
@@ -1991,10 +2596,10 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteN
         <button className="btn btn-outline btn-sm" onClick={() => setRulesOpen(true)}><FileText size={14} /> Reglas del campeonato</button>
       </div>
 
-      <div style={{ position: 'relative', height: 220, borderRadius: 16, overflow: 'hidden', marginBottom: 24, background: '#0F172A', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
+      <div className="hero-banner" style={{ position: 'relative', height: 220, borderRadius: 16, overflow: 'hidden', marginBottom: 24, background: '#0F172A', boxShadow: '0 10px 25px -5px rgba(0,0,0,0.1)' }}>
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, #22C55E 0%, #16A34A 100%)', clipPath: 'polygon(42% 0, 100% 0, 68% 100%, 0 100%)' }} />
         {!data.meta.logoUrl && <Trophy size={160} color="rgba(255,255,255,.05)" style={{ position: 'absolute', right: 24, bottom: -24 }} />}
-        <div style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', alignItems: 'center', gap: 24, padding: '0 40px' }}>
+        <div className="hero-content" style={{ position: 'relative', zIndex: 1, height: '100%', display: 'flex', alignItems: 'center', gap: 24, padding: '0 40px' }}>
           {data.meta.logoUrl && (
             <img src={data.meta.logoUrl} alt="" style={{ width: 140, height: 140, borderRadius: 16, objectFit: 'cover', background: 'rgba(255,255,255,.15)', flexShrink: 0, boxShadow: '0 10px 25px rgba(0,0,0,.2)' }}
               onError={e => { e.currentTarget.style.display = 'none'; }} />
@@ -2020,7 +2625,7 @@ function InicioTab({ data, isAdmin, onNavigate, onViewTeam, onAddNews, onDeleteN
         <QuickStat label="Clasificación" value="Ver tabla" isText onClick={() => onNavigate('tabla')} />
       </div>
 
-      <PremiosSection data={data} />
+      <PremiosSection data={data} onViewPlayer={onViewPlayer} />
 
       <div className="card" style={{ padding: 24, marginBottom: 24 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: news.length > 0 ? 20 : 12 }}>
@@ -2250,7 +2855,7 @@ function EquiposTab({ data, isAdmin, onAdd, onEdit, onDelete, standings, onViewT
   );
 }
 
-function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
+function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd, onViewPlayer }) {
   const [modal, setModal] = useState(null);
   const [filterTeam, setFilterTeam] = useState('all');
   const [confirmId, setConfirmId] = useState(null);
@@ -2288,10 +2893,10 @@ function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd }) {
                     return (
                       <tr key={p.id}>
                         <td className="team-name-cell">
-                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: 12 }}>
+                          <button type="button" className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: 0 }}>
                             <Avatar size={32} />
                             <span style={{fontWeight: 500, fontSize: 14.5}}>{p.name}</span>
-                          </span>
+                          </button>
                         </td>
                         <td style={{textAlign: 'center'}}>
                           {p.number !== '' && p.number !== undefined 
@@ -2367,7 +2972,7 @@ function MatchRow({ m, teams, onOpen, last, clickable }) {
   const teamB = teams.find(t => t.id === m.teamBId);
   const isClickable = clickable !== false;
   return (
-    <div onClick={isClickable ? onOpen : undefined}
+    <div className="match-row" onClick={isClickable ? onOpen : undefined}
       style={{ display: 'flex', alignItems: 'center', gap: 16, padding: '16px 20px', cursor: isClickable ? 'pointer' : 'default', borderBottom: last ? 'none' : '1px solid #F1F5F9', transition: 'background 0.2s' }}
       onMouseOver={e => isClickable && (e.currentTarget.style.background = '#F8FAFC')}
       onMouseOut={e => isClickable && (e.currentTarget.style.background = 'transparent')}>
@@ -2390,7 +2995,7 @@ function MatchRow({ m, teams, onOpen, last, clickable }) {
   );
 }
 
-function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onGenerateReturnLeg, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch }) {
+function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onGenerateReturnLeg, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch, onViewPlayer }) {
   const [modal, setModal] = useState(null);
   const [confirmGenerate, setConfirmGenerate] = useState(false);
   const [confirmSchedule, setConfirmSchedule] = useState(false);
@@ -2459,11 +3064,11 @@ function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onGenerateR
       )}
       {openMatch && (
         isAdmin
-          ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players} allMatches={[...data.matches, ...data.playoffMatches]} onSwap={onSaveAnyMatch}
+          ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players} allMatches={[...data.matches, ...data.playoffMatches]} onSwap={onSaveAnyMatch} onViewPlayer={onViewPlayer}
               onClose={() => setModal(null)}
               onSave={(payload) => { onSaveResult(openMatch.id, payload); setModal(null); }}
               onDelete={(id) => { onDeleteMatch(id); setModal(null); }} />
-          : <MatchDetailModal match={openMatch} teams={data.teams} players={data.players} onClose={() => setModal(null)} />
+          : <MatchDetailModal match={openMatch} teams={data.teams} players={data.players} onClose={() => setModal(null)} onViewPlayer={onViewPlayer} />
       )}
     </div>
   );
@@ -2566,7 +3171,7 @@ function PlayoffBracket({ data, onOpenMatch }) {
   );
 }
 
-function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch }) {
+function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch, onViewPlayer }) {
   const [modal, setModal] = useState(null);
   const [confirmSchedule, setConfirmSchedule] = useState(false);
   const openMatch = data.playoffMatches.find(m => m.id === modal);
@@ -2630,17 +3235,17 @@ function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, 
       )}
       {openMatch && (
         isAdmin
-          ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players} allMatches={[...data.matches, ...data.playoffMatches]} onSwap={onSaveAnyMatch}
+          ? <MatchResultModal match={openMatch} teams={data.teams} players={data.players} allMatches={[...data.matches, ...data.playoffMatches]} onSwap={onSaveAnyMatch} onViewPlayer={onViewPlayer}
               onClose={() => setModal(null)}
               onSave={(payload) => { onSaveResult(openMatch.id, payload); setModal(null); }}
               onDelete={(id) => { onDeleteMatch(id); setModal(null); }} />
-          : <MatchDetailModal match={openMatch} teams={data.teams} players={data.players} onClose={() => setModal(null)} />
+          : <MatchDetailModal match={openMatch} teams={data.teams} players={data.players} onClose={() => setModal(null)} onViewPlayer={onViewPlayer} />
       )}
     </div>
   );
 }
 
-function SancionesTab({ data, isAdmin, onMarkServed }) {
+function SancionesTab({ data, isAdmin, onMarkServed, onViewPlayer }) {
   const withStats = data.players.map(p => ({ p, stats: getPlayerStats(p.id, data) }));
   const suspended = withStats.filter(x => x.stats.pending > 0).sort((a, b) => b.stats.pending - a.stats.pending);
   const warning = withStats.filter(x => x.stats.pending === 0 && x.stats.yellowSinceReset === x.stats.yellowLimit - 1 && x.stats.yellowLimit > 1);
@@ -2663,7 +3268,7 @@ function SancionesTab({ data, isAdmin, onMarkServed }) {
                 <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', flexWrap: 'wrap', borderBottom: idx === suspended.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
                   <Avatar size={36} />
                   <div style={{ flex: 1, minWidth: 160 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A' }}>{p.name}</div>
+                    <button type="button" className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A', padding: 0 }}>{p.name}</button>
                     <div style={{ fontSize: 12.5, marginTop: 2 }}><TeamChip team={team} size="sm" /></div>
                   </div>
                   <CardBadge yellow={stats.yellow} red={stats.red} />
@@ -2688,7 +3293,7 @@ function SancionesTab({ data, isAdmin, onMarkServed }) {
                 <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', borderBottom: idx === warning.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
                   <Avatar size={36} />
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A' }}>{p.name}</div>
+                    <button type="button" className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A', padding: 0 }}>{p.name}</button>
                     <div style={{ fontSize: 12.5, marginTop: 2 }}><TeamChip team={team} size="sm" /></div>
                   </div>
                   <div style={{ fontSize: 13.5, color: '#D97706', fontWeight: 700 }}>{stats.yellowSinceReset} / {stats.yellowLimit} amarillas</div>
@@ -2701,7 +3306,7 @@ function SancionesTab({ data, isAdmin, onMarkServed }) {
   );
 }
 
-function StatsTab({ data, standings }) {
+function StatsTab({ data, standings, onViewPlayer }) {
   const withStats = data.players.map(p => ({ p, stats: getPlayerStats(p.id, data) }));
   const topScorers = [...withStats].filter(x => x.stats.goals > 0).sort((a, b) => b.stats.goals - a.stats.goals).slice(0, 10);
   const topYellow = [...withStats].filter(x => x.stats.yellow > 0).sort((a, b) => b.stats.yellow - a.stats.yellow).slice(0, 10);
@@ -2716,7 +3321,7 @@ function StatsTab({ data, standings }) {
       {list.length === 0 ? <div style={{ fontSize: 13, color: '#94A3B8' }}>Sin datos todavía.</div> : list.map(({ p, stats }, i) => {
         const team = data.teams.find(t => t.id === p.teamId);
         return (
-          <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F1F5F9' }}>
+          <button type="button" key={p.id} className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F1F5F9' }}>
             <span style={{ width: 20, fontSize: 13, color: '#64748B', fontWeight: 800, flexShrink: 0, textAlign: 'center' }}>{i + 1}</span>
             <Avatar size={32} />
             <span style={{ flex: 1, fontSize: 14, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -2725,7 +3330,7 @@ function StatsTab({ data, standings }) {
             </span>
             {cardType && <CardBadge yellow={cardType === 'yellow' ? stats[valueKey] : 0} red={cardType === 'red' ? stats[valueKey] : 0} />}
             <span style={{ fontWeight: 800, color: '#22C55E', fontSize: 14.5 }}>{stats[valueKey]}</span>
-          </div>
+          </button>
         );
       })}
     </div>

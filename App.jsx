@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef, Fragment } from 'react';
 import {
   Trophy, Users, User, Calendar, ShieldAlert, BarChart3, Settings,
   Plus, Trash2, X, AlertTriangle, Check, Pencil, Table2, Award, Loader2,
-  LogIn, LogOut, Mail, Home, FileText, UserCircle2, Send, Clock, MapPin
+  LogIn, LogOut, Mail, Home, FileText, UserCircle2, Send, Clock, MapPin, Search, ArrowUpRight
 } from 'lucide-react';
 import { supabase } from './supabaseClient';
 
@@ -323,6 +323,19 @@ function getPlayerProfile(playerId, data) {
 function teamName(teams, id) {
   const t = teams.find(t => t.id === id);
   return t ? t.name : 'Equipo eliminado';
+}
+
+function normalizeSearchText(value) {
+  return String(value ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+}
+
+function getTeamPlayers(data, teamId, query = '') {
+  if (!teamId || !data.teams.some(t => t.id === teamId)) return [];
+  const term = normalizeSearchText(query);
+  const numberTerm = term.replace(/^#/, '');
+  return data.players.filter(p => p.teamId === teamId && (!term ||
+    normalizeSearchText(p.name).includes(term) ||
+    (numberTerm && String(p.number ?? '').includes(numberTerm))));
 }
 
 /* ---------- Piezas reutilizables ---------- */
@@ -1045,6 +1058,131 @@ function GlobalStyles() {
         .main-area { padding: 0 !important; }
         body, .futbolito-app { background: #fff !important; color: #000 !important; }
         .card { break-inside: avoid; border-color: #CBD5E1 !important; box-shadow: none !important; }
+      }
+      /* Planteles y equipos: estilos propios para conservar las otras vistas. */
+      .tournament-pane { --pane-ink: #0F172A; --pane-muted: #64748B; min-width: 0; }
+      .pane-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; flex-wrap: wrap; margin-bottom: 22px; }
+      .pane-kicker { display: flex; align-items: center; gap: 7px; font-size: 10px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: #0F766E; margin-bottom: 8px; }
+      .pane-title { font-family: 'Poppins', sans-serif; font-size: 25px; line-height: 1.25; font-weight: 800; color: var(--pane-ink); margin: 0; }
+      .pane-description { font-size: 13px; color: var(--pane-muted); margin: 7px 0 0; line-height: 1.6; }
+      .pane-counter { display: inline-flex; align-items: center; gap: 7px; padding: 8px 12px; background: #fff; border: 1px solid #E2E8F0; border-radius: 10px; font-size: 12px; font-weight: 600; color: #475569; }
+      .pane-counter strong { color: #0F766E; font-size: 14px; }
+      .pane-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+      .pane-toolbar { display: flex; align-items: flex-end; justify-content: space-between; gap: 14px; flex-wrap: wrap; margin-bottom: 20px; padding: 18px; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; }
+      .pane-field { display: grid; gap: 7px; min-width: 0; flex: 1 1 220px; max-width: 380px; }
+      .pane-field > label { font-size: 10px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: #64748B; }
+      .pane-field .input { width: 100%; min-width: 0; height: 44px; box-shadow: none; }
+      .pane-search { display: flex; align-items: center; gap: 9px; min-width: 0; border: 1px solid #CBD5E1; border-radius: 10px; padding: 0 12px; background: #F8FAFC; height: 44px; }
+      .pane-search:focus-within { border-color: #0D9488; box-shadow: 0 0 0 3px #CCFBF1; }
+      .pane-search > svg { flex-shrink: 0; color: #94A3B8; }
+      .pane-search input { border: 0; outline: none; background: transparent; font: inherit; font-size: 13px; color: #0F172A; min-width: 0; width: 100%; }
+      .pane-search input::placeholder { color: #94A3B8; }
+      .pane-search button { border: 0; background: transparent; cursor: pointer; color: #64748B; display: flex; padding: 3px; }
+      .tournament-pane button:focus-visible { outline: 3px solid #14B8A6; outline-offset: 3px; }
+      .pane-empty { background: #fff; border: 1px dashed #CBD5E1; border-radius: 20px; padding: 52px 22px; text-align: center; }
+      .pane-empty-icon { width: 72px; height: 72px; margin: 0 auto 18px; display: grid; place-items: center; color: #0F766E; background: #F0FDFA; border: 1px solid #CCFBF1; border-radius: 22px; }
+      .pane-empty h3 { margin: 0; font-family: 'Poppins', sans-serif; font-size: 19px; font-weight: 700; color: #0F172A; }
+      .pane-empty p { max-width: 400px; margin: 10px auto 0; font-size: 13px; color: #64748B; line-height: 1.7; }
+      .clubs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 22px; }
+      .teams-page .club-card { min-width: 0; border-radius: 20px; animation: none; box-shadow: 0 4px 16px -10px rgba(15,23,42,.18); }
+      .teams-page .club-card:hover { transform: translateY(-4px); border-color: var(--club-color, #0D9488); box-shadow: 0 18px 28px -20px rgba(15,23,42,.35); }
+      .club-card-cover { display: block; position: relative; width: 100%; height: 150px; padding: 0; border: 0; background: linear-gradient(135deg, #0B1121, #183B32); overflow: hidden; cursor: pointer; text-align: left; }
+      .club-card-cover::after { content: ''; position: absolute; inset: 0; background: linear-gradient(transparent 25%, rgba(11,17,33,.75)); pointer-events: none; }
+      .club-cover-emblem { position: absolute; inset: 0; display: grid; place-items: center; opacity: .55; }
+      .club-cover-emblem > * { transform: scale(1.65); }
+      .club-cover-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .35s ease; }
+      .teams-page .club-card:hover .club-cover-photo { transform: scale(1.035); }
+      .club-cover-label { position: absolute; left: 18px; bottom: 15px; z-index: 1; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+      .club-position { position: absolute; left: 14px; top: 14px; z-index: 1; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 800; color: #0F172A; padding: 6px 9px; border-radius: 7px; background: rgba(255,255,255,.95); }
+      .club-card-content { display: flex; flex-direction: column; flex: 1; padding: 20px; border-top: 4px solid var(--club-color, #0D9488); }
+      .club-card-heading { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 16px; }
+      .club-card-name { flex: 1; min-width: 0; display: flex; align-items: flex-start; gap: 10px; padding: 0; border: 0; background: transparent; text-align: left; cursor: pointer; }
+      .club-card-name > span { min-width: 0; font-family: 'Poppins', sans-serif; font-size: 16px; line-height: 1.45; font-weight: 800; color: #0F172A; overflow-wrap: anywhere; }
+      .club-card-name > .crest, .club-card-name > img { margin-top: 2px; }
+      .club-card-members { display: flex; align-items: center; gap: 6px; margin-bottom: 15px; color: #64748B; font-size: 12px; }
+      .club-card-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid #E2E8F0; border-radius: 12px; overflow: hidden; background: #F8FAFC; margin-bottom: 12px; }
+      .club-card-metric { text-align: center; padding: 12px 4px; border-right: 1px solid #E2E8F0; }
+      .club-card-metric:last-child { border-right: 0; }
+      .club-card-metric strong { display: block; font-family: 'Poppins', sans-serif; font-size: 23px; font-weight: 800; line-height: 1.2; color: #0F172A; }
+      .club-card-metric:first-child strong { color: #0F766E; }
+      .club-card-metric span { display: block; margin-top: 5px; font-size: 9px; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; color: #64748B; }
+      .club-card-goals { display: flex; justify-content: space-between; gap: 10px; font-size: 11px; color: #64748B; padding: 0 2px 14px; }
+      .club-card-goals b { color: #334155; }
+      .club-card-form { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 12px; border-top: 1px solid #F1F5F9; margin-top: auto; }
+      .club-card-form > span { font-size: 10px; font-weight: 600; color: #64748B; }
+      .club-form-results { display: flex; gap: 5px; }
+      .club-form-result { display: grid; place-items: center; width: 25px; height: 25px; border-radius: 7px; font-size: 10px; font-weight: 800; }
+      .club-form-result.win { background: #DCFCE7; color: #15803D; }
+      .club-form-result.draw { background: #FEF3C7; color: #92400E; }
+      .club-form-result.loss { background: #FEE2E2; color: #B91C1C; }
+      .club-card-footer { display: flex; padding-top: 16px; margin-top: 16px; border-top: 1px solid #E2E8F0; }
+      .club-card-open { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; border: 0; border-radius: 10px; padding: 11px 12px; background: #F0FDFA; color: #0F766E; font: inherit; font-size: 12px; font-weight: 700; cursor: pointer; }
+      .club-card-open:hover { background: #CCFBF1; }
+      .teams-page .icon-btn-subtle, .players-page .icon-btn-subtle { min-width: 34px; min-height: 34px; }
+      .club-card-confirm { margin-top: 12px; }
+      .club-card-confirm > span { width: 100%; flex-wrap: wrap; }
+      .roster-banner { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; padding: 20px; background: #fff; border: 1px solid #E2E8F0; border-left: 4px solid var(--club-color, #0D9488); border-radius: 16px; }
+      .roster-banner-title { flex: 1; min-width: 150px; }
+      .roster-banner-title h3 { margin: 0; font-family: 'Poppins', sans-serif; font-size: 18px; font-weight: 800; line-height: 1.4; color: #0F172A; overflow-wrap: anywhere; }
+      .roster-banner-title p { margin: 5px 0 0; color: #64748B; font-size: 12px; }
+      .roster-summary { display: flex; gap: 8px; flex-wrap: wrap; }
+      .roster-summary > span { display: inline-flex; gap: 5px; align-items: center; border-radius: 8px; padding: 8px 10px; font-size: 11px; font-weight: 600; background: #F0FDFA; color: #0F766E; }
+      .roster-table-wrap { overflow-x: auto; background: #fff; border: 1px solid #E2E8F0; border-radius: 16px; }
+      .roster-table { border-collapse: collapse; width: 100%; }
+      .roster-table th { padding: 14px 16px; text-align: center; white-space: nowrap; color: #64748B; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; background: #F8FAFC; border-bottom: 1px solid #E2E8F0; }
+      .roster-table th:first-child { text-align: left; }
+      .roster-table td { padding: 14px 16px; text-align: center; border-bottom: 1px solid #F1F5F9; font-size: 12px; color: #334155; }
+      .roster-table tbody tr:last-child td { border-bottom: 0; }
+      .roster-table tbody tr:hover { background: #F8FAFC; }
+      .roster-player-open { display: inline-flex; align-items: center; gap: 11px; padding: 0; max-width: 100%; }
+      .roster-player-text { display: grid; gap: 3px; min-width: 0; }
+      .roster-player-text strong { font-size: 13px; font-weight: 700; color: #0F172A; line-height: 1.4; overflow-wrap: anywhere; }
+      .roster-player-text small { font-size: 10.5px; color: #64748B; line-height: 1.4; }
+      .roster-number { display: inline-block; border-radius: 7px; padding: 5px 8px; background: #F1F5F9; color: #0F172A; font-weight: 800; font-size: 12px; white-space: nowrap; }
+      .roster-age { display: inline-block; padding: 5px 8px; border-radius: 7px; font-size: 11px; font-weight: 800; white-space: nowrap; }
+      .roster-goals { display: inline-block; min-width: 30px; padding: 5px 8px; border-radius: 7px; background: #F1F5F9; color: #64748B; font-weight: 800; }
+      .roster-goals.scored { background: #DCFCE7; color: #15803D; }
+      .roster-cards { display: inline-flex; gap: 5px; align-items: center; white-space: nowrap; }
+      .roster-card-count { display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; border-radius: 6px; font-size: 11px; font-weight: 700; }
+      .roster-card-count.yellow { background: #FFFBEB; color: #92400E; }
+      .roster-card-count.red { background: #FEF2F2; color: #B91C1C; }
+      .roster-card-count .card-chip { width: 8px; height: 11px; box-shadow: none; }
+      .roster-row-actions { display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+      .roster-row-actions > span { flex-wrap: wrap; }
+      .roster-footer { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 11px; color: #64748B; margin-top: 14px; line-height: 1.5; }
+      .roster-age-key { display: flex; gap: 12px; flex-wrap: wrap; }
+      .roster-age-key span { display: inline-flex; align-items: center; gap: 5px; }
+      .roster-age-key i { width: 8px; height: 8px; border-radius: 3px; }
+      @media (max-width: 640px) {
+        .pane-title { font-size: 22px; }
+        .pane-heading { gap: 14px; margin-bottom: 16px; }
+        .pane-heading > .pane-actions { width: 100%; }
+        .pane-toolbar { padding: 14px; gap: 14px; }
+        .pane-field { max-width: none; flex-basis: 100%; }
+        .players-page .pane-toolbar > .pane-actions { width: 100%; }
+        .players-page .pane-toolbar > .pane-actions .btn { flex: 1; justify-content: center; padding: 11px 8px; font-size: 12px; }
+        .clubs-grid { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+        .club-card-cover { height: 160px; }
+        .club-card-content { padding: 18px; }
+        .roster-banner { padding: 16px; }
+        .roster-summary { width: 100%; }
+        .roster-table-wrap { overflow: visible; }
+        .roster-table, .roster-table tbody { display: block; }
+        .roster-table thead { display: none; }
+        .roster-table tbody { display: grid; gap: 10px; padding: 12px; }
+        .roster-table tr { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 10px 14px; padding: 14px; border: 1px solid #E2E8F0; border-radius: 12px; }
+        .roster-table td { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 0; border: 0; min-width: 0; text-align: left; }
+        .roster-table td::before { content: attr(data-label); font-size: 9px; font-weight: 700; color: #64748B; }
+        .roster-table td:first-child { grid-column: 1 / -1; margin-bottom: 4px; }
+        .roster-table td:first-child::before, .roster-table td.roster-action-cell::before { display: none; }
+        .roster-table td.roster-action-cell { grid-column: 1 / -1; padding-top: 10px; margin-top: 2px; border-top: 1px solid #F1F5F9; }
+        .roster-action-cell .roster-row-actions { width: 100%; }
+        .pane-empty { padding: 38px 18px; }
+      }
+      @media print {
+        .pane-toolbar, .roster-row-actions, .club-card-actions, .club-card-open, .club-card-confirm { display: none !important; }
+        .clubs-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+        .club-card { break-inside: avoid; }
       }
     `}</style>
   );
@@ -2955,71 +3093,108 @@ function TablaTab({ data, standings, onViewTeam }) {
 function EquiposTab({ data, isAdmin, onAdd, onEdit, onDelete, standings, onViewTeam }) {
   const [modal, setModal] = useState(null);
   const [confirmId, setConfirmId] = useState(null);
+  const [search, setSearch] = useState('');
+  const visibleTeams = data.teams.filter(t => normalizeSearchText(t.name).includes(normalizeSearchText(search)));
 
   return (
-    <div>
-      {isAdmin && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 20 }}>
-          <button className="btn btn-primary" onClick={() => setModal('new')}><Plus size={16} /> Agregar equipo</button>
+    <div className="tournament-pane teams-page">
+      <div className="pane-heading">
+        <div>
+          <div className="pane-kicker"><Trophy size={13} /> Clubes del campeonato</div>
+          <h2 className="pane-title">Equipos participantes</h2>
+          <p className="pane-description">Conoce los planteles y sigue su rendimiento en la liga.</p>
+        </div>
+        <div className="pane-actions">
+          <span className="pane-counter"><Users size={15} /><strong>{data.teams.length}</strong> equipos</span>
+          {isAdmin && <button className="btn btn-primary" onClick={() => setModal('new')}><Plus size={16} /> Agregar equipo</button>}
+        </div>
+      </div>
+
+      {data.teams.length > 0 && (
+        <div className="pane-toolbar">
+          <div className="pane-field">
+            <label htmlFor="team-search">Encuentra un equipo</label>
+            <div className="pane-search">
+              <Search size={17} />
+              <input id="team-search" type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Buscar por nombre…" />
+              {search && <button type="button" aria-label="Limpiar búsqueda de equipos" onClick={() => setSearch('')}><X size={14} /></button>}
+            </div>
+          </div>
+          <span style={{ fontSize: 12, color: '#64748B' }} aria-live="polite">{visibleTeams.length} de {data.teams.length} equipos · {data.players.length} jugadores inscritos</span>
         </div>
       )}
 
-      {data.teams.length === 0
-        ? <EmptyState Icon={Users} title="Sin equipos todavía" text="Agrega el primer equipo del campeonato para empezar a registrar jugadores y partidos." />
-        : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: 20 }}>
-            {data.teams.map(team => {
-              const row = standings.find(s => s.teamId === team.id);
-              const playerCount = data.players.filter(p => p.teamId === team.id).length;
-              return (
-                <div key={team.id} className="team-card">
-                  <div className="team-card-accent" style={{ background: team.color }} />
-                  <div className="team-card-header">
-                    <div className="team-card-title-group" onClick={() => onViewTeam(team.id)}>
-                      <Crest team={team} size="md" />
-                      <div className="team-card-title">{team.name}</div>
-                    </div>
+      {data.teams.length === 0 ? (
+        <EmptyState Icon={Users} title="Sin equipos todavía" text="Agrega el primer equipo del campeonato para empezar a registrar jugadores y partidos." />
+      ) : visibleTeams.length === 0 ? (
+        <div className="pane-empty">
+          <div className="pane-empty-icon"><Search size={30} /></div>
+          <h3>No encontramos ese equipo</h3>
+          <p>Prueba con otra parte del nombre o limpia la búsqueda.</p>
+          <button className="btn btn-outline btn-sm" style={{ marginTop: 18 }} onClick={() => setSearch('')}>Mostrar equipos</button>
+        </div>
+      ) : (
+        <div className="clubs-grid">
+          {visibleTeams.map(team => {
+            const row = standings.find(s => s.teamId === team.id) || { pj: 0, pts: 0, dg: 0, gf: 0, gc: 0 };
+            const position = standings.findIndex(s => s.teamId === team.id) + 1;
+            const playerCount = data.players.filter(p => p.teamId === team.id).length;
+            const recentMatches = data.matches.filter(m => m.played && (m.teamAId === team.id || m.teamBId === team.id))
+              .slice().sort((a, b) => ((b.date || '') + ' ' + (b.time || ''))
+                .localeCompare((a.date || '') + ' ' + (a.time || '')) || (Number(b.jornada) || 0) - (Number(a.jornada) || 0))
+              .slice(0, 5).reverse();
+            return (
+              <article key={team.id} className="team-card club-card" style={{ '--club-color': team.color || '#0D9488' }}>
+                <button type="button" className="club-card-cover" aria-label={'Abrir ficha de ' + team.name} onClick={() => onViewTeam(team.id)}>
+                  <div className="club-cover-emblem" aria-hidden="true"><Crest team={team} size="lg" /></div>
+                  {team.photoUrl && <img className="club-cover-photo" src={team.photoUrl} alt={'Plantel de ' + team.name} loading="lazy" onError={e => { e.currentTarget.style.display = 'none'; }} />}
+                  <span className="club-position"><Trophy size={12} /> {row.pj > 0 && position ? '#' + position + ' en la tabla' : 'Sin resultados'}</span>
+                  <span className="club-cover-label">{data.meta.category || 'Campeonato'} · Liga</span>
+                </button>
+                <div className="club-card-content">
+                  <div className="club-card-heading">
+                    <button type="button" className="club-card-name" onClick={() => onViewTeam(team.id)} aria-label={'Ver plantel de ' + team.name}>
+                      <Crest team={team} size="md" /><span>{team.name}</span>
+                    </button>
                     {isAdmin && (
-                      <div className="team-card-actions">
-                        <button className="icon-btn-subtle" onClick={() => setModal(team.id)}><Pencil size={14} /></button>
-                        {confirmId !== team.id && <button className="icon-btn-subtle danger" onClick={() => setConfirmId(team.id)}><Trash2 size={14} /></button>}
+                      <div className="team-card-actions club-card-actions">
+                        <button className="icon-btn-subtle" aria-label={'Editar equipo ' + team.name} onClick={() => setModal(team.id)}><Pencil size={14} /></button>
+                        {confirmId !== team.id && <button className="icon-btn-subtle danger" aria-label={'Eliminar equipo ' + team.name} onClick={() => setConfirmId(team.id)}><Trash2 size={14} /></button>}
                       </div>
                     )}
                   </div>
-                  
-                  <div className="team-card-body">
-                    <div className="team-card-players">
-                      <Users size={14} /> {playerCount} jugador{playerCount !== 1 ? 'es' : ''}
+                  <div className="club-card-members"><Users size={14} /> {playerCount} jugador{playerCount !== 1 ? 'es' : ''} en el plantel</div>
+                  <div className="club-card-metrics">
+                    <div className="club-card-metric"><strong>{row.pts}</strong><span>Puntos</span></div>
+                    <div className="club-card-metric"><strong>{row.pj}</strong><span>Partidos</span></div>
+                    <div className="club-card-metric"><strong>{row.dg > 0 ? '+' + row.dg : row.dg}</strong><span>Dif. de gol</span></div>
+                  </div>
+                  <div className="club-card-goals"><span>Goles a favor <b>{row.gf}</b></span><span>En contra <b>{row.gc}</b></span></div>
+                  <div className="club-card-form">
+                    <span>{recentMatches.length ? 'Últimos ' + recentMatches.length + ' en liga' : 'Sin partidos finalizados'}</span>
+                    <div className="club-form-results">
+                      {recentMatches.map(m => {
+                        const own = Number(m.teamAId === team.id ? m.scoreA : m.scoreB);
+                        const rival = Number(m.teamAId === team.id ? m.scoreB : m.scoreA);
+                        const valid = Number.isFinite(own) && Number.isFinite(rival);
+                        const kind = !valid ? '' : own > rival ? 'win' : own < rival ? 'loss' : 'draw';
+                        const label = !valid ? 'Sin marcador válido' : own > rival ? 'Ganado' : own < rival ? 'Perdido' : 'Empatado';
+                        return <span key={m.id} className={'club-form-result ' + kind} title={'Fecha ' + m.jornada + ': ' + label + ' · ' + m.scoreA + '-' + m.scoreB} aria-label={'Fecha ' + m.jornada + ': ' + label}>{!valid ? '—' : own > rival ? 'G' : own < rival ? 'P' : 'E'}</span>;
+                      })}
                     </div>
-                    {row ? (
-                      <div className="team-card-stats">
-                        <span><strong>{row.pj}</strong> PJ</span>
-                        <span className="dot">•</span>
-                        <span><strong>{row.pts}</strong> PTS</span>
-                        <span className="dot">•</span>
-                        <span>DIF <strong>{row.dg}</strong></span>
-                      </div>
-                    ) : (
-                      <div className="team-card-stats">
-                        <span><strong>0</strong> PJ</span>
-                        <span className="dot">•</span>
-                        <span><strong>0</strong> PTS</span>
-                        <span className="dot">•</span>
-                        <span>DIF <strong>0</strong></span>
-                      </div>
-                    )}
                   </div>
-                  
+                  <div className="club-card-footer">
+                    <button type="button" className="club-card-open" onClick={() => onViewTeam(team.id)} aria-label={'Ver ficha completa de ' + team.name}>Ver plantel y estadísticas <ArrowUpRight size={15} /></button>
+                  </div>
                   {isAdmin && confirmId === team.id && (
-                    <div style={{ padding: '0 16px 16px' }}>
-                      <ConfirmInline text="¿Eliminar equipo?" onConfirm={() => { onDelete(team.id); setConfirmId(null); }} onCancel={() => setConfirmId(null)} />
-                    </div>
+                    <div className="club-card-confirm"><ConfirmInline text="¿Eliminar equipo?" onConfirm={() => { onDelete(team.id); setConfirmId(null); }} onCancel={() => setConfirmId(null)} /></div>
                   )}
                 </div>
-              );
-            })}
-          </div>
-        )}
+              </article>
+            );
+          })}
+        </div>
+      )}
 
       {isAdmin && modal === 'new' && <TeamFormModal onClose={() => setModal(null)} onSave={(p) => { onAdd(p); setModal(null); }} />}
       {isAdmin && modal && modal !== 'new' && (
@@ -3029,89 +3204,139 @@ function EquiposTab({ data, isAdmin, onAdd, onEdit, onDelete, standings, onViewT
   );
 }
 
+function TeamRosterTable({ data, players, isAdmin, onViewPlayer, onEditClick, onDelete, confirmId, onConfirmDelete }) {
+  return (
+    <div className="roster-table-wrap">
+      <table className="roster-table" aria-label="Plantel del equipo seleccionado">
+        <thead><tr><th>Jugador</th><th>Dorsal</th><th>Edad</th><th>Goles</th><th>Tarjetas</th>{isAdmin && <th>Acciones</th>}</tr></thead>
+        <tbody>
+          {players.map(p => {
+            const age = ageColor(p.age);
+            const stats = getPlayerStats(p.id, data);
+            return (
+              <tr key={p.id}>
+                <td style={{ textAlign: 'left' }}>
+                  <button type="button" className="player-profile-trigger roster-player-open" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)}>
+                    <Avatar size={34} />
+                    <span className="roster-player-text"><strong>{p.name}</strong><small>{p.position || 'Ver estadísticas'}</small></span>
+                  </button>
+                </td>
+                <td data-label="Dorsal"><span className="roster-number">{p.number !== '' && p.number != null ? '#' + p.number : '—'}</span></td>
+                <td data-label="Edad">{p.age !== '' && p.age != null ? <span className="roster-age" style={{ background: age.bg, color: age.fg }}>{p.age}</span> : <span style={{ color: '#94A3B8' }}>—</span>}</td>
+                <td data-label="Goles"><span className={'roster-goals' + (stats.goals > 0 ? ' scored' : '')}>{stats.goals}</span></td>
+                <td data-label="Tarjetas">
+                  <span className="roster-cards">
+                    {stats.yellow > 0 && <span className="roster-card-count yellow" title={stats.yellow + ' amarillas'}><span className="card-chip yellow" />{stats.yellow}</span>}
+                    {stats.red > 0 && <span className="roster-card-count red" title={stats.red + ' rojas'}><span className="card-chip red" />{stats.red}</span>}
+                    {!stats.yellow && !stats.red && <span style={{ color: '#94A3B8', fontSize: 10.5 }}>Sin tarjetas</span>}
+                  </span>
+                </td>
+                {isAdmin && (
+                  <td className="roster-action-cell">
+                    <div className="roster-row-actions">
+                      {confirmId === p.id ? (
+                        <ConfirmInline text="¿Eliminar?" onConfirm={() => { onDelete(p.id); onConfirmDelete(null); }} onCancel={() => onConfirmDelete(null)} />
+                      ) : (
+                        <>
+                          <button className="icon-btn-subtle" aria-label={'Editar jugador ' + p.name} onClick={() => onEditClick(p.id)}><Pencil size={14} /></button>
+                          <button className="icon-btn-subtle danger" aria-label={'Eliminar jugador ' + p.name} onClick={() => onConfirmDelete(p.id)}><Trash2 size={14} /></button>
+                        </>
+                      )}
+                    </div>
+                  </td>
+                )}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function JugadoresTab({ data, isAdmin, onAdd, onEdit, onDelete, onBulkAdd, onViewPlayer }) {
   const [modal, setModal] = useState(null);
-  const [filterTeam, setFilterTeam] = useState('all');
+  const [filterTeam, setFilterTeam] = useState('');
+  const [search, setSearch] = useState('');
   const [confirmId, setConfirmId] = useState(null);
-
-  const filtered = data.players.filter(p => filterTeam === 'all' || p.teamId === filterTeam);
+  const selectedTeam = data.teams.find(t => t.id === filterTeam);
+  const teamPlayers = getTeamPlayers(data, filterTeam);
+  const filtered = getTeamPlayers(data, filterTeam, search);
+  const playerTotals = teamPlayers.reduce((total, p) => {
+    const stats = getPlayerStats(p.id, data);
+    return { goals: total.goals + (Number(stats.goals) || 0), yellow: total.yellow + stats.yellow, red: total.red + stats.red };
+  }, { goals: 0, yellow: 0, red: 0 });
 
   return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
-        <select className="input" style={{ width: 240 }} value={filterTeam} onChange={e => setFilterTeam(e.target.value)}>
-          <option value="all">Todos los equipos</option>
-          {data.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-        </select>
+    <div className="tournament-pane players-page">
+      <div className="pane-heading">
+        <div>
+          <div className="pane-kicker"><User size={13} /> Planteles</div>
+          <h2 className="pane-title">Jugadores por equipo</h2>
+          <p className="pane-description">Selecciona un equipo para ver sus jugadores y consultar sus estadísticas.</p>
+        </div>
+      </div>
+      <div className="pane-toolbar">
+        <div className="pane-field">
+          <label htmlFor="roster-team">Equipo</label>
+          <select id="roster-team" className="input" value={filterTeam} onChange={e => { setFilterTeam(e.target.value); setSearch(''); setConfirmId(null); }}>
+            <option value="">Selecciona un equipo</option>
+            {data.teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+        </div>
+        {selectedTeam && (
+          <div className="pane-field">
+            <label htmlFor="roster-search">Busca en este plantel</label>
+            <div className="pane-search">
+              <Search size={17} />
+              <input id="roster-search" type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Nombre o dorsal…" />
+              {search && <button type="button" aria-label="Limpiar búsqueda de jugadores" onClick={() => setSearch('')}><X size={14} /></button>}
+            </div>
+          </div>
+        )}
         {isAdmin && (
-          <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn btn-outline" disabled={data.teams.length === 0} onClick={() => setModal('bulk')}><FileText size={16} /> Pegar lista</button>
-            <button className="btn btn-primary" disabled={data.teams.length === 0} onClick={() => setModal('new')}><Plus size={16} /> Agregar jugador</button>
+          <div className="pane-actions">
+            <button className="btn btn-outline" disabled={!selectedTeam} title={!selectedTeam ? 'Primero selecciona un equipo' : undefined} onClick={() => setModal('bulk')}><FileText size={16} /> Pegar lista</button>
+            <button className="btn btn-primary" disabled={!selectedTeam} title={!selectedTeam ? 'Primero selecciona un equipo' : undefined} onClick={() => setModal('new')}><Plus size={16} /> Agregar jugador</button>
           </div>
         )}
       </div>
 
-      {data.teams.length === 0 && <div style={{ fontSize: 14, color: '#64748B', marginBottom: 16 }}>Crea al menos un equipo antes de registrar jugadores.</div>}
-
-      {filtered.length === 0
-        ? <EmptyState Icon={User} title="Sin jugadores" text="Agrega jugadores y asígnalos a un equipo para llevar sus goles y tarjetas." />
-        : (
-          <>
-            <div className="card" style={{ overflowX: 'auto' }}>
-              <table className="data-table">
-                <thead><tr><th>Jugador</th><th style={{textAlign: 'center'}}>#</th><th>Equipo</th><th>Edad</th>{isAdmin && <th></th>}</tr></thead>
-                <tbody>
-                  {filtered.map((p, idx) => {
-                    const team = data.teams.find(t => t.id === p.teamId);
-                    const ac = ageColor(p.age);
-                    return (
-                      <tr key={p.id}>
-                        <td className="team-name-cell">
-                          <button type="button" className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ display: 'inline-flex', alignItems: 'center', gap: 12, padding: 0 }}>
-                            <Avatar size={32} />
-                            <span style={{fontWeight: 500, fontSize: 14.5}}>{p.name}</span>
-                          </button>
-                        </td>
-                        <td style={{textAlign: 'center'}}>
-                          {p.number !== '' && p.number !== undefined 
-                            ? <span className="dorsal-text">#{p.number}</span> 
-                            : <span style={{color: '#94A3B8'}}>—</span>}
-                        </td>
-                        <td><TeamChip team={team} size="md" /></td>
-                        <td>
-                          {p.age !== '' && p.age !== undefined
-                            ? <span style={{ fontSize: 12.5, fontWeight: 700, padding: '4px 12px', borderRadius: 8, background: ac.bg, color: ac.fg }}>{p.age}</span>
-                            : <span style={{ color: '#CBD5E1' }}>—</span>}
-                        </td>
-                        {isAdmin && (
-                          <td>
-                            {confirmId === p.id
-                              ? <ConfirmInline text="¿Eliminar?" onConfirm={() => { onDelete(p.id); setConfirmId(null); }} onCancel={() => setConfirmId(null)} />
-                              : (
-                                <div style={{ display: 'flex', gap: 6, justifyContent: 'center' }}>
-                                  <button className="icon-btn-subtle" onClick={() => setModal(p.id)}><Pencil size={14} /></button>
-                                  <button className="icon-btn-subtle danger" onClick={() => setConfirmId(p.id)}><Trash2 size={14} /></button>
-                                </div>
-                              )}
-                        </td>
-                      )}
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+      {!selectedTeam ? (
+        <div className="pane-empty">
+          <div className="pane-empty-icon"><Users size={32} /></div>
+          <h3>{data.teams.length ? 'Elige un equipo para comenzar' : 'Primero registra un equipo'}</h3>
+          <p>{data.teams.length ? 'Su plantel aparecerá aquí cuando lo selecciones en el menú de arriba.' : 'Agrega un equipo desde la sección Equipos y después podrás registrar su plantel.'}</p>
+        </div>
+      ) : (
+        <>
+          <div className="roster-banner" style={{ '--club-color': selectedTeam.color || '#0D9488' }}>
+            <Crest team={selectedTeam} size="lg" />
+            <div className="roster-banner-title"><h3>{selectedTeam.name}</h3><p>{teamPlayers.length} jugador{teamPlayers.length !== 1 ? 'es' : ''} · Pulsa un nombre para abrir su ficha</p></div>
+            <div className="roster-summary"><span>⚽ {playerTotals.goals} goles registrados</span><span aria-label={playerTotals.yellow + ' tarjetas amarillas y ' + playerTotals.red + ' rojas'}><span className="card-chip yellow" />{playerTotals.yellow}<span className="card-chip red" />{playerTotals.red}</span></div>
           </div>
-          <div style={{ display: 'flex', gap: 20, marginTop: 16, flexWrap: 'wrap', fontSize: 12, color: '#64748B', fontWeight: 500 }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#10B981' }} /> 39 o menos</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#F97316' }} /> 40 a 49</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}><span style={{ width: 12, height: 12, borderRadius: 4, background: '#EF4444' }} /> 50 o más</span>
-          </div>
-          </>
-        )}
+          {filtered.length === 0 ? (
+            <div className="pane-empty">
+              <div className="pane-empty-icon">{teamPlayers.length ? <Search size={30} /> : <User size={30} />}</div>
+              <h3>{teamPlayers.length ? 'No encontramos ese jugador' : 'Este plantel todavía está vacío'}</h3>
+              <p>{teamPlayers.length ? 'Prueba con otra parte del nombre o con el número de su dorsal.' : isAdmin ? 'Usa Agregar jugador o Pegar lista para registrar a los integrantes de este equipo.' : 'Todavía no hay jugadores registrados para este equipo.'}</p>
+              {search && <button className="btn btn-outline btn-sm" style={{ marginTop: 18 }} onClick={() => setSearch('')}>Mostrar el plantel</button>}
+            </div>
+          ) : (
+            <TeamRosterTable data={data} players={filtered} isAdmin={isAdmin} onViewPlayer={onViewPlayer} onEditClick={setModal} onDelete={onDelete} confirmId={confirmId} onConfirmDelete={setConfirmId} />
+          )}
+          {teamPlayers.length > 0 && (
+            <div className="roster-footer">
+              <span aria-live="polite">Mostrando {filtered.length} de {teamPlayers.length} jugadores</span>
+              <div className="roster-age-key"><span><i style={{ background: '#10B981' }} />39 o menos</span><span><i style={{ background: '#F97316' }} />40–49</span><span><i style={{ background: '#EF4444' }} />50 o más</span></div>
+            </div>
+          )}
+        </>
+      )}
 
-      {isAdmin && modal === 'new' && <PlayerFormModal teams={data.teams} defaultTeamId={filterTeam !== 'all' ? filterTeam : undefined} onClose={() => setModal(null)} onSave={(p) => { onAdd(p); setModal(null); }} />}
-      {isAdmin && modal === 'bulk' && (
-        <BulkPlayersModal teams={data.teams} defaultTeamId={filterTeam !== 'all' ? filterTeam : undefined}
+      {isAdmin && selectedTeam && modal === 'new' && <PlayerFormModal teams={data.teams} defaultTeamId={selectedTeam.id} onClose={() => setModal(null)} onSave={(p) => { onAdd(p); setModal(null); }} />}
+      {isAdmin && selectedTeam && modal === 'bulk' && (
+        <BulkPlayersModal teams={data.teams} defaultTeamId={selectedTeam.id}
           onClose={() => setModal(null)} onSave={(teamId, players) => { onBulkAdd(teamId, players); setModal(null); }} />
       )}
       {isAdmin && modal && modal !== 'new' && modal !== 'bulk' && (

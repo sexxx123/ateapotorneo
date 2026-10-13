@@ -1184,6 +1184,94 @@ function GlobalStyles() {
         .clubs-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
         .club-card { break-inside: avoid; }
       }
+
+      /* Editor de resultados */
+      .match-result-overlay > .modal-box {max-width:1000px;}
+      .result-scoreboard {background:linear-gradient(135deg,#0B1121,#123D35);border-radius:18px;padding:22px;margin-bottom:20px;color:#fff;}
+      .result-status {display:flex;align-items:center;justify-content:center;gap:7px;color:#A7F3D0;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:18px;}
+      .result-score-grid {display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:18px;}
+      .result-score-team {min-width:0;display:flex;align-items:center;justify-content:center;gap:12px;}
+      .result-score-team>span {font-size:15px;font-weight:700;line-height:1.45;overflow-wrap:anywhere;}
+      .result-score-inputs {display:flex;align-items:center;gap:10px;}
+      .result-score-inputs>span {color:#86EFAC;font-size:10px;font-weight:800;}
+      .result-score-input {width:64px;height:64px;min-width:0;border:1px solid #ffffff44;border-radius:13px;text-align:center;font:800 29px 'Poppins',sans-serif;color:#fff;background:#ffffff18;outline:none;padding:0;}
+      .result-score-input:focus {border-color:#5EEAD4;box-shadow:0 0 0 3px #5eead422;}
+      .result-score-help {text-align:center;margin-top:18px;padding-top:14px;border-top:1px solid #ffffff22;color:#CBD5E1;font-size:11px;line-height:1.7;}
+      .result-score-help strong {color:#86EFAC;}
+      .result-score-input::-webkit-inner-spin-button,.result-score-input::-webkit-outer-spin-button,.result-goal-input::-webkit-inner-spin-button,.result-goal-input::-webkit-outer-spin-button {-webkit-appearance:none;margin:0;}
+      .result-score-input,.result-goal-input {-moz-appearance:textfield;appearance:textfield;}
+      .result-date-grid {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px;margin-bottom:20px;}
+      .result-date-grid label {min-width:0;}
+      .result-date-grid .input {width:100%;min-width:0;font-size:13px;}
+      .result-date-grid label>span {display:flex;align-items:center;gap:6px;font-size:10px;text-transform:uppercase;font-weight:800;color:#64748B;margin-bottom:8px;}
+      .result-mobile-tabs {display:none;}
+      .result-players-grid {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px;}
+      .result-player-panel {min-width:0;border:1px solid #E2E8F0;border-radius:15px;overflow:hidden;background:#fff;}
+      .result-panel-heading {display:flex;align-items:center;gap:10px;padding:16px 14px;background:#F8FAFC;border-bottom:1px solid #E2E8F0;border-top:3px solid #0D9488;}
+      .result-panel-heading>div:not(.crest) {min-width:0;flex:1;}
+      .result-panel-heading strong {display:block;font-size:12px;color:#0F172A;line-height:1.45;overflow-wrap:anywhere;}
+      .result-panel-heading small {display:block;font-size:10px;color:#64748B;margin-top:3px;}
+      .result-panel-total {flex-shrink:0;text-align:center;font-weight:800;font-size:18px;padding:6px 10px;background:#CCFBF1;color:#0F766E;border-radius:9px;}
+      .result-panel-total small {font-weight:500;color:#0F766E;margin:0;}
+      .result-player-columns,.result-player-row {display:grid;grid-template-columns:minmax(0,1fr) 184px;align-items:center;gap:10px;padding:10px 12px;}
+      .result-player-columns {font-size:9px;font-weight:800;color:#64748B;text-transform:uppercase;letter-spacing:.05em;background:#F8FAFC;}
+      .result-player-controls {display:grid;grid-template-columns:102px 72px;gap:10px;align-items:center;}
+      .result-player-columns .result-player-controls {text-align:center;}
+      .result-player-row {min-height:64px;border-bottom:1px solid #F1F5F9;}
+      .result-player-row:last-child {border-bottom:0;}
+      .result-player-row:hover {background:#F8FAFC;}
+      .result-roster-scroll {max-height:420px;overflow-y:auto;overscroll-behavior:contain;}
+      .result-player-identity {min-width:0;padding:0;text-align:left;}
+      .result-player-identity strong {display:block;font-size:12px;font-weight:600;color:#0F172A;line-height:1.45;overflow-wrap:anywhere;}
+      .result-player-identity small {display:block;font-size:9px;color:#64748B;margin-top:3px;line-height:1.4;}
+      .result-goal-stepper {display:flex;align-items:center;height:38px;width:102px;border:1px solid #CBD5E1;background:#fff;border-radius:9px;overflow:hidden;}
+      .result-goal-stepper:focus-within {border-color:#0D9488;box-shadow:0 0 0 2px #CCFBF1;}
+      .result-goal-stepper>button {width:28px;height:100%;flex-shrink:0;border:0;background:#F1F5F9;color:#475569;font-size:17px;cursor:pointer;padding:0;}
+      .result-goal-stepper>button:hover:not(:disabled) {background:#CCFBF1;color:#0F766E;}
+      .result-goal-stepper>button:disabled {opacity:.4;cursor:default;}
+      .result-goal-input {width:44px;min-width:0;height:100%;padding:0;border:0;outline:none;text-align:center;background:transparent;color:#0F172A;font:700 13px 'Inter',sans-serif;}
+      .result-player-cards {display:flex;gap:6px;}
+      .result-card-toggle {display:grid;place-items:center;width:33px;height:38px;position:relative;border-radius:8px;border:1px solid #E2E8F0;background:#F8FAFC;cursor:pointer;}
+      .result-card-toggle>input {position:absolute;inset:0;width:100%;height:100%;margin:0;opacity:0;cursor:pointer;}
+      .result-card-toggle .card-chip {width:11px;height:15px;box-shadow:none;pointer-events:none;opacity:.45;}
+      .result-card-toggle[data-checked="true"] .card-chip {opacity:1;}
+      .result-card-toggle.yellow[data-checked="true"] {background:#FEF3C7;border-color:#D97706;}
+      .result-card-toggle.red[data-checked="true"] {background:#FEE2E2;border-color:#DC2626;}
+      .result-card-toggle:focus-within {outline:2px solid #0D9488;outline-offset:2px;}
+      .result-card-check {position:absolute;right:2px;top:2px;color:#334155;pointer-events:none;}
+      .result-editor-note,.result-empty {font-size:11px;line-height:1.6;color:#64748B;margin:14px 0;}
+      .result-empty {padding:12px;}
+      .result-editor-footer {border-top:1px solid #E2E8F0;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;padding-top:18px;margin-top:20px;}
+      .result-editor-actions {display:flex;gap:8px;flex-wrap:wrap;}
+      .result-editor-actions .btn {font-size:12px;}
+      .match-result-overlay button:focus-visible {outline:2px solid #14B8A6;outline-offset:2px;}
+      @media(max-width:820px) {
+        .result-scoreboard {padding:16px 10px;}
+        .result-score-grid {gap:8px;}
+        .result-score-team {flex-direction:column;gap:7px;text-align:center;}
+        .result-score-team>span {font-size:11px;}
+        .result-score-input {width:44px;height:52px;font-size:23px;}
+        .result-score-inputs {gap:6px;}
+        .result-score-help {font-size:10px;}
+        .result-mobile-tabs {display:flex;gap:6px;background:#F1F5F9;border-radius:11px;padding:5px;margin-bottom:12px;}
+        .result-mobile-tabs>button {flex:1;min-width:0;padding:12px 8px;border:0;border-radius:8px;background:transparent;color:#64748B;font:700 11px 'Inter',sans-serif;cursor:pointer;overflow-wrap:anywhere;}
+        .result-mobile-tabs>button[aria-pressed="true"] {background:#fff;color:#0F766E;box-shadow:0 1px 4px #0f172a14;}
+        .result-players-grid {grid-template-columns:minmax(0,1fr);}
+        .result-player-panel[data-mobile-active="false"] {display:none;}
+        .result-roster-scroll {max-height:390px;}
+        .result-player-columns,.result-player-row {grid-template-columns:minmax(0,1fr) 166px;gap:8px;padding:10px;}
+        .result-player-controls {grid-template-columns:88px 72px;gap:6px;}
+        .result-goal-stepper {width:88px;}
+        .result-goal-input {width:30px;}
+        .result-player-identity strong {font-size:11px;}
+        .result-editor-actions {width:100%;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);}
+        .result-editor-actions .btn {justify-content:center;padding:12px 6px;font-size:11px;}
+        .result-editor-actions .btn-primary {grid-column:1/-1;}
+      }
+      @media(max-width:380px) {
+        .match-result-overlay>.modal-box>div:last-child {padding:12px!important;}
+        .result-date-grid {gap:8px;}
+      }
     `}</style>
   );
 }
@@ -1237,9 +1325,9 @@ function CardBadge({ yellow, red }) {
   );
 }
 
-function Modal({ title, onClose, children }) {
+function Modal({ title, onClose, children, className = '' }) {
   return (
-    <div className="modal-overlay" onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+    <div className={"modal-overlay" + (className ? " " + className : "")} onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal-box">
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px', borderBottom: '1px solid #E2E8F0' }}>
           <h3 className="font-display" style={{ fontSize: 18, fontWeight: 700, color: '#0F172A', margin: 0 }}>{title}</h3>
@@ -1886,6 +1974,7 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [date, setDate] = useState(match.date || '');
   const [time, setTime] = useState(match.time || '');
+  const [activeSide, setActiveSide] = useState('A');
 
   const conflict = (date && time && allMatches)
     ? allMatches.find(m => m.id !== match.id && m.date === date && m.time === time)
@@ -1904,50 +1993,57 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
   const sumGoals = (list, playerStats = stats) => list.reduce((acc, p) => acc + (Number(playerStats[p.id]?.goals) || 0), 0);
 
   const renderPlayerRows = (list) => list.length === 0
-    ? <div style={{ fontSize: 13, color: '#94A3B8', padding: '12px 0' }}>Sin jugadores registrados en este equipo.</div>
+    ? <p className="result-empty">Sin jugadores registrados en este equipo.</p>
     : list.map(p => (
-      <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '8px 0', borderBottom: '1px solid #F1F5F9' }}>
-        <button type="button" className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ flex: 1, minWidth: 0, fontSize: 14, display: 'flex', alignItems: 'center', gap: 8, padding: 0 }}>
-          {p.number !== '' && p.number !== undefined ? <span style={{ color: '#64748B', fontWeight: 700 }}>#{p.number}</span> : null} {p.name}
+      <div key={p.id} className="result-player-row">
+        <button type="button" className="player-profile-trigger result-player-identity" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)}>
+          <span><strong>{p.name}</strong><small>{p.number !== '' && p.number !== undefined ? '#' + p.number + ' · ' : ''}Ver estadísticas ↗</small></span>
         </button>
-        <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', padding: '8px' }}
-          value={stats[p.id]?.goals ?? 0}
-          onChange={e => setPlayerField(p.id, 'goals', Math.max(0, Number(e.target.value)))} />
-        <label className="checkbox-row" title="Tarjeta amarilla">
-          <input type="checkbox" checked={!!stats[p.id]?.yellow} onChange={e => setPlayerField(p.id, 'yellow', e.target.checked)} />
-          <span className="card-chip yellow" />
-        </label>
-        <label className="checkbox-row" title="Tarjeta roja">
-          <input type="checkbox" checked={!!stats[p.id]?.red} onChange={e => setPlayerField(p.id, 'red', e.target.checked)} />
-          <span className="card-chip red" />
-        </label>
+        <div className="result-player-controls">
+          <div className="result-goal-stepper">
+            <button type="button" aria-label={'Quitar un gol a ' + p.name} disabled={!(Number(stats[p.id]?.goals) > 0)} onClick={() => setPlayerField(p.id, 'goals', Math.max(0, (Number(stats[p.id]?.goals) || 0) - 1))}>−</button>
+            <input className="result-goal-input" type="number" min="0" aria-label={'Goles de ' + p.name} value={stats[p.id]?.goals ?? 0} onChange={e => setPlayerField(p.id, 'goals', Math.max(0, Number(e.target.value)))} />
+            <button type="button" aria-label={'Añadir un gol a ' + p.name} onClick={() => setPlayerField(p.id, 'goals', (Number(stats[p.id]?.goals) || 0) + 1)}>+</button>
+          </div>
+          <div className="result-player-cards">
+            {['yellow', 'red'].map(field => (
+              <label key={field} className={'result-card-toggle ' + field} data-checked={!!stats[p.id]?.[field]} title={field === 'yellow' ? 'Tarjeta amarilla' : 'Tarjeta roja'}>
+                <input type="checkbox" aria-label={(field === 'yellow' ? 'Amarilla de ' : 'Roja de ') + p.name} checked={!!stats[p.id]?.[field]} onChange={e => setPlayerField(p.id, field, e.target.checked)} />
+                <span className={'card-chip ' + field} />
+                {!!stats[p.id]?.[field] && <Check size={10} className="result-card-check" />}
+              </label>
+            ))}
+          </div>
+        </div>
       </div>
     ));
 
-  return (
-    <Modal title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Resultado'} onClose={onClose}>
-      <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: 12, padding: 20, marginBottom: 24 }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <div style={{ flex: 1, textAlign: 'right' }}><TeamChip team={teamA} /></div>
-          <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', fontSize: 20, fontWeight: 800, padding: '10px' }} value={scoreA} onChange={e => setScoreA(Math.max(0, Number(e.target.value)))} />
-          <span className="font-display" style={{ color: '#94A3B8', fontWeight: 700, fontSize: 16 }}>VS</span>
-          <input className="input" type="number" min="0" style={{ width: 64, textAlign: 'center', fontSize: 20, fontWeight: 800, padding: '10px' }} value={scoreB} onChange={e => setScoreB(Math.max(0, Number(e.target.value)))} />
-          <div style={{ flex: 1 }}><TeamChip team={teamB} /></div>
-        </div>
-        <div style={{ textAlign: 'center', fontSize: 12, color: '#64748B', marginTop: 12 }}>
-          Suma de goleadores registrados: {sumGoals(playersA)} - {sumGoals(playersB)} (puede diferir si hubo autogoles)
-        </div>
-      </div>
+  const renderTeamPanel = (team, list, side) => (
+    <section className="result-player-panel" data-mobile-active={activeSide === side} aria-label={'Jugadores de ' + (team?.name || 'Equipo')}>
+      <div className="result-panel-heading"><Crest team={team} size="md" /><div><strong>{team?.name || 'Equipo eliminado'}</strong><small>{list.length} jugadores</small></div><span className="result-panel-total" title="Goles registrados en jugadores">{sumGoals(list)} <small>goles</small></span></div>
+      <div className="result-player-columns"><span>Jugador</span><div className="result-player-controls"><span>Goles</span><span>Tarjetas</span></div></div>
+      <div className="result-roster-scroll">{renderPlayerRows(list)}</div>
+    </section>
+  );
 
-      <div className="grid-2" style={{ marginBottom: conflict ? 10 : 24 }}>
-        <div>
-          <label className="field-label">Fecha</label>
-          <input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} />
+  return (
+    <Modal className="match-result-overlay" title={(match.phase === 'liga' ? 'Jornada ' + match.jornada : match.round) + ' · Resultado'} onClose={onClose}>
+      <div className="result-scoreboard">
+        <div className="result-status"><Trophy size={13} /> {match.played ? 'Editar resultado' : 'Registrar resultado'}</div>
+        <div className="result-score-grid">
+          <div className="result-score-team"><Crest team={teamA} size="lg" /><span>{teamA?.name || 'Equipo eliminado'}</span></div>
+          <div className="result-score-inputs">
+            <input className="result-score-input" type="number" min="0" aria-label={'Marcador de ' + (teamA?.name || 'equipo A')} value={scoreA} onChange={e => setScoreA(Math.max(0, Number(e.target.value)))} />
+            <span>VS</span>
+            <input className="result-score-input" type="number" min="0" aria-label={'Marcador de ' + (teamB?.name || 'equipo B')} value={scoreB} onChange={e => setScoreB(Math.max(0, Number(e.target.value)))} />
+          </div>
+          <div className="result-score-team"><Crest team={teamB} size="lg" /><span>{teamB?.name || 'Equipo eliminado'}</span></div>
         </div>
-        <div>
-          <label className="field-label">Hora</label>
-          <input className="input" type="time" value={time} onChange={e => setTime(e.target.value)} />
-        </div>
+        <div className="result-score-help">Goles registrados en jugadores: <strong>{sumGoals(playersA)} – {sumGoals(playersB)}</strong><br />El marcador puede diferir si hay autogoles o goles sin asignar.</div>
+      </div>
+      <div className="result-date-grid">
+        <label><span><Calendar size={13} /> Fecha del encuentro</span><input className="input" type="date" value={date} onChange={e => setDate(e.target.value)} /></label>
+        <label><span><Clock size={13} /> Hora</span><input className="input" type="time" value={time} onChange={e => setTime(e.target.value)} /></label>
       </div>
       {conflict && (
         <div style={{ display: 'flex', gap: 10, alignItems: 'flex-start', background: '#FEF2F2', border: '1px solid #FECACA', borderRadius: 10, padding: '12px 16px', marginBottom: 24, fontSize: 13, color: '#DC2626', flexWrap: 'wrap' }}>
@@ -1965,22 +2061,17 @@ function MatchResultModal({ match, teams, players, allMatches, onClose, onSave, 
         </div>
       )}
 
-      <div className="grid-2" style={{ gap: 24 }}>
-        <div>
-          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamA} size="md" /></div>
-          {renderPlayerRows(playersA)}
-        </div>
-        <div>
-          <div className="font-display" style={{ fontSize: 14, fontWeight: 700, color: '#0F172A', marginBottom: 8 }}><TeamChip team={teamB} size="md" /></div>
-          {renderPlayerRows(playersB)}
-        </div>
+      <div className="result-mobile-tabs" aria-label="Seleccionar equipo">
+        <button type="button" aria-pressed={activeSide === 'A'} onClick={() => setActiveSide('A')}>{teamA?.name || 'Equipo A'}</button>
+        <button type="button" aria-pressed={activeSide === 'B'} onClick={() => setActiveSide('B')}>{teamB?.name || 'Equipo B'}</button>
       </div>
-
-      <div style={{ borderTop: '1px solid #E2E8F0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 24, paddingTop: 16, flexWrap: 'wrap', gap: 10 }}>
+      <div className="result-players-grid">{renderTeamPanel(teamA, playersA, 'A')}{renderTeamPanel(teamB, playersB, 'B')}</div>
+      <p className="result-editor-note">Al cambiar los goles de un jugador se actualiza el marcador de su equipo. Toca un nombre para ver sus estadísticas.</p>
+      <div className="result-editor-footer">
         {confirmDelete
           ? <ConfirmInline text="¿Eliminar este partido?" onConfirm={() => onDelete(match.id)} onCancel={() => setConfirmDelete(false)} />
           : <button className="btn btn-danger btn-sm" onClick={() => setConfirmDelete(true)}><Trash2 size={14} /> Eliminar partido</button>}
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div className="result-editor-actions">
           <button className="btn btn-outline" onClick={onClose}>Cancelar</button>
           <button className="btn btn-outline" onClick={() => onSave({ date, time })}>Guardar solo horario</button>
           <button className="btn btn-primary" onClick={() => onSave({ date, time, scoreA: Number(scoreA), scoreB: Number(scoreB), played: true, playerStats: stats })}>

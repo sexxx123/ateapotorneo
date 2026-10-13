@@ -585,21 +585,6 @@ function GlobalStyles() {
       .page-header:hover .page-title::after { width: 120px; }
       .page-subtitle { letter-spacing: 0.02em; }
 
-      /* ---------- Barra lateral ---------- */
-      .sidebar { background: radial-gradient(420px 260px at 0% 0%, rgba(16, 185, 129, 0.2), transparent 70%), linear-gradient(180deg, #070C1A 0%, #0B1730 100%); }
-      .sidebar-logo-badge { background: var(--ft-grad); border: none; box-shadow: var(--ft-glow); animation: ftGlow 3.2s ease-in-out infinite; transition: transform 0.4s var(--ft-spring); overflow: hidden; }
-      .sidebar-logo-badge:hover { transform: rotate(-8deg) scale(1.08); }
-      .sidebar-nav-item { position: relative; overflow: hidden; transition: background 0.25s, color 0.25s, transform 0.25s var(--ft-spring), box-shadow 0.25s; }
-      .sidebar-nav-item svg { transition: transform 0.35s var(--ft-spring); }
-      .sidebar-nav-item.active { background: var(--ft-grad); box-shadow: 0 8px 20px -6px rgba(8, 145, 178, 0.6); }
-      .sidebar-nav-item.active::after { content: ''; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.28) 50%, transparent 70%); animation: ftSweep 3.6s ease-in-out infinite; pointer-events: none; }
-      .sidebar-nav-item.active svg { animation: ftFloat 2.4s ease-in-out infinite; }
-      .sidebar-nav-item:active { transform: scale(0.96); }
-      .sidebar-footer-link { transition: background 0.25s, color 0.25s, transform 0.25s var(--ft-spring); }
-      .sidebar-footer-link svg { transition: transform 0.3s var(--ft-spring); }
-      .sidebar-footer-link:active { transform: scale(0.96); }
-      .sidebar-user-card { backdrop-filter: blur(6px); }
-
       /* ---------- Tarjetas ---------- */
       .card { border-color: #E3EAF3; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 4px 14px -6px rgba(15, 23, 42, 0.08); transition: box-shadow 0.3s, border-color 0.3s, transform 0.3s var(--ft-ease); }
       .card-header-green { background: var(--ft-grad); background-size: 200% 200%; animation: ftShift 9s ease infinite; letter-spacing: 0.02em; position: relative; }
@@ -658,8 +643,7 @@ function GlobalStyles() {
       .swatch { transition: transform 0.25s var(--ft-spring), box-shadow 0.2s; }
       .swatch:hover { transform: scale(1.25) rotate(8deg); }
 
-      .btn:focus-visible, .icon-btn:focus-visible, .icon-btn-subtle:focus-visible,
-      .sidebar-nav-item:focus-visible, .sidebar-footer-link:focus-visible, button.card:focus-visible {
+      .btn:focus-visible, .icon-btn:focus-visible, .icon-btn-subtle:focus-visible, button.card:focus-visible {
         outline: 3px solid rgba(6, 182, 212, 0.55); outline-offset: 2px;
       }
 
@@ -771,10 +755,6 @@ function GlobalStyles() {
         .btn-danger:hover:not(:disabled) { box-shadow: 0 8px 18px -6px rgba(220, 38, 38, 0.5); }
         .icon-btn:hover { transform: translateY(-2px) rotate(-6deg); border-color: #0D9488; color: #0F766E; box-shadow: 0 8px 16px -8px rgba(13, 148, 136, 0.5); }
         .icon-btn-subtle:hover { transform: scale(1.12); }
-        .sidebar-nav-item:hover { transform: translateX(4px); }
-        .sidebar-nav-item:hover svg { transform: scale(1.2) rotate(-8deg); }
-        .sidebar-footer-link:hover svg { transform: scale(1.2) rotate(-8deg); }
-        .sidebar-footer-link:hover { transform: translateX(3px); }
         .avatar-circle:hover { transform: scale(1.12); }
         .crest:hover { transform: rotate(-8deg) scale(1.15); }
         .player-profile-stat:hover { transform: translateY(-4px); box-shadow: 0 14px 24px -12px rgba(8, 145, 178, 0.4); border-color: #67E8F9; }
@@ -782,10 +762,107 @@ function GlobalStyles() {
         .player-profile-trigger:hover { transform: translateX(3px); }
       }
 
-      /* Menú lateral: indicador a la izquierda (solo escritorio) */
-      @media (min-width: 821px) {
-        .sidebar-nav-item.active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 5px; height: 24px; border-radius: 0 5px 5px 0; background: var(--ft-lime); box-shadow: 0 0 12px var(--ft-lime); }
-      }
+      /* ---------- Rankings (Goleadores / Más amarillas / Más rojas) ---------- */
+      @keyframes ftGrow { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+      .ranking-card { position: relative; overflow: hidden; padding: 20px 18px 12px !important; }
+      .ranking-card::before { content: ''; position: absolute; left: 0; right: 0; top: 0; height: 5px; background: var(--rk); }
+      .ranking-card.goals { --rk: var(--ft-grad); --rk-solid: #047857; --rk-soft: #ECFDF5; --rk-ring: rgba(16, 185, 129, 0.35); }
+      .ranking-card.yellow { --rk: linear-gradient(90deg, #FDE047, #F59E0B); --rk-solid: #B45309; --rk-soft: #FFFBEB; --rk-ring: rgba(245, 158, 11, 0.4); }
+      .ranking-card.red { --rk: linear-gradient(90deg, #FB7185, #DC2626); --rk-solid: #B91C1C; --rk-soft: #FEF2F2; --rk-ring: rgba(239, 68, 68, 0.4); }
+      .ranking-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+      .ranking-title { display: flex; align-items: center; gap: 10px; font-size: 16px; font-weight: 700; color: #0F172A; }
+      .ranking-title svg { color: var(--rk-solid); }
+      .ranking-title .card-chip { width: 14px; height: 19px; }
+      .ranking-count { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--rk-soft); color: var(--rk-solid); }
+      .ranking-empty { font-size: 13px; color: #94A3B8; padding: 18px 0 14px; text-align: center; }
+      .player-profile-trigger.rank-row { width: 100%; display: flex; align-items: center; gap: 12px; padding: 11px 8px; border-radius: 14px; border: 0; border-bottom: 1px solid #F1F5F9; transition: background 0.25s, transform 0.25s var(--ft-spring); animation: ftRow 0.45s var(--ft-ease) backwards; }
+      .player-profile-trigger.rank-row:last-child { border-bottom-color: transparent; }
+      .player-profile-trigger.rank-row:nth-of-type(1) { animation-delay: 0.05s; } .player-profile-trigger.rank-row:nth-of-type(2) { animation-delay: 0.1s; }
+      .player-profile-trigger.rank-row:nth-of-type(3) { animation-delay: 0.15s; } .player-profile-trigger.rank-row:nth-of-type(4) { animation-delay: 0.2s; }
+      .player-profile-trigger.rank-row:nth-of-type(5) { animation-delay: 0.25s; } .player-profile-trigger.rank-row:nth-of-type(n+6) { animation-delay: 0.3s; }
+      .player-profile-trigger.rank-row:hover { background: var(--rk-soft) !important; color: inherit; }
+      .player-profile-trigger.rank-row:focus-visible { outline: 2px solid var(--rk-solid); outline-offset: 2px; }
+      .rank-pos { width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Poppins', sans-serif; font-size: 12.5px; font-weight: 800; color: #64748B; background: #F1F5F9; }
+      .rank-pos.p1 { background: linear-gradient(135deg, #FDE68A, #F59E0B); color: #78350F; box-shadow: 0 4px 10px -3px rgba(245, 158, 11, 0.7); }
+      .rank-pos.p2 { background: linear-gradient(135deg, #F8FAFC, #CBD5E1); color: #334155; box-shadow: 0 4px 10px -3px rgba(100, 116, 139, 0.5); }
+      .rank-pos.p3 { background: linear-gradient(135deg, #FED7AA, #FB923C); color: #7C2D12; box-shadow: 0 4px 10px -3px rgba(251, 146, 60, 0.6); }
+      .rank-avatar { flex-shrink: 0; display: inline-flex; border-radius: 50%; box-shadow: 0 0 0 2px #FFFFFF, 0 0 0 4px var(--tc, #CBD5E1); }
+      .rank-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; text-align: left; }
+      .rank-name { font-size: 14px; font-weight: 700; color: #0F172A; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .rank-team { font-size: 11.5px; color: #64748B; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .rank-track { display: block; height: 6px; border-radius: 99px; background: #EEF2F7; overflow: hidden; margin-top: 6px; }
+      .rank-fill { display: block; height: 100%; border-radius: 99px; background: var(--rk); transform-origin: left center; animation: ftGrow 0.9s var(--ft-ease) backwards 0.2s; }
+      .rank-value { flex-shrink: 0; min-width: 48px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 6px 11px; border-radius: 11px; font-family: 'Poppins', sans-serif; font-weight: 800; font-size: 15px; background: var(--rk-soft); color: var(--rk-solid); box-shadow: inset 0 0 0 1px var(--rk-ring); }
+      .rank-value .card-chip { width: 10px; height: 14px; }
+
+      /* ---------- Mejor ataque / Mejor defensa ---------- */
+      .stat-highlight { display: flex; align-items: center; gap: 16px; padding: 18px 20px; position: relative; overflow: hidden; animation: ftPop 0.55s var(--ft-spring) backwards; }
+      .stat-highlight::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 5px; background: var(--ft-grad); }
+      .stat-highlight.attack { background: linear-gradient(135deg, #FFFFFF 40%, #ECFDF5); }
+      .stat-highlight.defense { background: linear-gradient(135deg, #FFFFFF 40%, #ECFEFF); }
+      .stat-highlight.defense::before { background: linear-gradient(180deg, #0891B2, #6366F1); }
+      .stat-highlight-icon { width: 46px; height: 46px; flex-shrink: 0; border-radius: 14px; display: flex; align-items: center; justify-content: center; color: #FFFFFF; background: var(--ft-grad); box-shadow: var(--ft-glow); transition: transform 0.4s var(--ft-spring); }
+      .stat-highlight.defense .stat-highlight-icon { background: linear-gradient(135deg, #0891B2, #6366F1); box-shadow: 0 10px 24px -8px rgba(99, 102, 241, 0.6); }
+      .stat-highlight-body { min-width: 0; }
+      .stat-highlight-label { font-size: 11px; color: #64748B; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+      .stat-highlight-name { font-size: 18px; font-weight: 800; color: #0F172A; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .stat-highlight-value { font-size: 13px; font-weight: 700; color: #059669; margin-top: 2px; }
+      .stat-highlight.defense .stat-highlight-value { color: #0E7490; }
+
+      /* ---------- Ficha de tarjetas (rojas / amarillas) ---------- */
+      .player-profile-hero.red { background: linear-gradient(135deg, #1A0B12, #5B1226 45%, #8B1E2E, #1A0B12); background-size: 220% 220%; box-shadow: 0 14px 30px -14px rgba(220, 38, 38, 0.65); }
+      .player-profile-hero.red::before { background: radial-gradient(circle, rgba(251, 113, 133, 0.4), transparent 65%); }
+      .player-profile-hero.red .player-profile-initials { background: linear-gradient(135deg, #FB7185, #DC2626); color: #FFFFFF; box-shadow: 0 8px 20px -4px rgba(244, 63, 94, 0.6); }
+      .player-profile-hero.red .player-profile-kicker { color: #FDA4AF !important; }
+      .player-profile-hero.yellow { background: linear-gradient(135deg, #1C1405, #5B3D05 45%, #92400E, #1C1405); background-size: 220% 220%; box-shadow: 0 14px 30px -14px rgba(245, 158, 11, 0.65); }
+      .player-profile-hero.yellow::before { background: radial-gradient(circle, rgba(253, 224, 71, 0.4), transparent 65%); }
+      .player-profile-hero.yellow .player-profile-initials { background: linear-gradient(135deg, #FDE047, #F59E0B); color: #422006; box-shadow: 0 8px 20px -4px rgba(250, 204, 21, 0.6); }
+      .player-profile-hero.yellow .player-profile-kicker { color: #FDE68A !important; }
+      .player-profile-stat.primary.red { background: linear-gradient(150deg, #FFF1F2, #FFE4E6); border-color: #FECDD3; }
+      .player-profile-stat.primary.yellow { background: linear-gradient(150deg, #FFFBEB, #FEF3C7); border-color: #FDE68A; }
+      .player-profile-stat.primary.red .player-profile-stat-value { background: linear-gradient(135deg, #F43F5E, #B91C1C); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+      .player-profile-stat.primary.yellow .player-profile-stat-value { background: linear-gradient(135deg, #F59E0B, #B45309); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+      .player-profile-stat-label .card-chip { width: 10px; height: 14px; }
+      .player-profile-card-shape { width: 24px; height: 34px; border-radius: 5px; border: 2px dashed #CBD5E1; background: transparent; transform-origin: bottom center; animation: ftBar 0.7s var(--ft-ease) backwards; }
+      .player-profile-card-shape.on { border: none; transform: rotate(-6deg); }
+      .player-profile-card-shape.on.yellow { background: linear-gradient(160deg, #FDE047, #F59E0B); box-shadow: 0 8px 14px -6px rgba(245, 158, 11, 0.8); }
+      .player-profile-card-shape.on.red { background: linear-gradient(160deg, #FB7185, #DC2626); box-shadow: 0 8px 14px -6px rgba(220, 38, 38, 0.8); }
+      .player-profile-bar-item:nth-child(1) .player-profile-card-shape { animation-delay: 0.1s; } .player-profile-bar-item:nth-child(2) .player-profile-card-shape { animation-delay: 0.16s; }
+      .player-profile-bar-item:nth-child(3) .player-profile-card-shape { animation-delay: 0.22s; } .player-profile-bar-item:nth-child(4) .player-profile-card-shape { animation-delay: 0.28s; }
+      .player-profile-bar-item:nth-child(5) .player-profile-card-shape { animation-delay: 0.34s; } .player-profile-bar-item:nth-child(n+6) .player-profile-card-shape { animation-delay: 0.4s; }
+      .player-profile-bar-count.red { color: #DC2626; }
+      .player-profile-bar-count.yellow { color: #B45309; }
+      .player-profile-bar-count.none { color: #94A3B8; }
+      .player-profile-meter { margin-top: 14px; padding: 12px 14px; border-radius: 12px; background: #FFFBEB; border: 1px solid #FDE68A; }
+      .player-profile-meter.red { background: #FEF2F2; border-color: #FECACA; }
+      .player-profile-meter-top { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 11.5px; font-weight: 600; color: #78350F; margin-bottom: 8px; }
+      .player-profile-meter.red .player-profile-meter-top { color: #7F1D1D; }
+      .player-profile-meter-top b { font-family: 'Poppins', sans-serif; font-weight: 800; }
+      .player-profile-meter-segments { display: flex; gap: 6px; }
+      .player-profile-meter-segments span { flex: 1; height: 10px; border-radius: 99px; background: rgba(120, 53, 15, 0.12); transition: background 0.3s; }
+      .player-profile-meter-segments span.on { background: linear-gradient(90deg, #FDE047, #F59E0B); box-shadow: 0 2px 8px -2px rgba(245, 158, 11, 0.8); }
+      .player-profile-meter.red .player-profile-meter-segments span { background: rgba(127, 29, 29, 0.12); }
+      .player-profile-meter.red .player-profile-meter-segments span.on { background: linear-gradient(90deg, #FB7185, #DC2626); box-shadow: 0 2px 8px -2px rgba(220, 38, 38, 0.8); }
+      .player-profile-meter.red .player-profile-meter-segments span.done { background: linear-gradient(90deg, #6EE7B7, #10B981); }
+      .player-profile-card-tag { display: inline-flex; align-items: center; gap: 7px; padding: 4px 10px; border-radius: 8px; font-size: 11.5px; font-weight: 800; }
+      .player-profile-card-tag.yellow { background: #FEF9C3; color: #854D0E; }
+      .player-profile-card-tag.red { background: #FEE2E2; color: #991B1B; }
+      .player-profile-card-tag.none { background: #F1F5F9; color: #64748B; font-weight: 600; }
+
+      /* ---------- Sanciones: medidor de amarillas ---------- */
+      .yellow-meter { display: inline-flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+      .yellow-meter-dots { display: inline-flex; gap: 5px; }
+      .yellow-meter-dot { width: 16px; height: 22px; border-radius: 4px; border: 2px dashed #FCD34D; transition: transform 0.25s var(--ft-spring); }
+      .yellow-meter-dot.on { border: none; background: linear-gradient(160deg, #FDE047, #F59E0B); box-shadow: 0 4px 10px -3px rgba(245, 158, 11, 0.8); transform: rotate(-6deg); animation: ftPop 0.5s var(--ft-spring) backwards; }
+      .yellow-meter-text { font-size: 12.5px; font-weight: 700; color: #B45309; }
+
+      /* ---------- Llaves de playoffs ---------- */
+      @keyframes ftDraw { to { stroke-dashoffset: 0; } }
+      svg path[stroke="#22C55E"] { stroke: #14B8A6; stroke-dasharray: 1000; stroke-dashoffset: 1000; animation: ftDraw 1.4s var(--ft-ease) forwards 0.25s; }
+      .bracket-row { transition: background 0.3s, opacity 0.3s; position: relative; }
+      .bracket-row.winner { background: linear-gradient(90deg, #ECFDF5, #FFFFFF); box-shadow: inset 4px 0 0 #10B981; }
+      .bracket-row.winner span { color: #047857 !important; }
+      .bracket-row.loser { opacity: 0.6; }
 
       /* ==================== FIN MEJORAS (parte general) ==================== */
 
@@ -870,17 +947,6 @@ function GlobalStyles() {
       @media (max-width: 820px) {
         .futbolito-app { background-attachment: scroll; }
 
-        /* Barra superior: fichas deslizables con el dedo */
-        .sidebar { padding: max(14px, env(safe-area-inset-top)) 14px 12px; border-radius: 0 0 22px 22px; box-shadow: 0 14px 30px -14px rgba(2, 6, 23, 0.7); gap: 6px; }
-        .sidebar-logo-row { margin-bottom: 2px; }
-        .sidebar-title { font-size: 14px; }
-        .sidebar-nav { scroll-snap-type: x proximity; scrollbar-width: none; -ms-overflow-style: none; padding: 2px 2px 8px; overscroll-behavior-x: contain; -webkit-mask-image: linear-gradient(90deg, #000 90%, transparent); mask-image: linear-gradient(90deg, #000 90%, transparent); }
-        .sidebar-nav::-webkit-scrollbar { display: none; }
-        .sidebar-nav-item { scroll-snap-align: start; padding: 10px 15px; border-radius: 999px; background: rgba(255, 255, 255, 0.07); font-size: 13px; gap: 8px; }
-        .sidebar-nav-item.active { background: var(--ft-grad); }
-        .sidebar-nav-item svg { width: 16px; height: 16px; }
-        .sidebar-footer { margin-top: 4px; padding-top: 10px; }
-
         /* Contenido */
         .main-area { padding: 18px 14px calc(30px + env(safe-area-inset-bottom)); }
         .page-title { padding-bottom: 12px; }
@@ -925,6 +991,16 @@ function GlobalStyles() {
         .modal-overlay { padding: 0 !important; }
         .modal-box { max-width: 100% !important; width: 100%; margin: auto 0 0 !important; border-radius: 22px 22px 0 0 !important; padding-bottom: env(safe-area-inset-bottom); animation: ftSheet 0.45s var(--ft-ease); }
         .player-profile-layer .modal-box { max-width: 100% !important; }
+
+        /* Rankings, ficha de tarjetas y destacados */
+        .ranking-card { padding: 18px 14px 8px !important; }
+        .player-profile-trigger.rank-row { gap: 10px; padding: 10px 4px; }
+        .rank-value { min-width: 44px; padding: 5px 9px; font-size: 14px; }
+        .stat-highlight { padding: 16px; gap: 14px; }
+        .stat-highlight-icon { width: 42px; height: 42px; }
+        .yellow-meter { align-items: flex-start; }
+        .player-profile-meter { padding: 10px 12px; }
+        .player-profile-card-shape { width: 20px; height: 28px; }
       }
 
       /* Pantallas táctiles: objetivos de toque cómodos, sin zoom de iOS y respuesta al tocar */
@@ -933,7 +1009,6 @@ function GlobalStyles() {
         .btn-sm { min-height: 40px; }
         .icon-btn { width: 40px; height: 40px; }
         .icon-btn-subtle { width: 40px; height: 40px; }
-        .sidebar-nav-item, .sidebar-footer-link { min-height: 44px; }
         .input, textarea.textarea, select.input { font-size: 16px; min-height: 44px; }
         .checkbox-row input { width: 20px; height: 20px; }
         .swatch { width: 30px; height: 30px; }
@@ -949,7 +1024,6 @@ function GlobalStyles() {
         .hero-content .font-display { font-size: 21px !important; }
         .hero-content > img { width: 62px !important; height: 62px !important; }
         .match-row span:not(.status-pill) { font-size: 12px !important; }
-        .sidebar-nav-item { padding: 9px 13px; font-size: 12.5px; }
       }
 
       /* Menos movimiento si el sistema lo pide */
@@ -1039,14 +1113,23 @@ function Modal({ title, onClose, children }) {
   );
 }
 
-function PlayerDetailModal({ player, data, onClose }) {
+function PlayerDetailModal({ player, data, onClose, focus = 'goals' }) {
+  // focus: 'goals' (ficha de goles), 'yellow' o 'red' (ficha de tarjetas)
+  const isCards = focus === 'yellow' || focus === 'red';
+  const cardName = focus === 'red' ? 'roja' : 'amarilla';
+  const cardNamePlural = focus === 'red' ? 'rojas' : 'amarillas';
   const [showAll, setShowAll] = useState(false);
   const layerRef = useRef(null);
   const profile = getPlayerProfile(player.id, data);
+  const sanction = getPlayerStats(player.id, data);
   const team = data.teams.find(t => t.id === player.teamId);
   const recent = profile.history.slice(-10);
   const chartMax = Math.max(1, ...recent.map(m => m.goals));
-  const visibleMatches = [...(showAll ? profile.history : profile.scoringMatches)].reverse();
+  const focusMatches = isCards ? profile.history.filter(m => m[focus] > 0) : profile.scoringMatches;
+  const visibleMatches = [...(showAll ? profile.history : focusMatches)].reverse();
+  const cardRank = isCards && profile[focus] > 0
+    ? 1 + data.players.filter(p => p.id !== player.id && getPlayerStats(p.id, data)[focus] > profile[focus]).length
+    : null;
   const matchLabel = m => m.phase === 'liga' ? 'F' + m.jornada :
     ({ 'Cuartos de Final': 'CF', 'Semifinal': 'SF', 'Tercer Puesto': '3.º', 'Final': 'FIN' }[m.round] || 'PO');
 
@@ -1070,14 +1153,19 @@ function PlayerDetailModal({ player, data, onClose }) {
     };
   }, [onClose]);
 
+  const heroLabel = isCards
+    ? (cardRank ? '#' + cardRank + ' EN ' + cardNamePlural.toUpperCase() : 'FICHA DE TARJETAS')
+    : (profile.rank ? '#' + profile.rank + ' EN GOLEADORES' : 'FICHA DEL JUGADOR');
+  const modalTitle = focus === 'red' ? 'Tarjetas rojas del jugador' : focus === 'yellow' ? 'Tarjetas amarillas del jugador' : 'Estadísticas del jugador';
+
   return (
     <div className="player-profile-layer" ref={layerRef} role="dialog" aria-modal="true" aria-label={'Estadísticas de ' + player.name}>
-      <Modal title="Estadísticas del jugador" onClose={onClose}>
-        <div className="player-profile-hero">
+      <Modal title={modalTitle} onClose={onClose}>
+        <div className={'player-profile-hero' + (isCards ? ' ' + focus : '')}>
           <div className="player-profile-initials font-display">{initials(player.name)}</div>
           <div className="player-profile-identity">
-            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: '#86EFAC', marginBottom: 5 }}>
-              {profile.rank ? '#' + profile.rank + ' EN GOLEADORES' : 'FICHA DEL JUGADOR'}
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.06em', color: '#86EFAC', marginBottom: 5 }} className="player-profile-kicker">
+              {heroLabel}
             </div>
             <div className="player-profile-name font-display">{player.name}</div>
             <div className="player-profile-team"><Crest team={team} size="sm" /> {team ? team.name : 'Sin equipo'}</div>
@@ -1091,38 +1179,105 @@ function PlayerDetailModal({ player, data, onClose }) {
           </div>
         </div>
 
-        <div className="player-profile-grid">
-          <div className="player-profile-stat primary">
-            <div className="player-profile-stat-label"><Trophy size={14} /> GOLES TOTALES</div>
-            <div className="player-profile-stat-value font-display">{profile.goals}</div>
-            <small>Liga y playoffs</small>
+        {isCards ? (
+          <div className="player-profile-grid">
+            <div className={'player-profile-stat primary ' + focus}>
+              <div className="player-profile-stat-label"><span className={'card-chip ' + focus} /> {focus === 'red' ? 'ROJAS TOTALES' : 'AMARILLAS TOTALES'}</div>
+              <div className="player-profile-stat-value font-display">{profile[focus]}</div>
+              <small>Liga y playoffs</small>
+            </div>
+            <div className="player-profile-stat">
+              <div className="player-profile-stat-label"><Calendar size={14} /> ENCUENTROS CON REGISTRO</div>
+              <div className="player-profile-stat-value font-display">{profile.matchesRecorded}</div>
+              <small>Con estadísticas guardadas</small>
+            </div>
+            <div className="player-profile-stat">
+              <div className="player-profile-stat-label"><Check size={14} /> {focus === 'red' ? 'PARTIDOS CON ROJA' : 'PARTIDOS CON AMARILLA'}</div>
+              <div className="player-profile-stat-value font-display">{focusMatches.length}</div>
+              <small>Recibió al menos una</small>
+            </div>
+            <div className="player-profile-stat">
+              <div className="player-profile-stat-label"><ShieldAlert size={14} /> {focus === 'red' ? 'SANCIÓN PENDIENTE' : 'HACIA LA SANCIÓN'}</div>
+              <div className="player-profile-stat-value font-display">
+                {focus === 'red' ? sanction.pending : sanction.yellowSinceReset + ' / ' + sanction.yellowLimit}
+              </div>
+              <small>{focus === 'red' ? 'Cumplidas ' + sanction.served + ' de ' + sanction.triggered : 'Amarillas del ciclo actual'}</small>
+            </div>
           </div>
-          <div className="player-profile-stat">
-            <div className="player-profile-stat-label"><Calendar size={14} /> ENCUENTROS CON REGISTRO</div>
-            <div className="player-profile-stat-value font-display">{profile.matchesRecorded}</div>
-            <small>Con estadísticas guardadas</small>
+        ) : (
+          <div className="player-profile-grid">
+            <div className="player-profile-stat primary">
+              <div className="player-profile-stat-label"><Trophy size={14} /> GOLES TOTALES</div>
+              <div className="player-profile-stat-value font-display">{profile.goals}</div>
+              <small>Liga y playoffs</small>
+            </div>
+            <div className="player-profile-stat">
+              <div className="player-profile-stat-label"><Calendar size={14} /> ENCUENTROS CON REGISTRO</div>
+              <div className="player-profile-stat-value font-display">{profile.matchesRecorded}</div>
+              <small>Con estadísticas guardadas</small>
+            </div>
+            <div className="player-profile-stat">
+              <div className="player-profile-stat-label"><Check size={14} /> PARTIDOS CON GOL</div>
+              <div className="player-profile-stat-value font-display">{profile.scoringMatches.length}</div>
+              <small>Marcó al menos una vez</small>
+            </div>
+            <div className="player-profile-stat">
+              <div className="player-profile-stat-label"><BarChart3 size={14} /> PROMEDIO DE GOL</div>
+              <div className="player-profile-stat-value font-display">{profile.average.toLocaleString('es-EC', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</div>
+              <small>Por encuentro con registro</small>
+            </div>
           </div>
-          <div className="player-profile-stat">
-            <div className="player-profile-stat-label"><Check size={14} /> PARTIDOS CON GOL</div>
-            <div className="player-profile-stat-value font-display">{profile.scoringMatches.length}</div>
-            <small>Marcó al menos una vez</small>
-          </div>
-          <div className="player-profile-stat">
-            <div className="player-profile-stat-label"><BarChart3 size={14} /> PROMEDIO DE GOL</div>
-            <div className="player-profile-stat-value font-display">{profile.average.toLocaleString('es-EC', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}</div>
-            <small>Por encuentro con registro</small>
-          </div>
-        </div>
+        )}
 
         <div className="player-profile-extras">
           <span className="player-profile-chip"><span className="card-chip yellow" /> {profile.yellow} amarillas</span>
           <span className="player-profile-chip"><span className="card-chip red" /> {profile.red} rojas</span>
-          <span className="player-profile-chip"><Award size={13} /> Mejor marca: {profile.bestGoals} goles</span>
-          <span className="player-profile-chip">Dobletes: {profile.doubles}</span>
-          <span className="player-profile-chip">Partidos con 3+ goles: {profile.threePlus}</span>
+          {isCards ? (
+            <span className="player-profile-chip"><Trophy size={13} /> {profile.goals} goles</span>
+          ) : (
+            <>
+              <span className="player-profile-chip"><Award size={13} /> Mejor marca: {profile.bestGoals} goles</span>
+              <span className="player-profile-chip">Dobletes: {profile.doubles}</span>
+              <span className="player-profile-chip">Partidos con 3+ goles: {profile.threePlus}</span>
+            </>
+          )}
         </div>
 
-        {recent.length > 0 && (
+        {recent.length > 0 && isCards && (
+          <div className="player-profile-chart">
+            <div className="player-profile-heading font-display">{focus === 'red' ? 'Rojas' : 'Amarillas'} por encuentro</div>
+            <div className="player-profile-bars" role="img" aria-label={recent.map(m => m.label + ': ' + (m[focus] ? cardName : 'sin tarjeta')).join('; ')}>
+              {recent.map(m => (
+                <div className="player-profile-bar-item" key={m.phase + '-' + m.id} title={m.label + ' · ' + teamName(data.teams, m.teamAId) + ' vs ' + teamName(data.teams, m.teamBId) + ' · ' + (m[focus] ? 'tarjeta ' + cardName : 'sin tarjeta')}>
+                  <div className={'player-profile-bar-count ' + (m[focus] ? focus : 'none')}>{m[focus] ? 1 : 0}</div>
+                  <div className="player-profile-bar-track">
+                    <div className={'player-profile-card-shape' + (m[focus] ? ' on ' + focus : '')} />
+                  </div>
+                  <div className="player-profile-bar-label">{matchLabel(m)}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ fontSize: 10.5, color: '#64748B', marginTop: 6 }}>Últimos {recent.length} encuentros con registro, del más antiguo al más reciente.</div>
+            {focus === 'yellow' && (
+              <div className="player-profile-meter">
+                <div className="player-profile-meter-top"><span>Camino a la sanción</span><b>{sanction.yellowSinceReset} / {sanction.yellowLimit}</b></div>
+                <div className="player-profile-meter-segments">
+                  {Array.from({ length: Math.min(sanction.yellowLimit, 12) }).map((_, di) => <span key={di} className={di < sanction.yellowSinceReset ? 'on' : ''} />)}
+                </div>
+              </div>
+            )}
+            {focus === 'red' && sanction.triggered > 0 && (
+              <div className="player-profile-meter red">
+                <div className="player-profile-meter-top"><span>Partidos de sanción</span><b>{sanction.served} cumplidos · {sanction.pending} pendientes</b></div>
+                <div className="player-profile-meter-segments">
+                  {Array.from({ length: Math.min(sanction.triggered, 12) }).map((_, di) => <span key={di} className={di < sanction.served ? 'done' : 'on'} />)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {recent.length > 0 && !isCards && (
           <div className="player-profile-chart">
             <div className="player-profile-heading font-display">Goles por encuentro</div>
             <div className="player-profile-bars" role="img" aria-label={recent.map(m => m.label + ': ' + m.goals + ' goles').join('; ')}>
@@ -1141,12 +1296,18 @@ function PlayerDetailModal({ player, data, onClose }) {
         )}
 
         <div className="player-profile-tabs" aria-label="Historial del jugador">
-          <button type="button" aria-pressed={!showAll} onClick={() => setShowAll(false)}>Partidos con gol ({profile.scoringMatches.length})</button>
+          <button type="button" aria-pressed={!showAll} onClick={() => setShowAll(false)}>
+            {isCards ? 'Partidos con ' + cardName + ' (' + focusMatches.length + ')' : 'Partidos con gol (' + profile.scoringMatches.length + ')'}
+          </button>
           <button type="button" aria-pressed={showAll} onClick={() => setShowAll(true)}>Todos los registros ({profile.matchesRecorded})</button>
         </div>
         {visibleMatches.length === 0 ? (
           <div style={{ padding: '24px 12px', textAlign: 'center', fontSize: 13, color: '#64748B', background: '#F8FAFC', borderRadius: 12 }}>
-            {showAll ? 'Todavía no hay estadísticas registradas para este jugador.' : 'Todavía no tiene goles registrados en encuentros finalizados.'}
+            {showAll
+              ? 'Todavía no hay estadísticas registradas para este jugador.'
+              : isCards
+                ? 'Todavía no tiene tarjetas ' + cardNamePlural + ' registradas en encuentros finalizados.'
+                : 'Todavía no tiene goles registrados en encuentros finalizados.'}
           </div>
         ) : (
           <div className="player-profile-history">
@@ -1162,11 +1323,18 @@ function PlayerDetailModal({ player, data, onClose }) {
                   <div className="player-profile-match-team"><Crest team={data.teams.find(t => t.id === m.teamBId)} size="sm" /> {teamName(data.teams, m.teamBId)}</div>
                 </div>
                 <div className="player-profile-match-bottom">
-                  <span className="player-profile-goals">⚽ {m.goals} {m.goals === 1 ? 'gol' : 'goles'}</span>
-                  {m.goals > 0 && m.goals === profile.bestGoals && <span className="player-profile-record">Mejor marca</span>}
+                  {isCards ? (
+                    m[focus] > 0
+                      ? <span className={'player-profile-card-tag ' + focus}><span className={'card-chip ' + focus} /> {focus === 'red' ? 'Roja' : 'Amarilla'}</span>
+                      : <span className="player-profile-card-tag none">Sin {cardName}</span>
+                  ) : (
+                    <span className="player-profile-goals">⚽ {m.goals} {m.goals === 1 ? 'gol' : 'goles'}</span>
+                  )}
+                  {!isCards && m.goals > 0 && m.goals === profile.bestGoals && <span className="player-profile-record">Mejor marca</span>}
                   <span style={{ display: 'inline-flex', gap: 8, alignItems: 'center', fontSize: 10.5, color: '#64748B' }}>
-                    {m.yellow > 0 && <span><span className="card-chip yellow" /> Amarilla</span>}
-                    {m.red > 0 && <span><span className="card-chip red" /> Roja</span>}
+                    {isCards && m.goals > 0 && <span>⚽ {m.goals} {m.goals === 1 ? 'gol' : 'goles'}</span>}
+                    {m.yellow > 0 && focus !== 'yellow' && <span><span className="card-chip yellow" /> Amarilla</span>}
+                    {m.red > 0 && focus !== 'red' && <span><span className="card-chip red" /> Roja</span>}
                   </span>
                 </div>
               </div>
@@ -2254,7 +2422,13 @@ export default function FutbolitoApp() {
   const [loginOpen, setLoginOpen] = useState(false);
   const [viewTeamId, setViewTeamId] = useState(null);
   const [viewPlayerId, setViewPlayerId] = useState(null);
+  const [viewPlayerFocus, setViewPlayerFocus] = useState('goals');
   const closePlayerProfile = useCallback(() => setViewPlayerId(null), []);
+  // focus: 'goals' (por defecto), 'yellow' o 'red' según el ranking desde el que se abrió.
+  const openPlayerProfile = useCallback((id, focus) => {
+    setViewPlayerFocus(focus === 'yellow' || focus === 'red' ? focus : 'goals');
+    setViewPlayerId(id);
+  }, []);
 
   // Carga inicial de datos + sesión, y suscripción a cambios en vivo.
   useEffect(() => {
@@ -2481,32 +2655,32 @@ export default function FutbolitoApp() {
             </div>
           )}
 
-          {tab === 'inicio' && <InicioTab data={data} isAdmin={isAdmin} onNavigate={setTab} onViewTeam={setViewTeamId} onViewPlayer={setViewPlayerId} onAddNews={addNews} onDeleteNews={deleteNews} />}
+          {tab === 'inicio' && <InicioTab data={data} isAdmin={isAdmin} onNavigate={setTab} onViewTeam={setViewTeamId} onViewPlayer={openPlayerProfile} onAddNews={addNews} onDeleteNews={deleteNews} />}
 
           {tab === 'tabla' && (
             <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
               <TablaTab data={data} standings={standings} onViewTeam={setViewTeamId} />
-              <RightColumn data={data} onViewPlayer={setViewPlayerId} />
+              <RightColumn data={data} onViewPlayer={openPlayerProfile} />
             </div>
           )}
 
           {tab === 'equipos' && <EquiposTab data={data} isAdmin={isAdmin} onAdd={addTeam} onEdit={editTeam} onDelete={deleteTeam} standings={standings} onViewTeam={setViewTeamId} />}
-          {tab === 'jugadores' && <JugadoresTab data={data} isAdmin={isAdmin} onAdd={addPlayer} onEdit={editPlayer} onDelete={deletePlayer} onBulkAdd={bulkAddPlayers} onViewPlayer={setViewPlayerId} />}
+          {tab === 'jugadores' && <JugadoresTab data={data} isAdmin={isAdmin} onAdd={addPlayer} onEdit={editPlayer} onDelete={deletePlayer} onBulkAdd={bulkAddPlayers} onViewPlayer={openPlayerProfile} />}
           {tab === 'partidos' && <PartidosTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('liga', p)} onGenerateFixture={generateFixture}
             onGenerateReturnLeg={generateReturnLeg}
-            onViewPlayer={setViewPlayerId}
+            onViewPlayer={openPlayerProfile}
             onAutoSchedule={autoScheduleMatches}
             onSaveResult={(id, payload) => saveMatchResult('liga', id, payload)} onDeleteMatch={(id) => deleteMatch('liga', id)}
             onSaveAnyMatch={saveMatchResult} />}
-          {tab === 'playoffs' && <PlayoffsTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('playoff', p)} onAutoSchedule={autoSchedulePlayoffs} onViewPlayer={setViewPlayerId}
+          {tab === 'playoffs' && <PlayoffsTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('playoff', p)} onAutoSchedule={autoSchedulePlayoffs} onViewPlayer={openPlayerProfile}
             onSaveResult={(id, payload) => saveMatchResult('playoff', id, payload)} onDeleteMatch={(id) => deleteMatch('playoff', id)}
             onSaveAnyMatch={saveMatchResult} />}
-          {tab === 'sanciones' && <SancionesTab data={data} isAdmin={isAdmin} onMarkServed={markSuspensionServed} onViewPlayer={setViewPlayerId} />}
+          {tab === 'sanciones' && <SancionesTab data={data} isAdmin={isAdmin} onMarkServed={markSuspensionServed} onViewPlayer={openPlayerProfile} />}
 
           {tab === 'stats' && (
             <div className="two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: 24, alignItems: 'start' }}>
-              <StatsTab data={data} standings={standings} onViewPlayer={setViewPlayerId} />
-              <RightColumn data={data} onViewPlayer={setViewPlayerId} />
+              <StatsTab data={data} standings={standings} onViewPlayer={openPlayerProfile} />
+              <RightColumn data={data} onViewPlayer={openPlayerProfile} />
             </div>
           )}
         </div>
@@ -2515,10 +2689,10 @@ export default function FutbolitoApp() {
       {settingsOpen && isAdmin && <SettingsModal meta={data.meta} onClose={() => setSettingsOpen(false)} onSave={saveSettings} onReset={resetAll} onExport={exportData} onImport={importData} />}
       {loginOpen && <LoginModal onClose={() => setLoginOpen(false)} />}
       {viewTeamId && data.teams.find(t => t.id === viewTeamId) && (
-        <TeamDetailModal team={data.teams.find(t => t.id === viewTeamId)} data={data} onClose={() => setViewTeamId(null)} onViewPlayer={setViewPlayerId} />
+        <TeamDetailModal team={data.teams.find(t => t.id === viewTeamId)} data={data} onClose={() => setViewTeamId(null)} onViewPlayer={openPlayerProfile} />
       )}
       {viewPlayerId && data.players.find(p => p.id === viewPlayerId) && (
-        <PlayerDetailModal key={viewPlayerId} player={data.players.find(p => p.id === viewPlayerId)} data={data} onClose={closePlayerProfile} />
+        <PlayerDetailModal key={viewPlayerId} player={data.players.find(p => p.id === viewPlayerId)} data={data} focus={viewPlayerFocus} onClose={closePlayerProfile} />
       )}
     </div>
   );
@@ -3096,13 +3270,16 @@ function BracketMatchCard({ m, teams, onOpen }) {
   const teamB = teams.find(t => t.id === m.teamBId);
   return (
     <button onClick={onOpen} className="card" style={{ width: BRACKET_CARD_WIDTH, padding: 0, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', display: 'block', transition: 'box-shadow 0.2s', border: '1px solid #E2E8F0' }} onMouseOver={e => e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.1)'} onMouseOut={e => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'}>
-      {[[teamA, m.scoreA], [teamB, m.scoreB]].map(([t, score], idx) => (
-        <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: idx === 0 ? '1px solid #F1F5F9' : 'none' }}>
+      {[[teamA, m.scoreA], [teamB, m.scoreB]].map(([t, score], idx) => {
+        const winnerIdx = m.played && m.scoreA !== m.scoreB ? (m.scoreA > m.scoreB ? 0 : 1) : -1;
+        return (
+        <div key={idx} className={'bracket-row' + (winnerIdx === idx ? ' winner' : winnerIdx >= 0 ? ' loser' : '')} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: idx === 0 ? '1px solid #F1F5F9' : 'none' }}>
           <Crest team={t} size="sm" />
           <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t ? t.name : 'Por definir'}</span>
           <span style={{ fontSize: 14, fontWeight: 800, color: m.played ? '#0F172A' : '#94A3B8', flexShrink: 0 }}>{m.played ? score : '–'}</span>
         </div>
-      ))}
+        );
+      })}
     </button>
   );
 }
@@ -3268,7 +3445,7 @@ function SancionesTab({ data, isAdmin, onMarkServed, onViewPlayer }) {
                 <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', flexWrap: 'wrap', borderBottom: idx === suspended.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
                   <Avatar size={36} />
                   <div style={{ flex: 1, minWidth: 160 }}>
-                    <button type="button" className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A', padding: 0 }}>{p.name}</button>
+                    <button type="button" className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id, stats.red > 0 ? 'red' : 'yellow')} style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A', padding: 0 }}>{p.name}</button>
                     <div style={{ fontSize: 12.5, marginTop: 2 }}><TeamChip team={team} size="sm" /></div>
                   </div>
                   <CardBadge yellow={stats.yellow} red={stats.red} />
@@ -3293,10 +3470,17 @@ function SancionesTab({ data, isAdmin, onMarkServed, onViewPlayer }) {
                 <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '16px 20px', borderBottom: idx === warning.length - 1 ? 'none' : '1px solid #F1F5F9' }}>
                   <Avatar size={36} />
                   <div style={{ flex: 1 }}>
-                    <button type="button" className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A', padding: 0 }}>{p.name}</button>
+                    <button type="button" className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id, 'yellow')} style={{ fontWeight: 700, fontSize: 14.5, color: '#0F172A', padding: 0 }}>{p.name}</button>
                     <div style={{ fontSize: 12.5, marginTop: 2 }}><TeamChip team={team} size="sm" /></div>
                   </div>
-                  <div style={{ fontSize: 13.5, color: '#D97706', fontWeight: 700 }}>{stats.yellowSinceReset} / {stats.yellowLimit} amarillas</div>
+                  <div className="yellow-meter" title={stats.yellowSinceReset + ' de ' + stats.yellowLimit + ' amarillas'}>
+                    <span className="yellow-meter-dots">
+                      {Array.from({ length: Math.min(stats.yellowLimit, 10) }).map((_, di) => (
+                        <span key={di} className={'yellow-meter-dot' + (di < stats.yellowSinceReset ? ' on' : '')} />
+                      ))}
+                    </span>
+                    <span className="yellow-meter-text">{stats.yellowSinceReset} / {stats.yellowLimit} amarillas</span>
+                  </div>
                 </div>
               );
             })}
@@ -3315,39 +3499,60 @@ function StatsTab({ data, standings, onViewPlayer }) {
   const bestAttack = [...standings].sort((a, b) => b.gf - a.gf)[0];
   const bestDefense = [...standings].filter(s => s.pj > 0).sort((a, b) => a.gc - b.gc)[0];
 
-  const ranking = (list, valueKey, label, cardType) => (
-    <div className="card" style={{ padding: 20 }}>
-      <div className="font-display" style={{ fontSize: 16, fontWeight: 700, color: '#0F172A', marginBottom: 12 }}>{label}</div>
-      {list.length === 0 ? <div style={{ fontSize: 13, color: '#94A3B8' }}>Sin datos todavía.</div> : list.map(({ p, stats }, i) => {
-        const team = data.teams.find(t => t.id === p.teamId);
-        return (
-          <button type="button" key={p.id} className="player-profile-trigger" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 0', borderBottom: '1px solid #F1F5F9' }}>
-            <span style={{ width: 20, fontSize: 13, color: '#64748B', fontWeight: 800, flexShrink: 0, textAlign: 'center' }}>{i + 1}</span>
-            <Avatar size={32} />
-            <span style={{ flex: 1, fontSize: 14, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              <span style={{ color: '#0F172A', fontWeight: 600 }}>{p.name}</span>{' '}
-              <span style={{ color: '#64748B', fontSize: 12 }}>{team ? team.name : ''}</span>
-            </span>
-            {cardType && <CardBadge yellow={cardType === 'yellow' ? stats[valueKey] : 0} red={cardType === 'red' ? stats[valueKey] : 0} />}
-            <span style={{ fontWeight: 800, color: '#22C55E', fontSize: 14.5 }}>{stats[valueKey]}</span>
-          </button>
-        );
-      })}
-    </div>
-  );
+  // Al tocar un jugador, la ficha se abre mostrando lo que corresponde al ranking (goles, amarillas o rojas).
+  const ranking = (list, valueKey, label, cardType) => {
+    const kind = cardType || 'goals';
+    const top = list.length ? list[0].stats[valueKey] : 0;
+    return (
+      <div className={'card ranking-card ' + kind}>
+        <div className="ranking-head">
+          <div className="ranking-title font-display">
+            {cardType ? <span className={'card-chip ' + cardType} /> : <Trophy size={18} />}
+            {label}
+          </div>
+          {list.length > 0 && <span className="ranking-count">Top {list.length}</span>}
+        </div>
+        {list.length === 0 ? <div className="ranking-empty">Sin datos todavía.</div> : list.map(({ p, stats }, i) => {
+          const team = data.teams.find(t => t.id === p.teamId);
+          const pct = top > 0 ? Math.max(8, Math.round(stats[valueKey] / top * 100)) : 0;
+          return (
+            <button type="button" key={p.id} className="player-profile-trigger rank-row" aria-label={'Ver estadísticas de ' + p.name} onClick={() => onViewPlayer(p.id, kind)}>
+              <span className={'rank-pos' + (i < 3 ? ' p' + (i + 1) : '')}>{i + 1}</span>
+              <span className="rank-avatar" style={{ '--tc': team ? team.color : '#CBD5E1' }}><Avatar size={34} /></span>
+              <span className="rank-main">
+                <span className="rank-name">{p.name}</span>
+                <span className="rank-team">{team ? team.name : 'Sin equipo'}</span>
+                <span className="rank-track"><span className="rank-fill" style={{ width: pct + '%' }} /></span>
+              </span>
+              <span className="rank-value">
+                {cardType && <CardBadge yellow={cardType === 'yellow' ? stats[valueKey] : 0} red={cardType === 'red' ? stats[valueKey] : 0} />}
+                {stats[valueKey]}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
 
   return (
     <div>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px,1fr))', gap: 16, marginBottom: 24 }}>
-        <div className="card" style={{ padding: 20, textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mejor ataque</div>
-          <div className="font-display" style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginTop: 8 }}>{bestAttack ? teamName(data.teams, bestAttack.teamId) : '—'}</div>
-          <div style={{ color: '#22C55E', fontWeight: 700, fontSize: 14, marginTop: 4 }}>{bestAttack ? bestAttack.gf + ' goles' : ''}</div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px,1fr))', gap: 16, marginBottom: 24 }}>
+        <div className="card stat-highlight attack">
+          <div className="stat-highlight-icon"><BarChart3 size={22} /></div>
+          <div className="stat-highlight-body">
+            <div className="stat-highlight-label">Mejor ataque</div>
+            <div className="stat-highlight-name font-display">{bestAttack ? teamName(data.teams, bestAttack.teamId) : '—'}</div>
+            <div className="stat-highlight-value">{bestAttack ? bestAttack.gf + ' goles a favor' : ''}</div>
+          </div>
         </div>
-        <div className="card" style={{ padding: 20, textAlign: 'center' }}>
-          <div style={{ fontSize: 11, color: '#64748B', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Mejor defensa</div>
-          <div className="font-display" style={{ fontSize: 18, fontWeight: 800, color: '#0F172A', marginTop: 8 }}>{bestDefense ? teamName(data.teams, bestDefense.teamId) : '—'}</div>
-          <div style={{ color: '#22C55E', fontWeight: 700, fontSize: 14, marginTop: 4 }}>{bestDefense ? bestDefense.gc + ' recibidos' : ''}</div>
+        <div className="card stat-highlight defense">
+          <div className="stat-highlight-icon"><ShieldAlert size={22} /></div>
+          <div className="stat-highlight-body">
+            <div className="stat-highlight-label">Mejor defensa</div>
+            <div className="stat-highlight-name font-display">{bestDefense ? teamName(data.teams, bestDefense.teamId) : '—'}</div>
+            <div className="stat-highlight-value">{bestDefense ? bestDefense.gc + ' goles recibidos' : ''}</div>
+          </div>
         </div>
       </div>
 

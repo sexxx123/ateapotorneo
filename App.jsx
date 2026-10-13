@@ -1272,6 +1272,41 @@ function GlobalStyles() {
         .match-result-overlay>.modal-box>div:last-child {padding:12px!important;}
         .result-date-grid {gap:8px;}
       }
+
+      .playoff-simulation {background:linear-gradient(135deg,#F0FDFA,#F8FAFC);border:1px solid #99F6E4;border-radius:20px;padding:24px;margin-bottom:20px;}
+      .sim-heading {display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:22px;}
+      .sim-tag {display:inline-block;color:#0F766E;background:#CCFBF1;padding:5px 9px;border-radius:7px;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;}
+      .sim-heading h3 {font:700 21px 'Poppins',sans-serif;margin:10px 0 7px;color:#0F172A;}
+      .sim-heading p,.sim-footnote {font-size:12px;color:#64748B;line-height:1.7;margin:0;}
+      .sim-bracket {display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:46px;max-width:920px;}
+      .sim-round h4 {display:flex;align-items:center;gap:7px;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:#0F766E;margin:0 0 12px;}
+      .sim-match {position:relative;background:#fff;border:1px solid #E2E8F0;border-radius:12px;overflow:hidden;margin-bottom:18px;box-shadow:0 3px 12px #0f172a05;}
+      .sim-match>small {display:block;padding:9px 12px;background:#F8FAFC;color:#64748B;font-size:10px;font-weight:700;}
+      .sim-team {display:flex;align-items:center;gap:9px;border:0;border-bottom:1px solid #F1F5F9;padding:14px 12px;width:100%;background:#fff;text-align:left;color:#0F172A;min-height:58px;font:600 12px 'Inter',sans-serif;}
+      .sim-team:last-child {border-bottom:0;}
+      button.sim-team {cursor:pointer;}
+      button.sim-team:hover {background:#F0FDFA;}
+      button.sim-team[aria-pressed="true"] {background:#CCFBF1;box-shadow:inset 4px 0 #0D9488;}
+      .sim-team>span {flex:1;min-width:0;}
+      .sim-team .team-name-cell {white-space:normal;overflow:visible;text-overflow:clip;overflow-wrap:anywhere;}
+      .sim-team>b {font-size:11px;color:#64748B;}
+      .sim-placeholder {color:#94A3B8;font-weight:500;}
+      .sim-final {padding-top:35px;}
+      .sim-footnote {border-top:1px solid #D1FAE5;padding-top:12px;}
+      .playoff-generation {display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap;padding:20px;border:1px solid #E2E8F0;background:#fff;border-radius:16px;margin-bottom:24px;}
+      .playoff-generation>div {flex:1;min-width:220px;}
+      .playoff-generation strong {color:#0F172A;font-size:14px;}
+      .playoff-generation p {font-size:12px;color:#64748B;line-height:1.6;margin:7px 0;}
+      .playoff-generation small {font-size:10px;color:#64748B;}
+      .playoff-generation button:disabled {opacity:.5;cursor:not-allowed;}
+      .sim-team:focus-visible {outline:2px solid #0D9488;outline-offset:-3px;}
+      @media(max-width:640px) {
+        .playoff-simulation {padding:16px;}
+        .sim-heading h3 {font-size:18px;}
+        .sim-bracket {grid-template-columns:minmax(0,1fr);gap:4px;}
+        .sim-final {padding-top:0;}
+        .playoff-generation .btn {width:100%;justify-content:center;white-space:normal;}
+      }
     `}</style>
   );
 }
@@ -2809,6 +2844,11 @@ export default function FutbolitoApp() {
     return { ...d, matches: d.matches.map(m => byId[m.id] || m) };
   });
 
+  const generatePlayoffs = () => {
+    if (!isAdmin) return;
+    update(d => appendPlayoffPlan(d));
+  };
+
   const autoSchedulePlayoffs = () => update(d => {
     const presentRounds = [...new Set(d.playoffMatches.map(m => m.round))];
     const groups = [];
@@ -2901,7 +2941,7 @@ export default function FutbolitoApp() {
             onAutoSchedule={autoScheduleMatches}
             onSaveResult={(id, payload) => saveMatchResult('liga', id, payload)} onDeleteMatch={(id) => deleteMatch('liga', id)}
             onSaveAnyMatch={saveMatchResult} />}
-          {tab === 'playoffs' && <PlayoffsTab data={data} isAdmin={isAdmin} onAddMatch={(p) => addMatch('playoff', p)} onAutoSchedule={autoSchedulePlayoffs} onViewPlayer={openPlayerProfile}
+          {tab === 'playoffs' && <PlayoffsTab data={data} isAdmin={isAdmin} onGeneratePlayoffs={generatePlayoffs} onAddMatch={(p) => addMatch('playoff', p)} onAutoSchedule={autoSchedulePlayoffs} onViewPlayer={openPlayerProfile}
             onSaveResult={(id, payload) => saveMatchResult('playoff', id, payload)} onDeleteMatch={(id) => deleteMatch('playoff', id)}
             onSaveAnyMatch={saveMatchResult} />}
           {tab === 'sanciones' && <SancionesTab data={data} isAdmin={isAdmin} onMarkServed={markSuspensionServed} onViewPlayer={openPlayerProfile} />}
@@ -3129,7 +3169,7 @@ function TablaTab({ data, standings, onViewTeam }) {
   if (data.teams.length === 0) {
     return <EmptyState Icon={Table2} title="Todavía no hay tabla" text="Agrega equipos en la pestaña Equipos para que la tabla de posiciones empiece a calcularse automáticamente." />;
   }
-  const relegation = data.meta.relegationSpots || 0;
+  const relegation = Math.min(2, standings.length);
   const n = standings.length;
   return (
     <div>
@@ -3150,10 +3190,10 @@ function TablaTab({ data, standings, onViewTeam }) {
               const relegated = relegation > 0 && i >= n - relegation;
               return (
                 <tr key={row.teamId}
-                  className={(i % 2 === 1 ? 'row-alt ' : '') + (qualifies ? 'zone-top' : relegated ? 'zone-bottom' : '')}>
+                  className={(i % 2 === 1 ? 'row-alt ' : '') + (relegated ? 'zone-bottom' : qualifies ? 'zone-top' : '')}>
                   <td>{i + 1}</td>
                   <td className="team-name-cell"><TeamChip team={team} size="sm" onClick={team ? () => onViewTeam(team.id) : undefined} /></td>
-                  <td style={{ color: '#22C55E', fontWeight: 800 }}>{row.pts}</td>
+                  <td style={{ color: relegated ? '#DC2626' : '#22C55E', fontWeight: 800 }}>{row.pts}</td>
                   <td>{row.pj}</td><td>{row.pg}</td><td>{row.pe}</td><td>{row.pp}</td>
                   <td>{row.gf}</td><td>{row.gc}</td><td>{row.dg > 0 ? '+' + row.dg : row.dg}</td>
                 </tr>
@@ -3170,7 +3210,7 @@ function TablaTab({ data, standings, onViewTeam }) {
         )}
         {relegation > 0 && (
           <div style={{ fontSize: 12, color: '#64748B', display: 'flex', alignItems: 'center', gap: 8, fontWeight: 500 }}>
-            <span style={{ width: 12, height: 12, background: '#EF4444', borderRadius: 4 }} /> Zona de alerta
+            <span style={{ width: 12, height: 12, background: '#EF4444', borderRadius: 4 }} /> Últimos dos puestos
           </div>
         )}
       </div>
@@ -3664,10 +3704,91 @@ function PlayoffBracket({ data, onOpenMatch }) {
   );
 }
 
-function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch, onViewPlayer }) {
+// La liga ATEAPO de seis equipos comprende diez fechas (ida y vuelta).
+function getLeagueCompletion(data) {
+  const n = data.teams.length;
+  const oneLegRounds = n % 2 === 0 ? n - 1 : n;
+  const legs = data.meta.idaYVuelta || n === 6 || data.matches.some(m => Number(m.jornada) > oneLegRounds) ? 2 : 1;
+  const expected = n * (n - 1) / 2 * legs;
+  const counts = new Map();
+  for (const m of data.matches) {
+    if (!data.teams.some(t => t.id === m.teamAId) || !data.teams.some(t => t.id === m.teamBId) || m.teamAId === m.teamBId) continue;
+    const key = [m.teamAId, m.teamBId].sort().join('|');
+    counts.set(key, (counts.get(key) || 0) + 1);
+  }
+  let missing = 0;
+  data.teams.forEach((a, i) => data.teams.slice(i + 1).forEach(b => {
+    missing += Math.max(0, legs - (counts.get([a.id, b.id].sort().join('|')) || 0));
+  }));
+  const pending = data.matches.filter(m => !m.played).length;
+  return { complete: n >= 4 && expected > 0 && missing === 0 && pending === 0, expected, missing, pending, played: data.matches.filter(m => m.played).length };
+}
+
+function getPlayoffPlan(data) {
+  const completion = getLeagueCompletion(data);
+  const blocked = reason => ({ matches: [], reason, completion });
+  if (Number(data.meta.playoffSpots) !== 4 || data.teams.length < 4) return blocked('La generación de semifinales requiere cuatro cupos de clasificación y al menos cuatro equipos.');
+  if (!completion.complete) return blocked(completion.missing > 0
+    ? 'Faltan ' + completion.missing + ' partidos por registrar en el calendario de liga. Completa la ida y la vuelta antes de generar las llaves.'
+    : 'Faltan ' + completion.pending + ' partidos de liga por terminar.');
+  if (data.playoffMatches.length === 0) {
+    const top = computeStandings(data).slice(0, 4);
+    return { completion, label: 'Generar semifinales definitivas', matches: [
+      { round: 'Semifinal', teamAId: top[0].teamId, teamBId: top[3].teamId },
+      { round: 'Semifinal', teamAId: top[1].teamId, teamBId: top[2].teamId },
+    ] };
+  }
+  const semis = data.playoffMatches.filter(m => m.round === 'Semifinal');
+  if (data.playoffMatches.some(m => m.round === 'Final' || m.round === 'Tercer Puesto')) return blocked('Las llaves definitivas ya están creadas. Los partidos existentes se conservan.');
+  if (semis.length !== 2 || data.playoffMatches.length !== 2) return blocked('Ya hay un cuadro creado manualmente. Puedes continuar editándolo sin reemplazar sus partidos.');
+  if (new Set(semis.flatMap(m => [m.teamAId, m.teamBId])).size !== 4) return blocked('Revisa las semifinales: deben participar cuatro equipos distintos.');
+  if (semis.some(m => !m.played || Number(m.scoreA) === Number(m.scoreB))) return blocked('La final y el tercer puesto se habilitan cuando ambas semifinales estén jugadas y tengan ganador. Si hubo empate y penales, registra esos cruces con Agregar partido de playoffs.');
+  const winners = semis.map(m => Number(m.scoreA) > Number(m.scoreB) ? m.teamAId : m.teamBId);
+  const losers = semis.map(m => Number(m.scoreA) > Number(m.scoreB) ? m.teamBId : m.teamAId);
+  return { completion, label: 'Generar final y tercer puesto', matches: [
+    { round: 'Final', teamAId: winners[0], teamBId: winners[1] },
+    { round: 'Tercer Puesto', teamAId: losers[0], teamBId: losers[1] },
+  ] };
+}
+
+function appendPlayoffPlan(data) {
+  const plan = getPlayoffPlan(data);
+  if (!plan.matches.length) return data;
+  const matches = plan.matches.map((m, index) => ({
+    id: 'auto_' + m.round.replace(/ /g, '_') + '_' + index + '_' + m.teamAId + '_' + m.teamBId,
+    phase: 'playoff', played: false, scoreA: 0, scoreB: 0, playerStats: {}, date: '', time: '', ...m,
+  }));
+  return { ...data, playoffMatches: [...data.playoffMatches, ...matches] };
+}
+
+function PlayoffSimulation({ data }) {
+  const top = computeStandings(data).slice(0, 4);
+  const [picks, setPicks] = useState({});
+  if (top.length < 4 || Number(data.meta.playoffSpots) !== 4) return null;
+  const seedKey = top.map(t => t.teamId).join('|');
+  const pairs = [[top[0], top[3]], [top[1], top[2]]];
+  const choose = (index, id) => setPicks(prev => ({ ...prev, [seedKey + ':' + index]: id }));
+  const winners = pairs.map((pair, i) => pair.find(t => t.teamId === picks[seedKey + ':' + i]));
+  const losers = pairs.map((pair, i) => winners[i] ? pair.find(t => t.teamId !== winners[i].teamId) : null);
+  const seed = id => top.findIndex(t => t.teamId === id) + 1;
+  const teamRow = (row, text) => row ? <TeamChip team={data.teams.find(t => t.id === row.teamId)} size="sm" /> : <span className="sim-placeholder">{text}</span>;
+  return (
+    <section className="playoff-simulation">
+      <div className="sim-heading"><div><span className="sim-tag">Simulación · no guarda resultados</span><h3>Así quedarían las llaves hoy</h3><p>1.º vs 4.º · 2.º vs 3.º. Elige un ganador de cada semifinal para ver una posible final.</p></div><button type="button" className="btn btn-outline btn-sm" onClick={() => setPicks({})}>Reiniciar simulación</button></div>
+      <div className="sim-bracket">
+        <div className="sim-round"><h4>Semifinales</h4>{pairs.map((pair, i) => <div className="sim-match" key={i}><small>Semifinal {i + 1}</small>{pair.map(row => <button type="button" key={row.teamId} className="sim-team" aria-pressed={winners[i]?.teamId === row.teamId} onClick={() => choose(i, row.teamId)}><b>{seed(row.teamId)}.º</b>{teamRow(row)}{winners[i]?.teamId === row.teamId && <Check size={16} />}</button>)}</div>)}</div>
+        <div className="sim-round sim-final"><h4><Trophy size={16} /> Final</h4><div className="sim-match"><div className="sim-team">{teamRow(winners[0], 'Ganador de semifinal 1')}</div><div className="sim-team">{teamRow(winners[1], 'Ganador de semifinal 2')}</div></div><h4>Tercer puesto</h4><div className="sim-match"><div className="sim-team">{teamRow(losers[0], 'Perdedor de semifinal 1')}</div><div className="sim-team">{teamRow(losers[1], 'Perdedor de semifinal 2')}</div></div></div>
+      </div>
+      <p className="sim-footnote">Las posiciones se actualizan con los resultados de liga. Esta simulación no modifica partidos, goles ni clasificados oficiales.</p>
+    </section>
+  );
+}
+
+function PlayoffsTab({ data, isAdmin, onGeneratePlayoffs, onAddMatch, onAutoSchedule, onSaveResult, onDeleteMatch, onSaveAnyMatch, onViewPlayer }) {
   const [modal, setModal] = useState(null);
   const [confirmSchedule, setConfirmSchedule] = useState(false);
   const openMatch = data.playoffMatches.find(m => m.id === modal);
+  const plan = getPlayoffPlan(data);
 
   return (
     <div>
@@ -3691,9 +3812,11 @@ function PlayoffsTab({ data, isAdmin, onAddMatch, onAutoSchedule, onSaveResult, 
       )}
 
       {data.teams.length < 2 && <EmptyState Icon={Award} title="Faltan equipos" text="Registra equipos antes de armar el cuadro de playoffs." />}
-      {data.teams.length >= 2 && data.playoffMatches.length === 0 && (
-        <EmptyState Icon={Award} title="Aún no hay cuadro de playoffs" text={isAdmin ? 'Cuando termine la fase de liga, agrega aquí semifinales, final y demás cruces.' : 'El organizador todavía no publicó el cuadro de playoffs.'} />
-      )}
+      {data.playoffMatches.length === 0 && <PlayoffSimulation data={data} />}
+      <div className="playoff-generation">
+        <div><strong>{data.playoffMatches.length === 0 ? 'Llaves definitivas' : 'Cuadro oficial'}</strong><p>{plan.reason || (data.playoffMatches.length === 0 ? 'Liga completa. Los cuatro primeros de la tabla ya pueden pasar a semifinales.' : 'Las semifinales tienen ganador. Ya puedes crear la final y el tercer puesto.')}</p><small>{plan.completion.played} partidos de liga jugados · {plan.completion.pending} pendientes · {plan.completion.missing} por registrar</small></div>
+        {isAdmin && <button type="button" className="btn btn-primary" disabled={!plan.matches.length} onClick={onGeneratePlayoffs}><Award size={16} />{plan.label || (data.playoffMatches.length === 0 ? 'Generar semifinales definitivas' : 'Generar siguiente ronda')}</button>}
+      </div>
 
       {data.playoffMatches.length > 0 && canRenderBracket(data) && (
         <PlayoffBracket data={data} onOpenMatch={(id) => setModal(id)} />

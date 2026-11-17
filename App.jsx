@@ -3605,11 +3605,13 @@ function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onGenerateR
 }
 
 const BRACKET_ROUNDS = ['Cuartos de Final', 'Semifinal', 'Final'];
-const BRACKET_SLOT_BASE_HEIGHT = 120;
-const BRACKET_CARD_WIDTH = 230;
-const BRACKET_GAP_WIDTH = 48;
+const BRACKET_ROUND_SHORT = { 'Cuartos de Final': 'Cuartos', 'Semifinal': 'Semifinal', 'Final': 'Final' };
+const BRACKET_SLOT_BASE_HEIGHT = 150;
+const BRACKET_CARD_WIDTH = 240;
+const BRACKET_GAP_WIDTH = 56;
 
 function buildConnectorPath(count, slotHeight, gapWidth) {
+  if (count === 1) return `M0,${slotHeight / 2} H${gapWidth}`;
   let d = '';
   const midX = gapWidth / 2;
   for (let i = 0; i < count; i += 2) {
@@ -3621,83 +3623,135 @@ function buildConnectorPath(count, slotHeight, gapWidth) {
   return d;
 }
 
-function BracketMatchCard({ m, teams, onOpen }) {
+function matchWinnerId(m) {
+  if (!m || !m.played || Number(m.scoreA) === Number(m.scoreB)) return null;
+  return Number(m.scoreA) > Number(m.scoreB) ? m.teamAId : m.teamBId;
+}
+
+function BracketMatchCard({ m, teams, onOpen, title, highlight }) {
+  const placeholder = !!m.placeholder;
   const teamA = teams.find(t => t.id === m.teamAId);
   const teamB = teams.find(t => t.id === m.teamBId);
+  const when = placeholder ? null : formatDateTime(m.date, m.time);
+  const winnerIdx = !placeholder && m.played && Number(m.scoreA) !== Number(m.scoreB) ? (Number(m.scoreA) > Number(m.scoreB) ? 0 : 1) : -1;
+  const rows = [[teamA, m.scoreA, m.placeholderA], [teamB, m.scoreB, m.placeholderB]];
+  const Tag = placeholder ? 'div' : 'button';
   return (
-    <button onClick={onOpen} className="card" style={{ width: BRACKET_CARD_WIDTH, padding: 0, overflow: 'hidden', cursor: 'pointer', textAlign: 'left', display: 'block', transition: 'box-shadow 0.2s', border: '1px solid #E2E8F0' }} onMouseOver={e => e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.1)'} onMouseOut={e => e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'}>
-      {[[teamA, m.scoreA], [teamB, m.scoreB]].map(([t, score], idx) => {
-        const winnerIdx = m.played && m.scoreA !== m.scoreB ? (m.scoreA > m.scoreB ? 0 : 1) : -1;
-        return (
-        <div key={idx} className={'bracket-row' + (winnerIdx === idx ? ' winner' : winnerIdx >= 0 ? ' loser' : '')} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderBottom: idx === 0 ? '1px solid #F1F5F9' : 'none' }}>
+    <Tag type={placeholder ? undefined : 'button'} onClick={placeholder ? undefined : onOpen} className="card bracket-card"
+      style={{ width: BRACKET_CARD_WIDTH, padding: 0, overflow: 'hidden', cursor: placeholder ? 'default' : 'pointer', textAlign: 'left', display: 'block',
+        border: highlight ? '2px solid #F59E0B' : placeholder ? '1.5px dashed #CBD5E1' : '1px solid #E2E8F0', background: placeholder ? '#F8FAFC' : '#fff' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 8, padding: '6px 12px', fontSize: 11, fontWeight: 700, letterSpacing: '0.03em',
+        background: highlight ? '#FEF3C7' : placeholder ? '#F1F5F9' : '#F0FDFA', color: highlight ? '#92400E' : placeholder ? '#94A3B8' : '#0F766E', borderBottom: '1px solid #E2E8F0' }}>
+        <span style={{ textTransform: 'uppercase', whiteSpace: 'nowrap' }}>{title}</span>
+        <span style={{ display: 'flex', alignItems: 'center', gap: 4, fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <Clock size={11} />{when || (m.played ? 'Finalizado' : 'Horario por definir')}
+        </span>
+      </div>
+      {rows.map(([t, score, phText], idx) => (
+        <div key={idx} className={'bracket-row' + (winnerIdx === idx ? ' winner' : winnerIdx >= 0 ? ' loser' : '')} style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '9px 12px', borderBottom: idx === 0 ? '1px solid #F1F5F9' : 'none' }}>
           <Crest team={t} size="sm" />
-          <span style={{ flex: 1, fontSize: 13, fontWeight: 600, color: '#0F172A', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t ? t.name : 'Por definir'}</span>
-          <span style={{ fontSize: 14, fontWeight: 800, color: m.played ? '#0F172A' : '#94A3B8', flexShrink: 0 }}>{m.played ? score : '–'}</span>
+          <span style={{ flex: 1, fontSize: 13, fontWeight: t ? 600 : 500, fontStyle: t ? 'normal' : 'italic', color: t ? '#0F172A' : '#94A3B8', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t ? t.name : (phText || 'Por definir')}</span>
+          <span style={{ fontSize: 14, fontWeight: 800, color: m.played ? '#0F172A' : '#CBD5E1', flexShrink: 0 }}>{m.played ? score : '–'}</span>
         </div>
-        );
-      })}
-    </button>
+      ))}
+    </Tag>
   );
 }
 
-function canRenderBracket(data) {
-  const presentRounds = BRACKET_ROUNDS.filter(r => data.playoffMatches.some(m => m.round === r));
-  if (presentRounds.length === 0) return false;
-  const roundMatches = presentRounds.map(r => data.playoffMatches.filter(m => m.round === r));
-  if (roundMatches[0].length < 2) return false;
-  for (let i = 1; i < roundMatches.length; i++) {
-    if (roundMatches[i - 1].length !== roundMatches[i].length * 2) return false;
+// Arma el cuadro completo desde la primera ronda creada hasta la final, con casillas "por definir".
+function buildBracketLayout(data) {
+  const firstIdx = BRACKET_ROUNDS.findIndex(r => data.playoffMatches.some(m => m.round === r));
+  if (firstIdx === -1) return null;
+  const rounds = BRACKET_ROUNDS.slice(firstIdx);
+  const firstCount = data.playoffMatches.filter(m => m.round === rounds[0]).length;
+  const expectedFirst = Math.pow(2, rounds.length - 1);
+  if (firstCount !== expectedFirst) return null;
+  const columns = [];
+  for (let k = 0; k < rounds.length; k++) {
+    const expected = expectedFirst / Math.pow(2, k);
+    const real = data.playoffMatches.filter(m => m.round === rounds[k]);
+    if (real.length > expected) return null;
+    const prevShort = k > 0 ? BRACKET_ROUND_SHORT[rounds[k - 1]] : '';
+    const slots = [];
+    const prev = k > 0 ? columns[k - 1].matches : [];
+    for (let j = 0; j < expected; j++) {
+      slots.push(real[j] || { id: 'ph_' + rounds[k] + '_' + j, placeholder: true,
+        teamAId: matchWinnerId(prev[2 * j]), teamBId: matchWinnerId(prev[2 * j + 1]),
+        placeholderA: 'Ganador ' + prevShort + ' ' + (2 * j + 1), placeholderB: 'Ganador ' + prevShort + ' ' + (2 * j + 2) });
+    }
+    columns.push({ round: rounds[k], matches: slots });
   }
-  return true;
+  const semiShort = BRACKET_ROUND_SHORT['Semifinal'];
+  const semiCol = columns.find(c => c.round === 'Semifinal');
+  const loserId = m => { const w = matchWinnerId(m); return w ? (w === m.teamAId ? m.teamBId : m.teamAId) : null; };
+  const third = data.playoffMatches.find(m => m.round === 'Tercer Puesto')
+    || (semiCol ? { id: 'ph_tercer', placeholder: true, teamAId: loserId(semiCol.matches[0]), teamBId: loserId(semiCol.matches[1]),
+      placeholderA: 'Perdedor ' + semiShort + ' 1', placeholderB: 'Perdedor ' + semiShort + ' 2' } : null);
+  return { columns, third };
+}
+
+function canRenderBracket(data) {
+  return !!buildBracketLayout(data);
 }
 
 function PlayoffBracket({ data, onOpenMatch }) {
-  const presentRounds = BRACKET_ROUNDS.filter(r => data.playoffMatches.some(m => m.round === r));
-  const roundMatches = presentRounds.map(r => data.playoffMatches.filter(m => m.round === r));
-  const thirdPlace = data.playoffMatches.filter(m => m.round === 'Tercer Puesto');
-
-  if (!canRenderBracket(data)) return null;
+  const layout = buildBracketLayout(data);
+  if (!layout) return null;
+  const { columns, third } = layout;
+  const totalHeight = columns[0].matches.length * BRACKET_SLOT_BASE_HEIGHT;
+  const finalMatch = columns[columns.length - 1].matches[0];
+  const champion = data.teams.find(t => t.id === matchWinnerId(finalMatch));
+  const headerStyle = { textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' };
+  const titleFor = (round, i, count) => round === 'Final' ? 'Final' : (BRACKET_ROUND_SHORT[round] + (count > 1 ? ' ' + (i + 1) : ''));
 
   return (
     <div style={{ marginBottom: 24 }}>
       <div style={{ overflowX: 'auto', paddingBottom: 16 }}>
         <div style={{ display: 'flex', width: 'fit-content', marginBottom: 12 }}>
-          {roundMatches.map((matches, ri) => (
-            <Fragment key={ri}>
-              <div style={{ width: BRACKET_CARD_WIDTH, textAlign: 'center', fontSize: 13, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em' }}>{presentRounds[ri]}</div>
-              {ri < roundMatches.length - 1 && <div style={{ width: BRACKET_GAP_WIDTH, flexShrink: 0 }} />}
+          {columns.map((col, ri) => (
+            <Fragment key={col.round}>
+              <div style={{ ...headerStyle, width: BRACKET_CARD_WIDTH, color: col.round === 'Final' ? '#B45309' : headerStyle.color, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                {col.round === 'Final' && <Trophy size={15} />}{col.round}
+              </div>
+              <div style={{ width: BRACKET_GAP_WIDTH, flexShrink: 0 }} />
             </Fragment>
           ))}
+          <div style={{ ...headerStyle, width: 170, color: '#B45309' }}>Campeón</div>
         </div>
-        <div style={{ display: 'flex', width: 'fit-content' }}>
-          {roundMatches.map((matches, ri) => {
-            const slotHeight = BRACKET_SLOT_BASE_HEIGHT * Math.pow(2, ri);
+        <div style={{ display: 'flex', width: 'fit-content', alignItems: 'flex-start' }}>
+          {columns.map((col, ri) => {
+            const slotHeight = totalHeight / col.matches.length;
             return (
-              <Fragment key={ri}>
+              <Fragment key={col.round}>
                 <div style={{ width: BRACKET_CARD_WIDTH, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-                  {matches.map(m => (
+                  {col.matches.map((m, i) => (
                     <div key={m.id} style={{ height: slotHeight, display: 'flex', alignItems: 'center' }}>
-                      <BracketMatchCard m={m} teams={data.teams} onOpen={() => onOpenMatch(m.id)} />
+                      <BracketMatchCard m={m} teams={data.teams} onOpen={() => onOpenMatch(m.id)} title={titleFor(col.round, i, col.matches.length)} highlight={col.round === 'Final'} />
                     </div>
                   ))}
                 </div>
-                {ri < roundMatches.length - 1 && (
-                  <svg width={BRACKET_GAP_WIDTH} height={matches.length * slotHeight} style={{ flexShrink: 0 }}>
-                    <path d={buildConnectorPath(matches.length, slotHeight, BRACKET_GAP_WIDTH)} stroke="#22C55E" strokeWidth="2.5" fill="none" opacity="0.6" />
-                  </svg>
-                )}
+                <svg width={BRACKET_GAP_WIDTH} height={totalHeight} style={{ flexShrink: 0 }}>
+                  <path d={buildConnectorPath(col.matches.length, slotHeight, BRACKET_GAP_WIDTH)} stroke={ri === columns.length - 1 ? '#F59E0B' : '#22C55E'} strokeWidth="2.5" fill="none" opacity="0.7" strokeLinecap="round" />
+                </svg>
               </Fragment>
             );
           })}
+          <div style={{ height: totalHeight, display: 'flex', alignItems: 'center' }}>
+            <div style={{ width: 170, borderRadius: 16, padding: '16px 12px', textAlign: 'center', border: champion ? '2px solid #F59E0B' : '1.5px dashed #FCD34D',
+              background: champion ? 'linear-gradient(135deg,#FEF3C7,#FFFBEB)' : '#FFFBEB' }}>
+              <Trophy size={28} color={champion ? '#D97706' : '#FCD34D'} style={{ margin: '0 auto 8px', display: 'block' }} />
+              {champion
+                ? <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6 }}><Crest team={champion} size="md" /><strong style={{ fontSize: 14, color: '#92400E' }}>{champion.name}</strong></div>
+                : <span style={{ fontSize: 13, fontStyle: 'italic', color: '#B45309' }}>Por definir</span>}
+            </div>
+          </div>
         </div>
       </div>
 
-      {thirdPlace.length > 0 && (
-        <div style={{ marginTop: 24 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}>Tercer Puesto</div>
-          {thirdPlace.map(m => (
-            <div key={m.id} style={{ marginBottom: 12 }}><BracketMatchCard m={m} teams={data.teams} onOpen={() => onOpenMatch(m.id)} /></div>
-          ))}
+      {third && (
+        <div style={{ marginTop: 16 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 6 }}><Award size={15} /> Tercer Puesto</div>
+          <BracketMatchCard m={third} teams={data.teams} onOpen={() => onOpenMatch(third.id)} title="Tercer puesto" />
         </div>
       )}
     </div>

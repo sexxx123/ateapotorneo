@@ -3704,7 +3704,7 @@ function PlayoffBracket({ data, onOpenMatch }) {
   );
 }
 
-// La liga ATEAPO de seis equipos comprende diez fechas (ida y vuelta).
+// La liga ATEAPO de seis equipos comprende diez fechas (ida y vuelta), pero puede cerrarse antes.
 function getLeagueCompletion(data) {
   const n = data.teams.length;
   const oneLegRounds = n % 2 === 0 ? n - 1 : n;
@@ -3720,17 +3720,20 @@ function getLeagueCompletion(data) {
   data.teams.forEach((a, i) => data.teams.slice(i + 1).forEach(b => {
     missing += Math.max(0, legs - (counts.get([a.id, b.id].sort().join('|')) || 0));
   }));
-  const pending = data.matches.filter(m => !m.played).length;
-  return { complete: n >= 4 && expected > 0 && missing === 0 && pending === 0, expected, missing, pending, played: data.matches.filter(m => m.played).length };
+  // La liga se da por cerrada en la última fecha jugada (p. ej. si se suspendieron las últimas fechas).
+  const playedMatches = data.matches.filter(m => m.played);
+  const lastPlayedJornada = Math.max(0, ...playedMatches.map(m => Number(m.jornada) || 0));
+  const pending = data.matches.filter(m => !m.played && (Number(m.jornada) || 0) <= lastPlayedJornada).length;
+  return { complete: n >= 4 && playedMatches.length > 0 && pending === 0, expected, missing, pending, played: playedMatches.length };
 }
 
 function getPlayoffPlan(data) {
   const completion = getLeagueCompletion(data);
   const blocked = reason => ({ matches: [], reason, completion });
   if (Number(data.meta.playoffSpots) !== 4 || data.teams.length < 4) return blocked('La generación de semifinales requiere cuatro cupos de clasificación y al menos cuatro equipos.');
-  if (!completion.complete) return blocked(completion.missing > 0
-    ? 'Faltan ' + completion.missing + ' partidos por registrar en el calendario de liga. Completa la ida y la vuelta antes de generar las llaves.'
-    : 'Faltan ' + completion.pending + ' partidos de liga por terminar.');
+  if (!completion.complete) return blocked(completion.played === 0
+    ? 'Aún no hay partidos de liga jugados.'
+    : 'Faltan ' + completion.pending + ' partidos de liga por terminar hasta la última fecha jugada.');
   if (data.playoffMatches.length === 0) {
     const top = computeStandings(data).slice(0, 4);
     return { completion, label: 'Generar semifinales definitivas', matches: [
@@ -3814,7 +3817,7 @@ function PlayoffsTab({ data, isAdmin, onGeneratePlayoffs, onAddMatch, onAutoSche
       {data.teams.length < 2 && <EmptyState Icon={Award} title="Faltan equipos" text="Registra equipos antes de armar el cuadro de playoffs." />}
       {data.playoffMatches.length === 0 && <PlayoffSimulation data={data} />}
       <div className="playoff-generation">
-        <div><strong>{data.playoffMatches.length === 0 ? 'Llaves definitivas' : 'Cuadro oficial'}</strong><p>{plan.reason || (data.playoffMatches.length === 0 ? 'Liga completa. Los cuatro primeros de la tabla ya pueden pasar a semifinales.' : 'Las semifinales tienen ganador. Ya puedes crear la final y el tercer puesto.')}</p><small>{plan.completion.played} partidos de liga jugados · {plan.completion.pending} pendientes · {plan.completion.missing} por registrar</small></div>
+        <div><strong>{data.playoffMatches.length === 0 ? 'Llaves definitivas' : 'Cuadro oficial'}</strong><p>{plan.reason || (data.playoffMatches.length === 0 ? 'Liga completa. Los cuatro primeros de la tabla ya pueden pasar a semifinales.' : 'Las semifinales tienen ganador. Ya puedes crear la final y el tercer puesto.')}</p><small>{plan.completion.played} partidos de liga jugados · {plan.completion.pending} pendientes</small></div>
         {isAdmin && <button type="button" className="btn btn-primary" disabled={!plan.matches.length} onClick={onGeneratePlayoffs}><Award size={16} />{plan.label || (data.playoffMatches.length === 0 ? 'Generar semifinales definitivas' : 'Generar siguiente ronda')}</button>}
       </div>
 

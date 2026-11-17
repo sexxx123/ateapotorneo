@@ -3605,7 +3605,7 @@ function PartidosTab({ data, isAdmin, onAddMatch, onGenerateFixture, onGenerateR
 }
 
 const BRACKET_ROUNDS = ['Cuartos de Final', 'Semifinal', 'Final'];
-const BRACKET_SLOT_BASE_HEIGHT = 70;
+const BRACKET_SLOT_BASE_HEIGHT = 120;
 const BRACKET_CARD_WIDTH = 230;
 const BRACKET_GAP_WIDTH = 48;
 
